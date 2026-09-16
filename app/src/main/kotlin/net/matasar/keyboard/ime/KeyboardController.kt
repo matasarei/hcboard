@@ -88,6 +88,9 @@ class KeyboardController(
     /** Modifiers whose hold was used by another key, so the release must not count as a tap. */
     private val usedHolds = mutableSetOf<ModifierKey>()
 
+    /** Held modifiers whose long press wants to lock them; decided when the finger lifts. */
+    private val pendingLocks = mutableSetOf<ModifierKey>()
+
     private val uppercase: Boolean get() = shift.active || modifiers.isActive(ModifierKey.SHIFT)
 
     /** What a letter key shows and commits right now. */
@@ -102,6 +105,7 @@ class KeyboardController(
         shift = Latch()
         modifiers = Modifiers()
         usedHolds.clear()
+        pendingLocks.clear()
         editorActionId = info?.let { editorActionFor(it.imeOptions, it.inputType) }
         suggestions = emptyList()
         managerSheetOpen = false
@@ -111,6 +115,7 @@ class KeyboardController(
         shift = Latch()
         modifiers = Modifiers()
         usedHolds.clear()
+        pendingLocks.clear()
         endTrackpad()
         suggestions = emptyList()
         managerSheetOpen = false
@@ -214,9 +219,16 @@ class KeyboardController(
         modifiers = modifiers.hold(modifier)
     }
 
-    /** The finger lifts. A tap follows from the gesture unless another key used the hold. */
+    /**
+     * The finger lifts. After a short press the gesture's tap follows (ignored if another key
+     * used the hold). After a long press no tap follows: lock now, unless the hold was a chord.
+     */
     fun onModifierPressEnd(modifier: ModifierKey) {
         modifiers = modifiers.releaseHold(modifier)
+        if (pendingLocks.remove(modifier)) {
+            val chorded = usedHolds.remove(modifier)
+            if (!chorded) modifiers = modifiers.longPress(modifier)
+        }
     }
 
     /** Backspace held down: one more deletion per repeat tick. */
@@ -227,8 +239,10 @@ class KeyboardController(
     fun onKeyLongPress(key: Key) {
         when (val action = key.action) {
             KeyAction.Shift -> shift = shift.longPress()
-            // The gesture sends no tap after a long press, so nothing to ignore here.
-            is KeyAction.Modifier -> modifiers = modifiers.longPress(action.modifier)
+            // A held modifier waits for the finger to lift: the hold may still be a chord.
+            is KeyAction.Modifier ->
+                if (action.modifier in modifiers.held) pendingLocks += action.modifier
+                else modifiers = modifiers.longPress(action.modifier)
             else -> Unit
         }
     }

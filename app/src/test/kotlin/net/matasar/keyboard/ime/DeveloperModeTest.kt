@@ -105,6 +105,29 @@ class DeveloperModeTest {
     }
 
     @Test
+    fun `a long hold that chorded a key does not lock and does not swallow the next tap`() {
+        terminal()
+        controller.onModifierPressStart(ModifierKey.CTRL)
+        controller.onKeyLongPress(ctrl) // the gesture's long press fires while still held
+        controller.onKey(c)
+        controller.onModifierPressEnd(ModifierKey.CTRL)
+        assertEquals(listOf(KeyEvent.KEYCODE_C to ctrlMeta), port.keys)
+        assertEquals(LatchState.IDLE, controller.modifiers.state(ModifierKey.CTRL))
+        controller.onKey(ctrl)
+        assertEquals(LatchState.ARMED, controller.modifiers.state(ModifierKey.CTRL))
+    }
+
+    @Test
+    fun `a long hold with no chord locks on release`() {
+        terminal()
+        controller.onModifierPressStart(ModifierKey.CTRL)
+        controller.onKeyLongPress(ctrl)
+        assertEquals(LatchState.IDLE, controller.modifiers.state(ModifierKey.CTRL))
+        controller.onModifierPressEnd(ModifierKey.CTRL)
+        assertEquals(LatchState.LOCKED, controller.modifiers.state(ModifierKey.CTRL))
+    }
+
+    @Test
     fun `fn turns arrows into home and backspace into forward delete`() {
         terminal()
         controller.onKey(fn)
