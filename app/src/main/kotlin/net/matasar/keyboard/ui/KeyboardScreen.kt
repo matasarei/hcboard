@@ -131,10 +131,13 @@ private fun LayerGrid(controller: KeyboardController, feel: KeyboardFeel, popups
         KeyScreenCallbacks(controller, popups, feel, trackpadStepPx = with(density) { 16.dp.toPx() })
     }
     // Letter-key bounds in root coordinates, kept for the glide detector and the classifier.
-    val letterBounds = remember { mutableStateMapOf<Char, Rect>() }
+    // Rebuilt per layout: a language switch must not leave the previous alphabet's keys behind.
+    val letterBounds = remember(controller.phoneLayout) { mutableStateMapOf<Char, Rect>() }
     var gridOrigin by remember { mutableStateOf(Offset.Zero) }
     val longPressMs = LocalViewConfiguration.current.longPressTimeoutMillis
-    val glideListener = remember(controller, popups, feel) {
+    // Keyed on the bounds map too: a new layout brings a new map, and the detector must restart
+    // with it rather than keep classifying against the previous alphabet.
+    val glideListener = remember(controller, popups, feel, letterBounds) {
         object : GlideListener {
             override fun onGlideStart() {
                 popups.preview = null

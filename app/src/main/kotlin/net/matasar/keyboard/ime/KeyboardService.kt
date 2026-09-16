@@ -104,12 +104,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
             lifecycleScope.launch { prefs.setCurrentLanguage(language.tag) }
             loadGlideEngine(language.tag)
         }
-        lifecycleScope.launch {
-            val settings = prefs.settings.first()
-            controller.enabledLanguages = settings.enabledLanguages
-            Languages.byTag(settings.currentLanguage)?.let { controller.restoreLanguage(it) }
-            loadGlideEngine(controller.language.tag)
-        }
+        loadGlideEngine(controller.language.tag)
         lifecycleRegistry.currentState = Lifecycle.State.CREATED
         lifecycleScope.launch {
             prefs.settings.collect { settings ->
@@ -117,8 +112,13 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
                 controller.doubleTapLock = settings.doubleTapLock
                 controller.glideEnabled = settings.glide
                 controller.enabledLanguages = settings.enabledLanguages
-                if (controller.language.tag !in settings.enabledLanguages) {
-                    Languages.byTag(settings.enabledLanguages.first())?.let { controller.switchLanguage(it) }
+                // The persisted choice is authoritative: follow it when it changes under us, and
+                // fall back to the first enabled language when the current one was switched off.
+                val wanted = Languages.byTag(settings.currentLanguage)?.takeIf { it.tag in settings.enabledLanguages }
+                    ?: Languages.byTag(settings.enabledLanguages.first())
+                if (wanted != null && wanted != controller.language) {
+                    controller.restoreLanguage(wanted)
+                    loadGlideEngine(wanted.tag)
                 }
             }
         }
