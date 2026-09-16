@@ -34,4 +34,12 @@ class PickManagerComponentTest {
         assertNull(pickManagerComponent("", "", ""))
         assertNull(pickManagerComponent("PLACEHOLDER", null, null))
     }
+
+    @Test
+    fun `a placeholder at the head of the provider list is skipped for the real one`() {
+        assertEquals(
+            "io.enpass.app/.Cred",
+            pickManagerComponent(null, null, "PLACEHOLDER_HINT:io.enpass.app/.Cred"),
+        )
+    }
 }
