@@ -16,7 +16,24 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    // CI signs dev builds with a stable key from secrets, so a new build installs over the last
+    // one. Locally, without the variables, the debug build keeps the default debug key.
+    val devKeystore = System.getenv("HCBOARD_KEYSTORE")?.let(::file)?.takeIf { it.exists() }
+    if (devKeystore != null) {
+        signingConfigs {
+            create("dev") {
+                storeFile = devKeystore
+                storePassword = System.getenv("HCBOARD_KEYSTORE_PASSWORD")
+                keyAlias = System.getenv("HCBOARD_KEY_ALIAS") ?: "dev"
+                keyPassword = System.getenv("HCBOARD_KEY_PASSWORD")
+            }
+        }
+    }
+
     buildTypes {
+        debug {
+            if (devKeystore != null) signingConfig = signingConfigs.getByName("dev")
+        }
         release {
             isMinifyEnabled = true
             isShrinkResources = true
