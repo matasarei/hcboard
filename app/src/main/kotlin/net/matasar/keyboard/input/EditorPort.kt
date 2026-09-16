@@ -1,5 +1,6 @@
 package net.matasar.keyboard.input
 
+import android.os.SystemClock
 import android.view.KeyCharacterMap
 import android.view.KeyEvent
 import android.view.inputmethod.InputConnection
@@ -35,7 +36,7 @@ class AndroidEditorPort(private val connection: () -> InputConnection?) : Editor
 
     override fun sendKey(keyCode: Int, metaState: Int) {
         val ic = connection() ?: return
-        val now = System.currentTimeMillis()
+        val now = SystemClock.uptimeMillis()
         ic.sendKeyEvent(keyEvent(now, KeyEvent.ACTION_DOWN, keyCode, metaState))
         ic.sendKeyEvent(keyEvent(now, KeyEvent.ACTION_UP, keyCode, metaState))
     }
