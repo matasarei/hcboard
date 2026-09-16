@@ -16,6 +16,8 @@ import androidx.savedstate.SavedStateRegistry
 import androidx.savedstate.SavedStateRegistryController
 import androidx.savedstate.SavedStateRegistryOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
+import net.matasar.keyboard.input.AndroidEditorPort
+import net.matasar.keyboard.input.InputDispatcher
 import net.matasar.keyboard.ui.KeyboardScreen
 import net.matasar.keyboard.ui.theme.KeyboardTheme
 
@@ -37,6 +39,8 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
     override val viewModelStore: ViewModelStore get() = store
     override val savedStateRegistry: SavedStateRegistry get() = savedStateController.savedStateRegistry
 
+    private val controller = KeyboardController(InputDispatcher(AndroidEditorPort { currentInputConnection }))
+
     override fun onCreate() {
         super.onCreate()
         savedStateController.performRestore(null)
@@ -52,7 +56,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
             setContent {
                 KeyboardTheme {
-                    KeyboardScreen()
+                    KeyboardScreen(controller)
                 }
             }
         }
@@ -60,6 +64,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
 
     override fun onStartInputView(editorInfo: EditorInfo?, restarting: Boolean) {
         super.onStartInputView(editorInfo, restarting)
+        controller.onStartInput(editorInfo)
         lifecycleRegistry.currentState = Lifecycle.State.RESUMED
     }
 
@@ -68,6 +73,11 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
         if (lifecycleRegistry.currentState == Lifecycle.State.RESUMED) {
             lifecycleRegistry.currentState = Lifecycle.State.STARTED
         }
+    }
+
+    override fun onFinishInput() {
+        super.onFinishInput()
+        controller.onFinishInput()
     }
 
     override fun onDestroy() {
