@@ -106,8 +106,9 @@ internal fun backspaceKey(width: Float = 1.5f) =
 internal fun enterKey(width: Float = 1.5f) =
     Key("enter", KeyAction.Enter, width, KeyStyle.ACTION, KeyIcon.ENTER)
 
+/** The space bar shows the layout's language, the way Gboard does. */
 internal fun spaceKey(width: Float = 5f) =
-    Key("space", KeyAction.Space, width, KeyStyle.SPACE)
+    Key("English", KeyAction.Space, width, KeyStyle.SPACE)
 
 /** Long-press accents for the letter layers; the first entry is what a plain long press selects. */
 internal val Accents: Map<Char, List<String>> = mapOf(

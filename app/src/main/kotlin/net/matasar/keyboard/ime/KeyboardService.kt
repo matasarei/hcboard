@@ -74,6 +74,13 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
 
     override fun onCreateInputView(): View {
         lifecycleRegistry.currentState = Lifecycle.State.STARTED
+        // Compose resolves its window recomposer from the window's root view, so the owners
+        // have to be on the IME window's decor view as well as on the ComposeView itself.
+        window?.window?.decorView?.let { decor ->
+            decor.setViewTreeLifecycleOwner(this)
+            decor.setViewTreeViewModelStoreOwner(this)
+            decor.setViewTreeSavedStateRegistryOwner(this)
+        }
         return ComposeView(this).also { inputView = it }.apply {
             setViewTreeLifecycleOwner(this@KeyboardService)
             setViewTreeViewModelStoreOwner(this@KeyboardService)
