@@ -26,6 +26,9 @@ import net.matasar.keyboard.layout.Key
 import net.matasar.keyboard.layout.KeyAction
 import net.matasar.keyboard.layout.KeyIcon
 import net.matasar.keyboard.layout.KeyboardLayout
+import net.matasar.keyboard.layout.Language
+import net.matasar.keyboard.layout.Languages
+import net.matasar.keyboard.layout.phoneLayout
 import net.matasar.keyboard.layout.LayerId
 import net.matasar.keyboard.layout.ModifierKey
 import net.matasar.keyboard.layout.PhoneLayout
@@ -50,6 +53,47 @@ class KeyboardController(
 ) {
     var layer: LayerId by mutableStateOf(LayerId.LETTERS)
         private set
+
+    /** The language being typed; its letters layer, accents, space-bar name and word list. */
+    var language: Language by mutableStateOf(Languages.english)
+        private set
+
+    /** Tags of the languages the user switched on; never empty. */
+    var enabledLanguages: Set<String> by mutableStateOf(setOf(Languages.english.tag))
+
+    /** Called when the language changes by a key, the picker or the system, so the service can persist and reload. */
+    var onLanguageChanged: ((Language) -> Unit)? = null
+
+    /** Whether the language picker sheet is open. */
+    var languageSheetOpen: Boolean by mutableStateOf(false)
+
+    /** The globe key exists only when there is something to switch to. */
+    val withGlobe: Boolean get() = enabledLanguages.size > 1
+
+    private val layoutCache = HashMap<Pair<String, Boolean>, KeyboardLayout>()
+
+    /** The phone layout for the current language, built once per language and globe state. */
+    val phoneLayout: KeyboardLayout
+        get() = layoutCache.getOrPut(language.tag to withGlobe) { phoneLayout(language, withGlobe) }
+
+    /** The enabled languages in cycling order. */
+    val enabledLanguageList: List<Language>
+        get() = Languages.all.filter { it.tag in enabledLanguages }.ifEmpty { listOf(Languages.english) }
+
+    fun switchLanguage(to: Language) {
+        languageSheetOpen = false
+        if (to == language) return
+        language = to
+        clearTextSuggestions()
+        onLanguageChanged?.invoke(to)
+    }
+
+    /** Sets the language without reporting it back: for restoring the persisted choice or a system subtype change. */
+    fun restoreLanguage(to: Language) {
+        language = to
+    }
+
+    fun nextLanguage() = switchLanguage(Languages.next(language, enabledLanguages))
 
     var shift: Latch by mutableStateOf(Latch())
         private set
@@ -139,6 +183,7 @@ class KeyboardController(
         editorActionId = info?.let { editorActionFor(it.imeOptions, it.inputType) }
         suggestions = emptyList()
         managerSheetOpen = false
+        languageSheetOpen = false
         clearTextSuggestions()
     }
 
@@ -216,7 +261,11 @@ class KeyboardController(
             }
             is KeyAction.Modifier -> onModifierTap(action.modifier)
             KeyAction.HideKeyboard -> systemActions?.hideKeyboard()
-            KeyAction.SwitchLanguage -> { systemActions?.switchToNextInputMethod(); afterKey() }
+            // With one language enabled the globe is absent and Fn+Space goes to the system switcher.
+            KeyAction.SwitchLanguage -> {
+                if (withGlobe) nextLanguage() else systemActions?.switchToNextInputMethod()
+                afterKey()
+            }
         }
     }
 
@@ -271,6 +320,7 @@ class KeyboardController(
 
     fun onKeyLongPress(key: Key) {
         when (val action = key.action) {
+            KeyAction.SwitchLanguage -> languageSheetOpen = withGlobe
             KeyAction.Shift -> shift = shift.longPress()
             // A held modifier waits for the finger to lift: the hold may still be a chord.
             is KeyAction.Modifier ->
