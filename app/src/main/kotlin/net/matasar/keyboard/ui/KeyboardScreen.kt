@@ -26,6 +26,9 @@ import net.matasar.keyboard.layout.Key
 import net.matasar.keyboard.layout.KeyAction
 import net.matasar.keyboard.layout.KeyIcon
 import net.matasar.keyboard.layout.KeyStyle
+import net.matasar.keyboard.layout.ModifierKey
+import net.matasar.keyboard.layout.PhoneLayout
+import net.matasar.keyboard.layout.WideLayout
 import net.matasar.keyboard.ui.theme.KeyboardColors
 import net.matasar.keyboard.ui.theme.LocalKeyboardColors
 
@@ -69,35 +72,43 @@ fun KeyboardScreen(controller: KeyboardController, actions: ToolbarActions, feel
 
 @Composable
 private fun LayerGrid(controller: KeyboardController, feel: KeyboardFeel, popups: PopupState) {
-    val layer = controller.layout.layer(controller.layer)
     val colors = LocalKeyboardColors.current
     val density = LocalDensity.current
     val callbacks = remember(controller, popups, feel, density) {
         KeyScreenCallbacks(controller, popups, feel, trackpadStepPx = with(density) { 16.dp.toPx() })
     }
     BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
-        val unitWidth = (maxWidth - Dimens.sidePadding * 2 - Dimens.keyGap * (layer.units.toInt() - 1)) / layer.units
+        // 600 dp and wider (a Fold's inner display, a tablet) gets the 60% board.
+        val wide = maxWidth >= Dimens.wideBreakpoint
+        val layout = if (wide) WideLayout else PhoneLayout
+        val layer = layout.layers[controller.layer] ?: layout.layers.values.first()
+        val sidePadding = if (wide) Dimens.wideSidePadding else Dimens.sidePadding
+        val keyHeight = (if (wide) Dimens.wideKeyHeight else Dimens.keyHeight) * feel.heightScale
+        val rowGap = if (wide) Dimens.wideRowGap else Dimens.rowGap
+        val unitWidth = (maxWidth - sidePadding * 2 - Dimens.keyGap * (layer.units.toInt() - 1)) / layer.units
+        val fnActive = controller.modifiers.isActive(ModifierKey.FN)
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = Dimens.topPadding, bottom = Dimens.bottomPadding),
-            verticalArrangement = Arrangement.spacedBy(Dimens.rowGap),
+            verticalArrangement = Arrangement.spacedBy(rowGap),
         ) {
-            if (controller.developerMode) {
-                ModifierStrip(controller, feel, callbacks, unitWidth, keyHeight = Dimens.keyHeight * feel.heightScale)
+            if (controller.developerMode && !wide) {
+                ModifierStrip(controller, feel, callbacks, unitWidth, keyHeight = keyHeight)
             }
             for (row in layer.rows) {
-                KeyRow(row = row, unitWidth = unitWidth, gap = Dimens.keyGap, modifier = Modifier.padding(horizontal = Dimens.sidePadding)) { key ->
+                KeyRow(row = row, unitWidth = unitWidth, gap = Dimens.keyGap, modifier = Modifier.padding(horizontal = sidePadding)) { key ->
                     KeyButton(
                         key = key,
                         label = controller.displayLabel(key),
                         icon = iconFor(key, controller),
                         visual = visualFor(key, controller, colors),
-                        height = Dimens.keyHeight * feel.heightScale,
+                        height = keyHeight,
                         callbacks = callbacks,
                         haptics = feel.haptics,
                         keyBorders = feel.keyBorders,
                         showLabel = !controller.trackpad,
+                        legendColor = if (fnActive) colors.armedRing else null,
                     )
                 }
             }
@@ -178,14 +189,15 @@ private fun Key.showsPreview(): Boolean =
     style == KeyStyle.LETTER && icon == null && label.length == 1 && action != KeyAction.Space
 
 private fun iconFor(key: Key, controller: KeyboardController): KeyIcon? = when {
-    key.action == KeyAction.Shift && controller.shift.active -> KeyIcon.SHIFT_FILLED
+    key.action == KeyAction.Shift && key.icon != null && controller.shift.active -> KeyIcon.SHIFT_FILLED
     key.action == KeyAction.Enter -> controller.enterIcon
     else -> key.icon
 }
 
 /** Background and foreground for a key, including the shift key's armed and locked looks. */
 internal fun visualFor(key: Key, controller: KeyboardController, colors: KeyboardColors): KeyVisual {
-    if (key.action == KeyAction.Shift) {
+    if (key.action is KeyAction.Modifier) return modifierVisual(key, controller, colors)
+    if (key.action == KeyAction.Shift || key.action == KeyAction.CapsLock) {
         return when (controller.shift.state) {
             LatchState.IDLE -> KeyVisual(colors.functionKey, colors.onFunctionKey)
             LatchState.ARMED -> KeyVisual(colors.armed, colors.onArmed, ring = colors.armedRing)

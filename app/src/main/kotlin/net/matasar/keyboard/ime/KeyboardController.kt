@@ -10,6 +10,7 @@ import net.matasar.keyboard.input.EditingAction
 import net.matasar.keyboard.input.InputDispatcher
 import net.matasar.keyboard.input.KeyStroke
 import net.matasar.keyboard.input.Latch
+import net.matasar.keyboard.input.LatchState
 import net.matasar.keyboard.input.Modifiers
 import net.matasar.keyboard.input.TrackpadGesture
 import net.matasar.keyboard.input.keyStrokeFor
@@ -20,6 +21,12 @@ import net.matasar.keyboard.layout.KeyboardLayout
 import net.matasar.keyboard.layout.LayerId
 import net.matasar.keyboard.layout.ModifierKey
 import net.matasar.keyboard.layout.PhoneLayout
+
+/** The two things a key can ask of the service rather than the editor. */
+interface SystemActions {
+    fun hideKeyboard()
+    fun switchToNextInputMethod()
+}
 
 /**
  * Keyboard state and the meaning of every key tap. Pure Kotlin over Compose snapshot state, so
@@ -68,6 +75,9 @@ class KeyboardController(
     var editingShortcutsInTextFields: Boolean = true
 
     private var trackpadGesture: TrackpadGesture? = null
+
+    /** Hide and language switching belong to the service; it plugs in here. */
+    var systemActions: SystemActions? = null
 
     /** Modifiers whose hold was used by another key, so the release must not count as a tap. */
     private val usedHolds = mutableSetOf<ModifierKey>()
@@ -127,9 +137,11 @@ class KeyboardController(
                 afterKey()
             }
             is KeyAction.Text -> {
-                if (modifiers.anyMetaActive) sendCombo(action.text, key) else dispatcher.commitText(action.text)
+                val text = if (uppercase && action.shifted != null) action.shifted else action.text
+                if (modifiers.anyMetaActive) sendCombo(text, key) else dispatcher.commitText(text)
                 afterKey()
             }
+            KeyAction.CapsLock -> shift = if (shift.state == LatchState.LOCKED) Latch() else shift.longPress()
             KeyAction.Space -> {
                 if (modifiers.anyMetaActive) sendCombo(" ", key) else dispatcher.commitText(" ")
                 afterKey()
@@ -155,7 +167,8 @@ class KeyboardController(
                 afterKey()
             }
             is KeyAction.Modifier -> onModifierTap(action.modifier)
-            KeyAction.HideKeyboard, KeyAction.SwitchLanguage -> Unit // handled by the service and step 6
+            KeyAction.HideKeyboard -> systemActions?.hideKeyboard()
+            KeyAction.SwitchLanguage -> { systemActions?.switchToNextInputMethod(); afterKey() }
         }
     }
 

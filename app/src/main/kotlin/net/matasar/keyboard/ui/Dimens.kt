@@ -17,4 +17,10 @@ object Dimens {
     val labelSize = 12.sp
     val legendSize = 9.sp
     val popupRadius = 16.dp
+
+    /** From here up the window gets the 60% board. */
+    val wideBreakpoint = 600.dp
+    val wideKeyHeight = 46.dp
+    val wideRowGap = 10.dp
+    val wideSidePadding = 8.dp
 }

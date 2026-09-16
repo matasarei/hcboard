@@ -3,6 +3,10 @@ package net.matasar.keyboard.layout
 /** Which page of keys is showing. */
 enum class LayerId { LETTERS, SYMBOLS, CODE }
 
+/** A key that shows and sends a shifted symbol on top of its main one. */
+internal fun dual(main: String, shifted: String, fnLegend: String? = null, fnAction: KeyAction? = null, width: Float = 1f) =
+    Key(main, KeyAction.Text(main, shifted), width, shiftedLabel = shifted, fnLegend = fnLegend, fnAction = fnAction)
+
 /** The latching modifiers. Shift here is the combination modifier on the strip and the 60% board. */
 enum class ModifierKey { CTRL, ALT, SHIFT, META, FN }
 
@@ -20,8 +24,11 @@ sealed interface KeyAction {
     /** A letter with a case: what is committed follows shift. */
     data class Letter(val lower: String, val upper: String) : KeyAction
 
-    /** Any text committed as-is. */
-    data class Text(val text: String) : KeyAction
+    /** Any text committed as-is; [shifted] is what goes out while shift is active (dual legends). */
+    data class Text(val text: String, val shifted: String? = null) : KeyAction
+
+    /** Caps Lock on the 60% board: toggles locked shift. */
+    data object CapsLock : KeyAction
 
     data object Space : KeyAction
     data object Backspace : KeyAction

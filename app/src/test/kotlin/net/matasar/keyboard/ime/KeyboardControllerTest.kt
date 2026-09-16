@@ -77,3 +77,37 @@ class KeyboardControllerTest {
         assertNull(KeyboardController.editorActionFor(EditorInfo.IME_ACTION_DONE, InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_MULTI_LINE))
     }
 }
+
+class WideBoardControllerTest {
+    private val port = net.matasar.keyboard.input.FakeEditorPort()
+    private val controller = KeyboardController(net.matasar.keyboard.input.InputDispatcher(port), layout = net.matasar.keyboard.layout.WideLayout, clock = { 1000L })
+    private val board = net.matasar.keyboard.layout.SixtyPercentLayer
+    private fun key(label: String) = board.rows.flatMap { it.keys }.first { it.label == label }
+
+    @Test
+    fun `shift then a digit sends the shifted symbol`() {
+        controller.onKey(key("Shift"))
+        controller.onKey(key("1"))
+        controller.onKey(key("1"))
+        assertEquals(listOf("!", "1"), port.committed)
+    }
+
+    @Test
+    fun `caps toggles locked shift`() {
+        controller.onKey(key("Caps"))
+        assertEquals(LatchState.LOCKED, controller.shift.state)
+        controller.onKey(key("a"))
+        controller.onKey(key("Caps"))
+        controller.onKey(key("a"))
+        assertEquals(listOf("A", "a"), port.committed)
+    }
+
+    @Test
+    fun `fn plus a digit is a function key and fn plus i is an arrow`() {
+        controller.onKey(key("Fn"))
+        controller.onKey(key("2"))
+        controller.onKey(key("Fn"))
+        controller.onKey(key("i"))
+        assertEquals(listOf(android.view.KeyEvent.KEYCODE_F2 to 0, android.view.KeyEvent.KEYCODE_DPAD_UP to 0), port.keys)
+    }
+}

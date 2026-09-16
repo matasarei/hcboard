@@ -44,7 +44,7 @@ import net.matasar.keyboard.ui.theme.KeyboardTheme
  * the IME callbacks: created in [onCreate], started while an input view exists, resumed while it
  * is shown, destroyed in [onDestroy].
  */
-class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwner, SavedStateRegistryOwner, ToolbarActions {
+class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwner, SavedStateRegistryOwner, ToolbarActions, SystemActions {
 
     private val lifecycleRegistry = LifecycleRegistry(this)
     private val store = ViewModelStore()
@@ -62,6 +62,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
     override fun onCreate() {
         super.onCreate()
         prefs = Prefs(applicationContext)
+        controller.systemActions = this
         savedStateController.performRestore(null)
         lifecycleRegistry.currentState = Lifecycle.State.CREATED
         lifecycleScope.launch {
@@ -169,5 +170,9 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
 
     override fun hideKeyboard() {
         requestHideSelf(0)
+    }
+
+    override fun switchToNextInputMethod() {
+        switchToNextInputMethod(false)
     }
 }
