@@ -1,0 +1,93 @@
+name: Build
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Test, lint and build the debug APK
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      # A stable signing key lets a new dev build install over the previous one. Without the
+      # secrets the runner's throwaway debug key is used and each new build needs an uninstall.
+      - name: Prepare the dev signing key
+        if: ${{ env.DEV_KEYSTORE_BASE64 != '' }}
+        env:
+          DEV_KEYSTORE_BASE64: ${{ secrets.DEV_KEYSTORE_BASE64 }}
+        run: |
+          echo "$DEV_KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/dev.keystore"
+          echo "HCBOARD_KEYSTORE=$RUNNER_TEMP/dev.keystore" >> "$GITHUB_ENV"
+
+      - name: Test, lint, assemble
+        env:
+          HCBOARD_KEYSTORE_PASSWORD: ${{ secrets.DEV_KEYSTORE_PASSWORD }}
+          HCBOARD_KEY_ALIAS: ${{ secrets.DEV_KEY_ALIAS }}
+          HCBOARD_KEY_PASSWORD: ${{ secrets.DEV_KEY_PASSWORD }}
+        run: ./gradlew :app:testDebugUnitTest :app:lintDebug :app:assembleDebug --no-daemon
+
+      - name: Name the APK
+        run: cp app/build/outputs/apk/debug/app-debug.apk hcboard-dev.apk
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hcboard-dev
+          path: hcboard-dev.apk
+          if-no-files-found: error
+
+      - name: Keep the test and lint reports on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: reports
+          path: |
+            app/build/reports/tests/
+            app/build/reports/lint-results-debug.html
+          if-no-files-found: ignore
+
+  dev-release:
+    name: Refresh the dev pre-release
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: hcboard-dev
+
+      # One rolling pre-release: the previous "dev" release and its tag are removed and
+      # recreated on this commit, so the download link never changes and nothing piles up.
+      - name: Replace the dev release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete dev --cleanup-tag --yes || true
+          notes="Latest build of \`main\` at ${GITHUB_SHA::7}: $(git log -1 --pretty=%s)
+
+          Built $(date -u +'%Y-%m-%d %H:%M UTC'). Debug build for testing, not a release.
+
+          Install: download \`hcboard-dev.apk\`, open it on the phone (allow installs from your browser or files app), then enable and select **Keyboard** under Settings › System › Keyboard › On-screen keyboard. Or with adb: \`adb install -r hcboard-dev.apk\`."
+          gh release create dev hcboard-dev.apk \
+            --prerelease \
+            --title "Dev build" \
+            --notes "$notes" \
+            --target "$GITHUB_SHA"
