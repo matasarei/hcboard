@@ -175,18 +175,25 @@ fun KeyButton(
             )
         } else {
             val small = key.style != KeyStyle.LETTER || label.length > 1
+            // The shifted symbol sits top-left, clear of the Fn legend top-right, and the main
+            // glyph shrinks so both fit in a 46 dp key.
             if (topLegend != null) {
                 Text(
                     text = topLegend,
                     color = colors.subtle,
-                    fontSize = 11.sp,
-                    modifier = Modifier.align(Alignment.TopCenter).padding(top = 4.dp),
+                    fontSize = Dimens.topLegendSize,
+                    modifier = Modifier.align(Alignment.TopStart).padding(top = 3.dp, start = 7.dp),
                 )
             }
             Text(
                 text = label,
                 color = visual.foreground,
-                fontSize = if (small) Dimens.labelSize else if (compact) Dimens.compactLetterSize else Dimens.letterSize,
+                fontSize = when {
+                    small -> Dimens.labelSize
+                    topLegend != null -> Dimens.dualMainSize
+                    compact -> Dimens.compactLetterSize
+                    else -> Dimens.letterSize
+                },
                 fontWeight = if (small) FontWeight.Medium else FontWeight.Normal,
                 maxLines = 1,
                 modifier = when {
