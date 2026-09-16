@@ -16,6 +16,8 @@ import net.matasar.keyboard.ui.theme.LocalKeyboardColors
 import androidx.compose.runtime.SideEffect
 import android.view.View
 import android.view.inputmethod.EditorInfo
+import android.view.inputmethod.InputMethodSubtype
+import net.matasar.keyboard.layout.Languages
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.ComposeView
@@ -68,6 +70,22 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
     override val savedStateRegistry: SavedStateRegistry get() = savedStateController.savedStateRegistry
 
     private val controller = KeyboardController(InputDispatcher(AndroidEditorPort { currentInputConnection }))
+
+    /** One glide engine per language, built on first use and kept; the word lists are small. */
+    private val glideEngines = HashMap<String, GlideEngine>()
+
+    /** Points the controller at [tag]'s engine, loading the word list off the main thread if needed. */
+    private fun loadGlideEngine(tag: String) {
+        glideEngines[tag]?.let { controller.glideEngine = it; return }
+        controller.glideEngine = null
+        lifecycleScope.launch(Dispatchers.IO) {
+            val engine = GlideEngine.load(applicationContext, tag)
+            withContext(Dispatchers.Main) {
+                glideEngines[tag] = engine
+                if (controller.language.tag == tag) controller.glideEngine = engine
+            }
+        }
+    }
     private lateinit var prefs: Prefs
     private val autofillActions by lazy { AndroidAutofillActions(this) }
     private var inputView: View? = null
@@ -82,10 +100,15 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
         controller.systemActions = this
         controller.scope = lifecycleScope
         savedStateController.performRestore(null)
-        // The word list is a few hundred kilobytes; load it off the main thread once.
-        lifecycleScope.launch(Dispatchers.IO) {
-            val engine = GlideEngine.load(applicationContext)
-            withContext(Dispatchers.Main) { controller.glideEngine = engine }
+        controller.onLanguageChanged = { language ->
+            lifecycleScope.launch { prefs.setCurrentLanguage(language.tag) }
+            loadGlideEngine(language.tag)
+        }
+        lifecycleScope.launch {
+            val settings = prefs.settings.first()
+            controller.enabledLanguages = settings.enabledLanguages
+            Languages.byTag(settings.currentLanguage)?.let { controller.restoreLanguage(it) }
+            loadGlideEngine(controller.language.tag)
         }
         lifecycleRegistry.currentState = Lifecycle.State.CREATED
         lifecycleScope.launch {
@@ -93,6 +116,10 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
                 controller.editingShortcutsInTextFields = settings.editingShortcuts
                 controller.doubleTapLock = settings.doubleTapLock
                 controller.glideEnabled = settings.glide
+                controller.enabledLanguages = settings.enabledLanguages
+                if (controller.language.tag !in settings.enabledLanguages) {
+                    Languages.byTag(settings.enabledLanguages.first())?.let { controller.switchLanguage(it) }
+                }
             }
         }
     }
@@ -171,6 +198,14 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
     override fun onFinishInput() {
         super.onFinishInput()
         controller.onFinishInput()
+    }
+
+    /** Android's own language switcher picked a subtype: follow it. */
+    override fun onCurrentInputMethodSubtypeChanged(newSubtype: InputMethodSubtype) {
+        super.onCurrentInputMethodSubtypeChanged(newSubtype)
+        val language = Languages.byTag(newSubtype.locale.replace('-', '_')) ?: Languages.byTag(newSubtype.languageTag.replace('-', '_')) ?: return
+        if (language.tag !in controller.enabledLanguages) lifecycleScope.launch { prefs.setLanguageEnabled(language.tag, true) }
+        controller.switchLanguage(language)
     }
 
     override fun onDestroy() {

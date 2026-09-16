@@ -17,13 +17,13 @@ class WordListTest {
     }
 
     @Test
-    fun `the bundled english list is large, sorted by frequency and letters only`() {
+    fun `the bundled english list is large, sorted by frequency and letters only, any case`() {
         val file = File("src/main/assets/dictionaries/en_US.txt")
         assertTrue(file.exists(), "asset missing: ${file.absolutePath}")
         val list = file.bufferedReader().useLines { WordList.parse(it) }
         assertTrue(list.size > 30_000, "only ${list.size} words")
         assertEquals("the", list.words.first())
         assertTrue(list.frequency("hello") > 0)
-        assertTrue(list.words.all { word -> word.all { it in 'a'..'z' } })
+        assertTrue(list.words.all { word -> word.all { it.isLetter() } })
     }
 }

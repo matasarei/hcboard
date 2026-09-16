@@ -21,7 +21,8 @@
  * gesture is classified in one call from a list of points instead of being
  * accumulated; the per-subtype pruner and suggestion caches are dropped and
  * androidx.collection is not needed. The algorithm, thresholds and the
- * Gesture and Pruner classes are unchanged.
+ * Gesture and Pruner classes are unchanged, except that letters with no key
+ * and no Unicode decomposition (ß, œ, ł and the like) map to a fallback key.
  */
 
 package net.matasar.keyboard.input.glide
@@ -36,6 +37,23 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.pow
 import kotlin.math.sqrt
+
+/**
+ * Letters that neither have a key nor decompose to one: typed on the key of their nearest Latin
+ * letter. (hcboard addition.)
+ */
+internal val FallbackKeyChars: Map<Char, Char> = mapOf(
+    'ß' to 's', 'æ' to 'a', 'œ' to 'o', 'ø' to 'o', 'ł' to 'l', 'đ' to 'd', 'ð' to 'd', 'þ' to 't', 'ı' to 'i', 'ĳ' to 'i',
+)
+
+/** The base key for [c]: the letter itself, its Unicode base letter, or a fallback; null when there is none. (hcboard addition.) */
+internal fun baseKeyChar(c: Char, keysByCharacter: Map<Char, GlideKey>): Char? {
+    val lc = Character.toLowerCase(c)
+    if (lc in keysByCharacter) return lc
+    val base = Normalizer.normalize(lc.toString(), Normalizer.Form.NFD)[0]
+    if (base in keysByCharacter) return base
+    return FallbackKeyChars[lc]?.takeIf { it in keysByCharacter }
+}
 
 /**
  * Classifies a glide gesture by comparing it with the "ideal gesture" of every plausible word.
@@ -257,11 +275,9 @@ class GlideClassifier(private val wordList: WordList) {
 
         companion object {
             private fun getFirstKeyLastKey(word: String, keysByCharacter: Map<Char, GlideKey>): Pair<Char, Char>? {
-                val firstBaseChar = Normalizer.normalize(word[0].toString(), Normalizer.Form.NFD)[0]
-                val lastBaseChar = Normalizer.normalize(word[word.length - 1].toString(), Normalizer.Form.NFD)[0]
-                val firstKey = keysByCharacter[firstBaseChar] ?: return null
-                val lastKey = keysByCharacter[lastBaseChar] ?: return null
-                return firstKey.char to lastKey.char
+                val firstKey = baseKeyChar(word[0], keysByCharacter) ?: return null
+                val lastKey = baseKeyChar(word[word.length - 1], keysByCharacter) ?: return null
+                return firstKey to lastKey
             }
 
             /** Finds a chosen number of keys closest to a given point on the keyboard. */
@@ -300,15 +316,8 @@ class GlideClassifier(private val wordList: WordList) {
                 // Add points for each key
                 for (c in word) {
                     val lc = Character.toLowerCase(c)
-                    var key = keysByCharacter[lc]
-                    if (key == null) {
-                        // Try finding the base character instead, e.g., the "e" key instead of "é"
-                        val baseCharacter: Char = Normalizer.normalize(lc.toString(), Normalizer.Form.NFD)[0]
-                        key = keysByCharacter[baseCharacter]
-                        if (key == null) {
-                            continue
-                        }
-                    }
+                    // The key itself, the base letter ("e" for "é"), or a fallback ("s" for "ß").
+                    val key = baseKeyChar(lc, keysByCharacter)?.let { keysByCharacter[it] } ?: continue
 
                     // We add a little loop on the key for duplicate letters
                     // so that we can differentiate words like pool and poll, lull and lul, etc...
