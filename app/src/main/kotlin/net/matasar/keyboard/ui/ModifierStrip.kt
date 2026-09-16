@@ -28,14 +28,14 @@ fun ModifierStrip(
     KeyRow(row = DeveloperStrip, unitWidth = unitWidth, gap = Dimens.keyGap, modifier = modifier.padding(horizontal = Dimens.sidePadding)) { key ->
         // Phone-width strip keys are 35 dp: no room for an icon plus a legend. While Fn is
         // active the arrow keys show their Fn meaning as the label instead of the icon.
-        val showFnMeaning = fnActive && key.fnLegend != null
+        val fnWord = key.fnLegend?.takeIf { fnActive }
         KeyButton(
             key = key,
-            label = if (showFnMeaning) key.fnLegend!! else key.label,
-            icon = if (showFnMeaning) null else key.icon,
+            label = fnWord ?: key.label,
+            icon = if (fnWord != null) null else key.icon,
             legend = null,
             labelSize = Dimens.stripLabelSize,
-            visual = if (showFnMeaning) KeyVisual(colors.armed, colors.onArmed) else modifierVisual(key, controller, colors),
+            visual = if (fnWord != null) KeyVisual(colors.armed, colors.onArmed) else modifierVisual(key, controller, colors),
             height = keyHeight,
             callbacks = callbacks,
             haptics = feel.haptics,
