@@ -92,6 +92,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
             prefs.settings.collect { settings ->
                 controller.editingShortcutsInTextFields = settings.editingShortcuts
                 controller.doubleTapLock = settings.doubleTapLock
+                controller.glideEnabled = settings.glide
             }
         }
     }
@@ -126,6 +127,8 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
                             previews = settings.previews,
                             keyBorders = settings.keyBorders,
                             heightScale = settings.heightScale,
+                            glide = settings.glide,
+                            glideTrail = settings.glideTrail,
                         ),
                     )
                 }

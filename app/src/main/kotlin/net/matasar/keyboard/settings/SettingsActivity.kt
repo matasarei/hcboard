@@ -103,6 +103,10 @@ private fun SettingsScreen(settings: Settings, prefs: Prefs) {
         SwitchRow(stringResource(R.string.settings_haptics), settings.haptics) { scope.launch { prefs.setHaptics(it) } }
         SwitchRow(stringResource(R.string.settings_previews), settings.previews) { scope.launch { prefs.setPreviews(it) } }
 
+        Section(stringResource(R.string.settings_section_glide))
+        SwitchRow(stringResource(R.string.settings_glide), settings.glide) { scope.launch { prefs.setGlide(it) } }
+        SwitchRow(stringResource(R.string.settings_glide_trail), settings.glideTrail) { scope.launch { prefs.setGlideTrail(it) } }
+
         Section(stringResource(R.string.settings_section_developer))
         SwitchRow(stringResource(R.string.settings_editing_shortcuts), settings.editingShortcuts) { scope.launch { prefs.setEditingShortcuts(it) } }
         SwitchRow(stringResource(R.string.settings_double_tap_lock), settings.doubleTapLock) { scope.launch { prefs.setDoubleTapLock(it) } }

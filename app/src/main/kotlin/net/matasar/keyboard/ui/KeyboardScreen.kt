@@ -95,7 +95,11 @@ fun KeyboardScreen(
                     chipText = if (controller.trackpad) "Move cursor" else controller.modifiers.chipText(),
                     actions = actions,
                     sheetOpen = controller.managerSheetOpen,
-                    center = if (controller.suggestions.isNotEmpty()) ({ SuggestionStrip(controller.suggestions) }) else null,
+                    center = when {
+                        controller.suggestions.isNotEmpty() -> ({ SuggestionStrip(controller.suggestions) })
+                        controller.textSuggestions.isNotEmpty() -> ({ TextSuggestionStrip(controller.textSuggestions, onPick = controller::pickSuggestion) })
+                        else -> null
+                    },
                 )
                 LayerGrid(controller, feel, popups)
             }
