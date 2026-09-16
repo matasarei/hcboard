@@ -1,0 +1,13 @@
+# gku working files — plans, reports and the per-machine profile
+.tasks/
+.gku/
+.claude/repo-profile.json
+
+# Android / Gradle
+build/
+.gradle/
+local.properties
+.idea/
+*.iml
+.kotlin/
+captures/
