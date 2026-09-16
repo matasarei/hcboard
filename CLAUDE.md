@@ -49,6 +49,16 @@ emulator profile is `medium_phone`; boot it headless with
   key, double tap or long press locks, holding and tapping another key chords; modifiers persist
   across layer switches and reset only on a new field. Ctrl+A/C/V/X in ordinary text fields use
   `performContextMenuAction`; in `TYPE_NULL` fields (terminals) they stay key events.
+- **Glide typing:** `input/glide/GlideClassifier.kt` is an approved Apache-2.0 copy of FlorisBoard's
+  classifier with its header kept; do not "clean it up". Word lists live in `assets/dictionaries/`
+  and are built by `scripts/build-wordlist.py` from AOSP (Apache-2.0) and, for Ukrainian, Helium314's
+  CC BY 4.0 list; regenerate, never hand-edit. The grid's letter-bounds registry is rebuilt per
+  layout and the glide listener is keyed on it, or a language switch classifies against the old
+  alphabet. The trail is drawn from the root's draw pass: a sized canvas grows the IME window
+  mid-gesture and shifts every later pointer position.
+- **Languages** are data in `layout/Languages.kt`: rows, accents, native name. A layer sizes itself to
+  its widest row. The globe key exists only with two or more languages enabled; the persisted
+  current language is authoritative and the service follows changes to it.
 - **Privacy rules:** no `INTERNET` permission, ever; never log typed text or anything from a
   password field; never read or cache the content of inline autofill suggestions, only host the
   views the manager draws.
