@@ -1,8 +1,13 @@
 package net.matasar.keyboard.ime
 
+import android.content.ClipboardManager
+import android.content.Context
+import android.content.Intent
 import android.inputmethodservice.InputMethodService
 import android.view.View
 import android.view.inputmethod.EditorInfo
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.lifecycle.Lifecycle
@@ -10,16 +15,25 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LifecycleRegistry
 import androidx.lifecycle.ViewModelStore
 import androidx.lifecycle.ViewModelStoreOwner
+import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.setViewTreeLifecycleOwner
 import androidx.lifecycle.setViewTreeViewModelStoreOwner
 import androidx.savedstate.SavedStateRegistry
 import androidx.savedstate.SavedStateRegistryController
 import androidx.savedstate.SavedStateRegistryOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import net.matasar.keyboard.input.AndroidEditorPort
 import net.matasar.keyboard.input.InputDispatcher
+import net.matasar.keyboard.settings.Prefs
+import net.matasar.keyboard.settings.Settings
+import net.matasar.keyboard.settings.SettingsActivity
+import net.matasar.keyboard.settings.asDarkTheme
+import net.matasar.keyboard.ui.KeyboardFeel
 import net.matasar.keyboard.ui.KeyboardScreen
 import net.matasar.keyboard.ui.PopupMetrics
+import net.matasar.keyboard.ui.ToolbarActions
 import net.matasar.keyboard.ui.theme.KeyboardTheme
 
 /**
@@ -30,7 +44,7 @@ import net.matasar.keyboard.ui.theme.KeyboardTheme
  * the IME callbacks: created in [onCreate], started while an input view exists, resumed while it
  * is shown, destroyed in [onDestroy].
  */
-class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwner, SavedStateRegistryOwner {
+class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwner, SavedStateRegistryOwner, ToolbarActions {
 
     private val lifecycleRegistry = LifecycleRegistry(this)
     private val store = ViewModelStore()
@@ -41,12 +55,21 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
     override val savedStateRegistry: SavedStateRegistry get() = savedStateController.savedStateRegistry
 
     private val controller = KeyboardController(InputDispatcher(AndroidEditorPort { currentInputConnection }))
+    private lateinit var prefs: Prefs
     private var inputView: View? = null
+    private var currentPackage: String? = null
 
     override fun onCreate() {
         super.onCreate()
+        prefs = Prefs(applicationContext)
         savedStateController.performRestore(null)
         lifecycleRegistry.currentState = Lifecycle.State.CREATED
+        lifecycleScope.launch {
+            prefs.settings.collect { settings ->
+                controller.editingShortcutsInTextFields = settings.editingShortcuts
+                controller.doubleTapLock = settings.doubleTapLock
+            }
+        }
     }
 
     override fun onCreateInputView(): View {
@@ -57,8 +80,18 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
             setViewTreeSavedStateRegistryOwner(this@KeyboardService)
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
             setContent {
-                KeyboardTheme {
-                    KeyboardScreen(controller)
+                val settings by prefs.settings.collectAsState(initial = Settings())
+                KeyboardTheme(darkTheme = settings.theme.asDarkTheme()) {
+                    KeyboardScreen(
+                        controller = controller,
+                        actions = this@KeyboardService,
+                        feel = KeyboardFeel(
+                            haptics = settings.haptics,
+                            previews = settings.previews,
+                            keyBorders = settings.keyBorders,
+                            heightScale = settings.heightScale,
+                        ),
+                    )
                 }
             }
         }
@@ -66,7 +99,12 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
 
     override fun onStartInputView(editorInfo: EditorInfo?, restarting: Boolean) {
         super.onStartInputView(editorInfo, restarting)
-        controller.onStartInput(editorInfo)
+        if (!restarting) controller.onStartInput(editorInfo)
+        currentPackage = editorInfo?.packageName
+        lifecycleScope.launch {
+            val remembered = prefs.settings.first().developerModePackages
+            controller.restoreDeveloperMode(currentPackage in remembered)
+        }
         lifecycleRegistry.currentState = Lifecycle.State.RESUMED
     }
 
@@ -100,5 +138,29 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
         lifecycleRegistry.currentState = Lifecycle.State.DESTROYED
         store.clear()
         super.onDestroy()
+    }
+
+    // ---- toolbar ----
+
+    override fun toggleDeveloperMode() {
+        controller.toggleDeveloperMode()
+        val pkg = currentPackage ?: return
+        lifecycleScope.launch { prefs.setDeveloperMode(pkg, controller.developerMode) }
+    }
+
+    override fun pasteClipboard() {
+        val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+        val text = clipboard.primaryClip?.getItemAt(0)?.coerceToText(this)?.toString() ?: return
+        currentInputConnection?.commitText(text, 1)
+    }
+
+    override fun openSettings() {
+        startActivity(
+            Intent(this, SettingsActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+        )
+    }
+
+    override fun hideKeyboard() {
+        requestHideSelf(0)
     }
 }

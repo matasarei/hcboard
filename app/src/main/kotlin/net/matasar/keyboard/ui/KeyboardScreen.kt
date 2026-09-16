@@ -35,6 +35,7 @@ data class KeyboardFeel(
     val haptics: Boolean = true,
     val previews: Boolean = true,
     val keyBorders: Boolean = true,
+    val heightScale: Float = 1f,
 )
 
 /**
@@ -42,7 +43,7 @@ data class KeyboardFeel(
  * and the popup layer drawn over all of it.
  */
 @Composable
-fun KeyboardScreen(controller: KeyboardController, feel: KeyboardFeel = KeyboardFeel()) {
+fun KeyboardScreen(controller: KeyboardController, actions: ToolbarActions, feel: KeyboardFeel = KeyboardFeel()) {
     val colors = LocalKeyboardColors.current
     val popups = remember { PopupState() }
     Box(modifier = Modifier.fillMaxWidth().onSizeChanged { popups.rootWidthPx = it.width.toFloat() }) {
@@ -54,14 +55,11 @@ fun KeyboardScreen(controller: KeyboardController, feel: KeyboardFeel = Keyboard
                     .background(colors.background)
                     .navigationBarsPadding(),
             ) {
-                // Toolbar proper lands in step 6; the chip already needs a home.
-                Box(modifier = Modifier.fillMaxWidth().height(Dimens.toolbarHeight), contentAlignment = androidx.compose.ui.Alignment.Center) {
-                    val chip = when {
-                        controller.trackpad -> "Move cursor"
-                        else -> controller.modifiers.chipText()
-                    }
-                    if (chip != null) ModifierChip(chip)
-                }
+                Toolbar(
+                    developerMode = controller.developerMode,
+                    chipText = if (controller.trackpad) "Move cursor" else controller.modifiers.chipText(),
+                    actions = actions,
+                )
                 LayerGrid(controller, feel, popups)
             }
         }
@@ -86,7 +84,7 @@ private fun LayerGrid(controller: KeyboardController, feel: KeyboardFeel, popups
             verticalArrangement = Arrangement.spacedBy(Dimens.rowGap),
         ) {
             if (controller.developerMode) {
-                ModifierStrip(controller, feel, callbacks, unitWidth)
+                ModifierStrip(controller, feel, callbacks, unitWidth, keyHeight = Dimens.keyHeight * feel.heightScale)
             }
             for (row in layer.rows) {
                 KeyRow(row = row, unitWidth = unitWidth, gap = Dimens.keyGap, modifier = Modifier.padding(horizontal = Dimens.sidePadding)) { key ->
@@ -95,7 +93,7 @@ private fun LayerGrid(controller: KeyboardController, feel: KeyboardFeel, popups
                         label = controller.displayLabel(key),
                         icon = iconFor(key, controller),
                         visual = visualFor(key, controller, colors),
-                        height = Dimens.keyHeight,
+                        height = Dimens.keyHeight * feel.heightScale,
                         callbacks = callbacks,
                         haptics = feel.haptics,
                         keyBorders = feel.keyBorders,

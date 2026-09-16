@@ -91,6 +91,16 @@ class KeyboardController(
         developerMode = !developerMode
     }
 
+    /** Restores the remembered developer mode for the app that just got focus. */
+    fun restoreDeveloperMode(on: Boolean) {
+        developerMode = on
+    }
+
+    /** Setting: whether a second quick tap locks a modifier or shift. */
+    var doubleTapLock: Boolean = true
+
+    private val doubleTapWindowMs: Long get() = if (doubleTapLock) Latch.DOUBLE_TAP_WINDOW_MS else 0L
+
     fun onKey(key: Key) {
         val fnAction = key.fnAction
         if (modifiers.isActive(ModifierKey.FN) && fnAction != null) {
@@ -128,7 +138,7 @@ class KeyboardController(
                 else dispatcher.enter(editorActionId)
                 afterKey()
             }
-            KeyAction.Shift -> shift = shift.tap(clock())
+            KeyAction.Shift -> shift = shift.tap(clock(), doubleTapWindowMs)
             is KeyAction.SwitchLayer -> layer = action.layer
             is KeyAction.KeyCode -> {
                 val code = if (modifiers.isActive(ModifierKey.FN) && action.fnKeyCode != null) action.fnKeyCode else action.keyCode
@@ -164,7 +174,7 @@ class KeyboardController(
 
     private fun onModifierTap(modifier: ModifierKey) {
         if (usedHolds.remove(modifier)) return
-        modifiers = modifiers.tap(modifier, clock())
+        modifiers = modifiers.tap(modifier, clock(), doubleTapWindowMs)
     }
 
     /** A finger lands on a modifier: it is held until the finger lifts (chording). */

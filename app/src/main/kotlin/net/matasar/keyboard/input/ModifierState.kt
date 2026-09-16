@@ -26,7 +26,8 @@ data class Modifiers(
     /** Ctrl, Alt, Shift or Meta active — the ones that become meta state on a key event. */
     val anyMetaActive: Boolean get() = active.any { it != ModifierKey.FN }
 
-    fun tap(key: ModifierKey, nowMs: Long): Modifiers = copy(latches = latches + (key to latch(key).tap(nowMs)))
+    fun tap(key: ModifierKey, nowMs: Long, doubleTapWindowMs: Long = Latch.DOUBLE_TAP_WINDOW_MS): Modifiers =
+        copy(latches = latches + (key to latch(key).tap(nowMs, doubleTapWindowMs)))
 
     fun longPress(key: ModifierKey): Modifiers = copy(latches = latches + (key to latch(key).longPress()))
 
