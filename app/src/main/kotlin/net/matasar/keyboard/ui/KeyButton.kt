@@ -34,6 +34,7 @@ import androidx.compose.ui.platform.LocalViewConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.Job
@@ -79,6 +80,8 @@ fun KeyButton(
     legend: String? = key.fnLegend,
     legendColor: Color? = null,
     topLegend: String? = key.shiftedLabel,
+    /** Overrides the size of a small (word) label; the strip's narrow keys use it. */
+    labelSize: TextUnit = Dimens.labelSize,
 ) {
     val colors = LocalKeyboardColors.current
     val view = LocalView.current
@@ -175,22 +178,32 @@ fun KeyButton(
             )
         } else {
             val small = key.style != KeyStyle.LETTER || label.length > 1
+            // The shifted symbol sits top-left, clear of the Fn legend top-right, and the main
+            // glyph shrinks so both fit in a 46 dp key.
             if (topLegend != null) {
                 Text(
                     text = topLegend,
                     color = colors.subtle,
-                    fontSize = 11.sp,
-                    modifier = Modifier.align(Alignment.TopCenter).padding(top = 4.dp),
+                    fontSize = Dimens.topLegendSize,
+                    modifier = Modifier.align(Alignment.TopStart).padding(top = 3.dp, start = 7.dp),
                 )
             }
             Text(
                 text = label,
                 color = visual.foreground,
-                fontSize = if (small) Dimens.labelSize else if (compact) Dimens.compactLetterSize else Dimens.letterSize,
+                fontSize = when {
+                    small -> labelSize
+                    topLegend != null -> Dimens.dualMainSize
+                    compact -> Dimens.compactLetterSize
+                    else -> Dimens.letterSize
+                },
                 fontWeight = if (small) FontWeight.Medium else FontWeight.Normal,
                 maxLines = 1,
                 modifier = when {
                     topLegend != null -> Modifier.align(Alignment.BottomCenter).padding(bottom = 4.dp)
+                    // A single glyph under a word-sized legend (Home, PgUp) moves out from under it;
+                    // a word label (the space bar's language) stays centred.
+                    legend != null && legend.length > 1 && !small -> Modifier.align(Alignment.BottomStart).padding(start = 9.dp, bottom = 5.dp)
                     legend != null -> Modifier.align(Alignment.BottomCenter).padding(bottom = 5.dp)
                     else -> Modifier
                 },

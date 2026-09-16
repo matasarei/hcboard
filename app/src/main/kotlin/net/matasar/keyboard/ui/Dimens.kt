@@ -18,6 +18,11 @@ object Dimens {
     val compactKeyHeight = 40.dp
     val labelSize = 12.sp
     val legendSize = 9.sp
+    val topLegendSize = 10.sp
+    /** Labels on the developer strip, whose keys are one unit wide. */
+    val stripLabelSize = 10.sp
+    /** The main glyph on a key that also shows its shifted symbol. */
+    val dualMainSize = 17.sp
     val popupRadius = 16.dp
 
     /** The keyboard never takes more than this share of the screen height. */
