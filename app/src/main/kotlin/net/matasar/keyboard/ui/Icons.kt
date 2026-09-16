@@ -19,4 +19,7 @@ fun KeyIcon.drawable(): Int = when (this) {
     KeyIcon.REDO -> R.drawable.ic_redo
     KeyIcon.KEYBOARD_HIDE -> R.drawable.ic_keyboard_hide
     KeyIcon.GLOBE -> R.drawable.ic_globe
+    KeyIcon.SEARCH -> R.drawable.ic_search
+    KeyIcon.SEND -> R.drawable.ic_send
+    KeyIcon.CHECK -> R.drawable.ic_check
 }

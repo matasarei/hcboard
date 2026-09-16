@@ -15,6 +15,7 @@ import net.matasar.keyboard.input.TrackpadGesture
 import net.matasar.keyboard.input.keyStrokeFor
 import net.matasar.keyboard.layout.Key
 import net.matasar.keyboard.layout.KeyAction
+import net.matasar.keyboard.layout.KeyIcon
 import net.matasar.keyboard.layout.KeyboardLayout
 import net.matasar.keyboard.layout.LayerId
 import net.matasar.keyboard.layout.ModifierKey
@@ -51,9 +52,17 @@ class KeyboardController(
     var trackpad: Boolean by mutableStateOf(false)
         private set
 
-    /** A field with no input type at all: a terminal. Ctrl+C there must stay a key event. */
-    var terminalField: Boolean by mutableStateOf(false)
+    /** What kind of field has focus; drives the opening layer, previews and Enter's icon. */
+    var fieldKind: FieldKind by mutableStateOf(FieldKind.TEXT)
         private set
+
+    /** A field with no input type at all: a terminal. Ctrl+C there must stay a key event. */
+    val terminalField: Boolean get() = fieldKind == FieldKind.TERMINAL
+
+    /** Password fields get no press preview and no accent popups. */
+    val passwordField: Boolean get() = fieldKind == FieldKind.PASSWORD
+
+    val enterIcon: KeyIcon get() = enterIconFor(editorActionId)
 
     /** Setting: Ctrl+A/C/V/X become the editor's own actions in ordinary text fields. */
     var editingShortcutsInTextFields: Boolean = true
@@ -72,12 +81,12 @@ class KeyboardController(
     }
 
     fun onStartInput(info: EditorInfo?) {
-        layer = LayerId.LETTERS
+        fieldKind = info?.let { fieldKindOf(it.inputType) } ?: FieldKind.TEXT
+        layer = fieldKind.initialLayer()
         shift = Latch()
         modifiers = Modifiers()
         usedHolds.clear()
         editorActionId = info?.let { editorActionFor(it.imeOptions, it.inputType) }
-        terminalField = info != null && info.inputType == InputType.TYPE_NULL
     }
 
     fun onFinishInput() {
@@ -201,9 +210,12 @@ class KeyboardController(
         }
     }
 
-    /** The accent candidates a long press on [key] offers, in the current case. */
-    fun accentsFor(key: Key): List<String> =
-        if (uppercase) key.longPress.map { it.uppercase() } else key.longPress
+    /** The accent candidates a long press on [key] offers, in the current case; none in passwords. */
+    fun accentsFor(key: Key): List<String> = when {
+        passwordField -> emptyList()
+        uppercase -> key.longPress.map { it.uppercase() }
+        else -> key.longPress
+    }
 
     /** A chosen accent goes in like a letter: it consumes a one-shot shift. */
     fun commitAccent(text: String) {

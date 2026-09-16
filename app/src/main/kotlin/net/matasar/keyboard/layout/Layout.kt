@@ -12,7 +12,7 @@ enum class KeyStyle { LETTER, FUNCTION, ACTION, MODIFIER, SPACE }
 /** Vector icons a key can show instead of a text label. */
 enum class KeyIcon {
     SHIFT, SHIFT_FILLED, BACKSPACE, ENTER, ARROW_LEFT, ARROW_RIGHT, ARROW_UP, ARROW_DOWN, UNDO, REDO,
-    KEYBOARD_HIDE, GLOBE,
+    KEYBOARD_HIDE, GLOBE, SEARCH, SEND, CHECK,
 }
 
 /** What a key does when tapped. */

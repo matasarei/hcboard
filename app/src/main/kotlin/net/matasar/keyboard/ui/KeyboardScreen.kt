@@ -116,7 +116,7 @@ private class KeyScreenCallbacks(
 
     override fun onPressStart(key: Key, bounds: Rect) {
         (key.action as? KeyAction.Modifier)?.let { controller.onModifierPressStart(it.modifier) }
-        if (feel.previews && key.showsPreview()) {
+        if (feel.previews && !controller.passwordField && key.showsPreview()) {
             popups.preview = PressPreview(bounds, controller.displayLabel(key))
         }
     }
@@ -177,8 +177,11 @@ private class KeyScreenCallbacks(
 private fun Key.showsPreview(): Boolean =
     style == KeyStyle.LETTER && icon == null && label.length == 1 && action != KeyAction.Space
 
-private fun iconFor(key: Key, controller: KeyboardController): KeyIcon? =
-    if (key.action == KeyAction.Shift && controller.shift.active) KeyIcon.SHIFT_FILLED else key.icon
+private fun iconFor(key: Key, controller: KeyboardController): KeyIcon? = when {
+    key.action == KeyAction.Shift && controller.shift.active -> KeyIcon.SHIFT_FILLED
+    key.action == KeyAction.Enter -> controller.enterIcon
+    else -> key.icon
+}
 
 /** Background and foreground for a key, including the shift key's armed and locked looks. */
 internal fun visualFor(key: Key, controller: KeyboardController, colors: KeyboardColors): KeyVisual {
