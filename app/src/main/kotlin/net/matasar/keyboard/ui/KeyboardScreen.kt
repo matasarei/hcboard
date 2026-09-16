@@ -13,21 +13,32 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.layout.positionInRoot
+import androidx.compose.ui.platform.LocalViewConfiguration
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import net.matasar.keyboard.autofill.AutofillActions
 import net.matasar.keyboard.ime.KeyboardController
 import net.matasar.keyboard.input.LatchState
+import net.matasar.keyboard.input.glide.GlideKey
+import net.matasar.keyboard.input.glide.GlidePoint
 import net.matasar.keyboard.layout.Key
 import net.matasar.keyboard.layout.KeyAction
 import net.matasar.keyboard.layout.KeyIcon
 import net.matasar.keyboard.layout.KeyStyle
+import net.matasar.keyboard.layout.LayerId
 import net.matasar.keyboard.layout.ModifierKey
 import net.matasar.keyboard.layout.PhoneLayout
 import net.matasar.keyboard.layout.WideLayout
@@ -41,6 +52,8 @@ data class KeyboardFeel(
     val previews: Boolean = true,
     val keyBorders: Boolean = true,
     val heightScale: Float = 1f,
+    val glide: Boolean = true,
+    val glideTrail: Boolean = true,
 )
 
 /**
@@ -56,7 +69,19 @@ fun KeyboardScreen(
 ) {
     val colors = LocalKeyboardColors.current
     val popups = remember { PopupState() }
-    Box(modifier = Modifier.fillMaxWidth().onSizeChanged { popups.rootWidthPx = it.width.toFloat() }) {
+    val trailColor = colors.armedRing
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .onSizeChanged { popups.rootWidthPx = it.width.toFloat() }
+            // The trail is drawn over the keys without taking part in layout: a sized canvas here
+            // would grow the input view, the IME window would re-lay itself out mid-gesture, and
+            // every later pointer position would arrive offset by the old window top.
+            .drawWithContent {
+                drawContent()
+                drawGlideTrail(popups.trail, trailColor)
+            },
+    ) {
         Column(modifier = Modifier.fillMaxWidth()) {
             Spacer(modifier = Modifier.height(PopupMetrics.overhang))
             Column(
@@ -92,7 +117,28 @@ private fun LayerGrid(controller: KeyboardController, feel: KeyboardFeel, popups
     val callbacks = remember(controller, popups, feel, density) {
         KeyScreenCallbacks(controller, popups, feel, trackpadStepPx = with(density) { 16.dp.toPx() })
     }
-    BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
+    // Letter-key bounds in root coordinates, kept for the glide detector and the classifier.
+    val letterBounds = remember { mutableStateMapOf<Char, Rect>() }
+    var gridOrigin by remember { mutableStateOf(Offset.Zero) }
+    val longPressMs = LocalViewConfiguration.current.longPressTimeoutMillis
+    val glideListener = remember(controller, popups, feel) {
+        object : GlideListener {
+            override fun onGlideStart() {
+                popups.preview = null
+            }
+
+            override fun onGlideMove(path: List<GlidePoint>) {
+                if (feel.glideTrail) popups.trail = path.map { Offset(it.x, it.y) }
+            }
+
+            override fun onGlideEnd(path: List<GlidePoint>) {
+                popups.trail = emptyList()
+                val keys = letterBounds.map { (char, rect) -> GlideKey(char, rect.center.x, rect.center.y, rect.width, rect.height) }
+                controller.onGlideEnd(path, keys)
+            }
+        }
+    }
+    BoxWithConstraints(modifier = Modifier.fillMaxWidth().onGloballyPositioned { gridOrigin = it.positionInRoot() }) {
         // 600 dp and wider (a Fold's inner display, a tablet) gets the 60% board.
         val wide = maxWidth >= Dimens.wideBreakpoint
         val layout = if (wide) WideLayout else PhoneLayout
@@ -106,9 +152,21 @@ private fun LayerGrid(controller: KeyboardController, feel: KeyboardFeel, popups
         val keyHeight = minOf((if (wide) Dimens.wideKeyHeight else Dimens.keyHeight) * feel.heightScale, budget / rows)
         val unitWidth = (maxWidth - sidePadding * 2 - Dimens.keyGap * (layer.units.toInt() - 1)) / layer.units
         val fnActive = controller.modifiers.isActive(ModifierKey.FN)
+        // Glide lives on the phone letters layer; the 60% board and the other layers tap only.
+        val glide = feel.glide && !wide && controller.layer == LayerId.LETTERS && controller.glideAvailable
+        val unitWidthPx = with(density) { unitWidth.toPx() }
         Column(
             modifier = Modifier
                 .fillMaxWidth()
+                .then(
+                    if (glide) Modifier.glideDetector(
+                        letterBounds = { letterBounds },
+                        gridOriginInRoot = { gridOrigin },
+                        keyWidthPx = { unitWidthPx },
+                        longPressMs = longPressMs,
+                        listener = glideListener,
+                    ) else Modifier,
+                )
                 .padding(top = Dimens.topPadding, bottom = Dimens.bottomPadding),
             verticalArrangement = Arrangement.spacedBy(rowGap),
         ) {
@@ -128,6 +186,7 @@ private fun LayerGrid(controller: KeyboardController, feel: KeyboardFeel, popups
                         keyBorders = feel.keyBorders,
                         showLabel = !controller.trackpad,
                         legendColor = if (fnActive) colors.armedRing else null,
+                        onBounds = if (key.action is KeyAction.Letter) ({ k, rect -> letterBounds[(k.action as KeyAction.Letter).lower[0]] = rect }) else null,
                     )
                 }
             }

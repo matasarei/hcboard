@@ -1,8 +1,8 @@
 package net.matasar.keyboard.ui
 
+import android.os.SystemClock
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
-import android.os.SystemClock
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.PointerEventPass
@@ -25,12 +25,16 @@ interface KeyGestureListener {
 /**
  * One finger on one key: press, then either a tap on release, or a long press followed by
  * steering until release. Each key handles only its own pointer, so a second finger on another
- * key is that key's own gesture — which is what chording needs.
+ * key is that key's own gesture, which is what chording needs.
+ *
+ * The keyboard's glide detector runs on the same pass, earlier, and consumes the pointer once a
+ * press has become a glide; a consumed change ends this gesture without a tap.
  */
 fun Modifier.keyGestures(key: Any, longPressMs: Long, listener: KeyGestureListener): Modifier =
     pointerInput(key, listener) {
         awaitEachGesture {
             val down = awaitFirstDown(requireUnconsumed = false, pass = PointerEventPass.Initial)
+            if (down.isConsumed) return@awaitEachGesture
             down.consume()
             listener.onPressStart()
 
@@ -45,6 +49,11 @@ fun Modifier.keyGestures(key: Any, longPressMs: Long, listener: KeyGestureListen
                     longPressed = true
                 } else {
                     val change = event.changes.firstOrNull { it.id == down.id } ?: continue
+                    if (change.isConsumed) {
+                        // The glide detector took this finger: no tap, just release the key.
+                        listener.onPressEnd()
+                        return@awaitEachGesture
+                    }
                     change.consume()
                     if (!change.pressed) up = true
                 }
@@ -62,6 +71,10 @@ fun Modifier.keyGestures(key: Any, longPressMs: Long, listener: KeyGestureListen
             while (true) {
                 val event = awaitPointerEvent(PointerEventPass.Initial)
                 val change = event.changes.firstOrNull { it.id == down.id } ?: continue
+                if (change.isConsumed) {
+                    listener.onPressEnd()
+                    return@awaitEachGesture
+                }
                 change.consume()
                 last = change.position
                 if (!change.pressed) break

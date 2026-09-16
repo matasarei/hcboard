@@ -13,8 +13,9 @@ import net.matasar.keyboard.ui.Dimens
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
-import org.junit.After
+import org.junit.AfterClass
 import org.junit.Before
+import org.junit.BeforeClass
 import org.junit.Test
 import org.junit.runner.RunWith
 
@@ -26,36 +27,48 @@ import org.junit.runner.RunWith
 class KeyboardSmokeTest {
 
     private val device = UiDevice.getInstance(InstrumentationRegistry.getInstrumentation())
-    private val ime = "net.matasar.keyboard/.ime.KeyboardService"
+    private val ime = IME
 
-    /** Device-wide settings this test changes, restored in [restoreSettings]. */
-    private var previousIme = ""
-    private var previousShowWithHardKeyboard = ""
+    companion object {
+        private const val IME = "net.matasar.keyboard/.ime.KeyboardService"
+
+        /** Device-wide settings the class changes once, restored once in [restoreSettings]. */
+        private var previousIme = ""
+        private var previousShowWithHardKeyboard = ""
+
+        @JvmStatic
+        @BeforeClass
+        fun selectKeyboard() {
+            val device = UiDevice.getInstance(InstrumentationRegistry.getInstrumentation())
+            previousIme = device.executeShellCommand("settings get secure default_input_method").trim()
+            previousShowWithHardKeyboard = device.executeShellCommand("settings get secure show_ime_with_hard_keyboard").trim()
+            device.executeShellCommand("ime enable $IME")
+            device.executeShellCommand("ime set $IME")
+            device.executeShellCommand("settings put secure show_ime_with_hard_keyboard 1")
+        }
+
+        @JvmStatic
+        @AfterClass
+        fun restoreSettings() {
+            val device = UiDevice.getInstance(InstrumentationRegistry.getInstrumentation())
+            if (previousShowWithHardKeyboard == "null" || previousShowWithHardKeyboard.isEmpty()) {
+                device.executeShellCommand("settings delete secure show_ime_with_hard_keyboard")
+            } else {
+                device.executeShellCommand("settings put secure show_ime_with_hard_keyboard $previousShowWithHardKeyboard")
+            }
+            if (previousIme.isNotEmpty() && previousIme != "null" && previousIme != IME) {
+                device.executeShellCommand("ime set $previousIme")
+            }
+        }
+    }
 
     @Before
-    fun selectKeyboard() {
-        previousIme = device.executeShellCommand("settings get secure default_input_method").trim()
-        previousShowWithHardKeyboard = device.executeShellCommand("settings get secure show_ime_with_hard_keyboard").trim()
-        device.executeShellCommand("ime enable $ime")
-        device.executeShellCommand("ime set $ime")
-        device.executeShellCommand("settings put secure show_ime_with_hard_keyboard 1")
+    fun openTheField() {
         val context = ApplicationProvider.getApplicationContext<android.content.Context>()
         context.startActivity(
             Intent(context, SettingsActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK),
         )
         assertTrue(device.wait(Until.hasObject(By.clazz("android.widget.EditText")), 10_000))
-    }
-
-    @After
-    fun restoreSettings() {
-        if (previousShowWithHardKeyboard == "null" || previousShowWithHardKeyboard.isEmpty()) {
-            device.executeShellCommand("settings delete secure show_ime_with_hard_keyboard")
-        } else {
-            device.executeShellCommand("settings put secure show_ime_with_hard_keyboard $previousShowWithHardKeyboard")
-        }
-        if (previousIme.isNotEmpty() && previousIme != "null" && previousIme != ime) {
-            device.executeShellCommand("ime set $previousIme")
-        }
     }
 
     @Test
@@ -89,12 +102,50 @@ class KeyboardSmokeTest {
         assertEquals("hello", fieldText())
     }
 
+    @Test
+    fun glidesHello() {
+        assertEquals(ime, device.executeShellCommand("settings get secure default_input_method").trim())
+        val field = device.findObject(By.clazz("android.widget.EditText"))
+        assertNotNull(field)
+        var shown = false
+        repeat(6) {
+            if (shown) return@repeat
+            field.click()
+            device.waitForIdle()
+            shown = waitUntil(2_000) { device.executeShellCommand("dumpsys input_method").contains("mIsInputViewShown=true") }
+        }
+        assertTrue("keyboard never showed", shown)
+        // The word list loads off the main thread after the service starts; give it a moment.
+        Thread.sleep(1_500)
+
+        // One pointer stream through h, e, l, l, o: the double l is a small loop on the key, the
+        // way a finger marks a repeated letter and the way the classifier models one.
+        val density = InstrumentationRegistry.getInstrumentation().targetContext.resources.displayMetrics.density
+        val quarterW = (Dimens.keyHeight.value * density / 4).toInt()
+        val l = letterCentre('l')
+        val segments = arrayOf(
+            letterCentre('h'), letterCentre('e'), l,
+            android.graphics.Point(l.x + quarterW, l.y + quarterW), android.graphics.Point(l.x + quarterW, l.y - quarterW),
+            android.graphics.Point(l.x - quarterW, l.y - quarterW), android.graphics.Point(l.x - quarterW, l.y + quarterW),
+            l, letterCentre('o'),
+        )
+        device.swipe(segments, 10)
+        val arrived = waitUntil(5_000) { fieldText()?.trim() == "hello" }
+        assertTrue("expected 'hello', field holds '${fieldText()}'", arrived)
+    }
+
     /**
      * Keys live in the IME window, which the accessibility tree does not always expose, so the
      * tap lands on the key's computed position: rows from the bottom of the screen, columns
      * from the layer geometry (10 units, 4 dp side padding, 6 dp gaps, 42 dp keys, 12 dp gaps).
      */
     private fun tapLetter(letter: Char) {
+        val centre = letterCentre(letter)
+        device.click(centre.x, centre.y)
+        device.waitForIdle()
+    }
+
+    private fun letterCentre(letter: Char): android.graphics.Point {
         val density = InstrumentationRegistry.getInstrumentation().targetContext.resources.displayMetrics.density
         val width = device.displayWidth
         val navBar = navigationBarHeightPx()
@@ -111,8 +162,7 @@ class KeyboardSmokeTest {
         val rowPitch = keyH + Dimens.rowGap.value * density
         val bottomRowCentre = device.displayHeight - navBar - Dimens.bottomPadding.value * density - keyH / 2
         val y = bottomRowCentre - (3 - rowIndex) * rowPitch
-        device.click(x.toInt(), y.toInt())
-        device.waitForIdle()
+        return android.graphics.Point(x.toInt(), y.toInt())
     }
 
     private fun fieldText(): String? = device.findObject(By.clazz("android.widget.EditText"))?.text

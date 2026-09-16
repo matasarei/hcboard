@@ -82,6 +82,8 @@ fun KeyButton(
     topLegend: String? = key.shiftedLabel,
     /** Overrides the size of a small (word) label; the strip's narrow keys use it. */
     labelSize: TextUnit = Dimens.labelSize,
+    /** Receives the key's bounds in root coordinates; the glide detector maps fingers to keys with it. */
+    onBounds: ((Key, Rect) -> Unit)? = null,
 ) {
     val colors = LocalKeyboardColors.current
     val view = LocalView.current
@@ -148,7 +150,7 @@ fun KeyButton(
         modifier = modifier
             .fillMaxWidth()
             .height(height)
-            .onGloballyPositioned { bounds = it.boundsInRoot() }
+            .onGloballyPositioned { bounds = it.boundsInRoot(); onBounds?.invoke(key, bounds) }
             .graphicsLayer { scaleX = scale; scaleY = scale }
             .shadow(
                 elevation = if (keyBorders && !pressed) 1.dp else 0.dp,

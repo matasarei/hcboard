@@ -13,6 +13,14 @@ import net.matasar.keyboard.input.Latch
 import net.matasar.keyboard.input.LatchState
 import net.matasar.keyboard.input.Modifiers
 import net.matasar.keyboard.input.TrackpadGesture
+import net.matasar.keyboard.input.glide.GlideEngine
+import net.matasar.keyboard.input.glide.GlideKey
+import net.matasar.keyboard.input.glide.GlidePoint
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import net.matasar.keyboard.input.keyStrokeFor
 import net.matasar.keyboard.layout.Key
 import net.matasar.keyboard.layout.KeyAction
@@ -36,6 +44,9 @@ class KeyboardController(
     private val dispatcher: InputDispatcher,
     val layout: KeyboardLayout = PhoneLayout,
     private val clock: () -> Long = System::currentTimeMillis,
+    /** Where glide classification runs, and where its result comes back to (the main thread by default). */
+    private val background: CoroutineDispatcher = Dispatchers.Default,
+    private val main: CoroutineDispatcher? = null,
 ) {
     var layer: LayerId by mutableStateOf(LayerId.LETTERS)
         private set
@@ -79,6 +90,25 @@ class KeyboardController(
     /** Hide and language switching belong to the service; it plugs in here. */
     var systemActions: SystemActions? = null
 
+    /** The glide engine, once the service has loaded the word list; null until then. */
+    var glideEngine: GlideEngine? by mutableStateOf(null)
+
+    /** The scope classification runs in; the service's lifecycle scope. */
+    var scope: CoroutineScope? = null
+
+    /** Setting: glide typing on the letters layer. */
+    var glideEnabled: Boolean by mutableStateOf(true)
+
+    /** Whether a finger on the letters may glide right now. */
+    val glideAvailable: Boolean
+        get() = glideEnabled && glideEngine != null && !passwordField && !terminalField && !modifiers.anyActive && !trackpad
+
+    /** Alternatives for the last glided word, best first, shown in the toolbar. */
+    var textSuggestions: List<String> by mutableStateOf(emptyList())
+        private set
+
+    private var lastGlideWord: String? = null
+
     /** The password manager's chips for the current field, pinned first. */
     var suggestions: List<net.matasar.keyboard.autofill.SuggestionEntry> by mutableStateOf(emptyList())
 
@@ -109,6 +139,7 @@ class KeyboardController(
         editorActionId = info?.let { editorActionFor(it.imeOptions, it.inputType) }
         suggestions = emptyList()
         managerSheetOpen = false
+        clearTextSuggestions()
     }
 
     fun onFinishInput() {
@@ -119,6 +150,7 @@ class KeyboardController(
         endTrackpad()
         suggestions = emptyList()
         managerSheetOpen = false
+        clearTextSuggestions()
     }
 
     fun toggleDeveloperMode() {
@@ -136,6 +168,7 @@ class KeyboardController(
     private val doubleTapWindowMs: Long get() = if (doubleTapLock) Latch.DOUBLE_TAP_WINDOW_MS else 0L
 
     fun onKey(key: Key) {
+        clearTextSuggestions()
         val fnAction = key.fnAction
         if (modifiers.isActive(ModifierKey.FN) && fnAction != null) {
             perform(key, fnAction)
@@ -245,6 +278,42 @@ class KeyboardController(
                 else modifiers = modifiers.longPress(action.modifier)
             else -> Unit
         }
+    }
+
+    /** A glide ended over the letter keys [keys]: classify off the main thread, then commit the best word. */
+    fun onGlideEnd(path: List<GlidePoint>, keys: List<GlideKey>) {
+        val engine = glideEngine ?: return
+        val scope = scope ?: return
+        if (!glideAvailable || path.size < 2) return
+        val capitalize = uppercase
+        scope.launch(background) {
+            engine.setLayout(keys)
+            val words = engine.classify(path)
+            withContext(main ?: Dispatchers.Main.immediate) { commitGlide(words, capitalize) }
+        }
+    }
+
+    /** Commits the best word with a trailing space and keeps the rest as alternatives. */
+    internal fun commitGlide(words: List<String>, capitalize: Boolean) {
+        if (words.isEmpty()) return
+        val cased = words.map { if (capitalize) it.replaceFirstChar(Char::uppercase) else it }
+        dispatcher.commitText(cased.first() + " ")
+        lastGlideWord = cased.first()
+        textSuggestions = cased
+        shift = shift.consume()
+    }
+
+    /** The user tapped an alternative: swap the last glided word for it. */
+    fun pickSuggestion(word: String) {
+        val last = lastGlideWord ?: return
+        if (word == last) return
+        dispatcher.replaceLastWord(last, word)
+        lastGlideWord = word
+    }
+
+    private fun clearTextSuggestions() {
+        textSuggestions = emptyList()
+        lastGlideWord = null
     }
 
     /** The accent candidates a long press on [key] offers, in the current case; none in passwords. */
