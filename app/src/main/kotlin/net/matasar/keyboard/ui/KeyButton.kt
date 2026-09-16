@@ -201,8 +201,9 @@ fun KeyButton(
                 maxLines = 1,
                 modifier = when {
                     topLegend != null -> Modifier.align(Alignment.BottomCenter).padding(bottom = 4.dp)
-                    // A word-sized legend (Home, PgUp) needs the glyph out from under it.
-                    legend != null && legend.length > 1 -> Modifier.align(Alignment.BottomStart).padding(start = 9.dp, bottom = 5.dp)
+                    // A single glyph under a word-sized legend (Home, PgUp) moves out from under it;
+                    // a word label (the space bar's language) stays centred.
+                    legend != null && legend.length > 1 && !small -> Modifier.align(Alignment.BottomStart).padding(start = 9.dp, bottom = 5.dp)
                     legend != null -> Modifier.align(Alignment.BottomCenter).padding(bottom = 5.dp)
                     else -> Modifier
                 },
