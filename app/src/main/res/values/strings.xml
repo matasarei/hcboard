@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Keyboard</string>
+    <string name="ime_label">Keyboard</string>
+    <string name="subtype_en_us">English (US)</string>
+
+    <string name="enable_title">Set up the keyboard</string>
+    <string name="enable_step1_title">1. Enable it</string>
+    <string name="enable_step1_body">Turn on Keyboard in the list of on-screen keyboards.</string>
+    <string name="enable_step1_button">Open keyboard settings</string>
+    <string name="enable_step2_title">2. Choose it</string>
+    <string name="enable_step2_body">Pick Keyboard as the current input method.</string>
+    <string name="enable_step2_button">Choose keyboard</string>
+    <string name="enable_done">Done</string>
+    <string name="enable_not_yet">Not yet</string>
+    <string name="enable_try_label">Try it here</string>
+
+    <string name="settings_title">Keyboard settings</string>
+    <string name="settings_section_look">Look</string>
+    <string name="settings_section_feel">Feel</string>
+    <string name="settings_section_developer">Developer mode</string>
+    <string name="settings_theme">Theme</string>
+    <string name="settings_theme_system">System</string>
+    <string name="settings_theme_light">Light</string>
+    <string name="settings_theme_dark">Dark</string>
+    <string name="settings_height">Keyboard height: %1$d%%</string>
+    <string name="settings_key_borders">Key borders</string>
+    <string name="settings_haptics">Haptic tick on key press</string>
+    <string name="settings_previews">Show key preview on press</string>
+    <string name="settings_editing_shortcuts">Ctrl+A/C/V/X as select, copy, paste, cut in text fields</string>
+    <string name="settings_double_tap_lock">Double-tap a modifier to lock it</string>
+</resources>
