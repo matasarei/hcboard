@@ -3,9 +3,9 @@ package net.matasar.keyboard.autofill
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
-import android.net.Uri
 import android.os.Build
 import android.provider.Settings
+import androidx.core.net.toUri
 
 /** What the key button's sheet can do; the service implements it with real intents. */
 interface AutofillActions {
@@ -29,7 +29,7 @@ const val ACTION_CREDENTIAL_PROVIDER = "android.settings.CREDENTIAL_PROVIDER"
 /** The intent that opens the provider chooser for [packageName]'s request. */
 fun changeManagerIntent(packageName: String, sdkInt: Int = Build.VERSION.SDK_INT): Intent =
     Intent(settingsActionFor(sdkInt))
-        .setData(Uri.parse("package:$packageName"))
+        .setData("package:$packageName".toUri())
         .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
 
 class AndroidAutofillActions(private val context: Context) : AutofillActions {
