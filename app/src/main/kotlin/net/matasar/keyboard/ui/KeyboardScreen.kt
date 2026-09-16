@@ -21,6 +21,7 @@ import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
+import net.matasar.keyboard.autofill.AutofillActions
 import net.matasar.keyboard.ime.KeyboardController
 import net.matasar.keyboard.input.LatchState
 import net.matasar.keyboard.layout.Key
@@ -47,7 +48,12 @@ data class KeyboardFeel(
  * and the popup layer drawn over all of it.
  */
 @Composable
-fun KeyboardScreen(controller: KeyboardController, actions: ToolbarActions, feel: KeyboardFeel = KeyboardFeel()) {
+fun KeyboardScreen(
+    controller: KeyboardController,
+    actions: ToolbarActions,
+    autofill: AutofillActions,
+    feel: KeyboardFeel = KeyboardFeel(),
+) {
     val colors = LocalKeyboardColors.current
     val popups = remember { PopupState() }
     Box(modifier = Modifier.fillMaxWidth().onSizeChanged { popups.rootWidthPx = it.width.toFloat() }) {
@@ -63,11 +69,19 @@ fun KeyboardScreen(controller: KeyboardController, actions: ToolbarActions, feel
                     developerMode = controller.developerMode,
                     chipText = if (controller.trackpad) "Move cursor" else controller.modifiers.chipText(),
                     actions = actions,
+                    sheetOpen = controller.managerSheetOpen,
+                    center = if (controller.suggestions.isNotEmpty()) ({ SuggestionStrip(controller.suggestions) }) else null,
                 )
                 LayerGrid(controller, feel, popups)
             }
         }
         PopupLayer(popups)
+        if (controller.managerSheetOpen) {
+            // Covers the keys, not the overhang: the sheet starts under the toolbar like the mock.
+            Box(modifier = Modifier.matchParentSize().padding(top = PopupMetrics.overhang + Dimens.toolbarHeight)) {
+                ManagerSheet(autofill, onDismiss = { controller.managerSheetOpen = false })
+            }
+        }
     }
 }
 

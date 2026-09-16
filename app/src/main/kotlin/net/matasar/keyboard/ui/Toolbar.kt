@@ -22,6 +22,7 @@ import net.matasar.keyboard.ui.theme.LocalKeyboardColors
 
 /** What the toolbar buttons do; the service implements it. */
 interface ToolbarActions {
+    fun toggleManagerSheet()
     fun toggleDeveloperMode()
     fun pasteClipboard()
     fun openSettings()
@@ -38,6 +39,7 @@ fun Toolbar(
     chipText: String?,
     actions: ToolbarActions,
     modifier: Modifier = Modifier,
+    sheetOpen: Boolean = false,
     center: (@Composable () -> Unit)? = null,
 ) {
     Row(
@@ -48,6 +50,7 @@ fun Toolbar(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+            ToolbarButton(R.drawable.ic_key, "Password manager", active = sheetOpen) { actions.toggleManagerSheet() }
             ToolbarButton(R.drawable.ic_code, "Developer mode", active = developerMode) { actions.toggleDeveloperMode() }
             ToolbarButton(R.drawable.ic_clipboard, "Paste") { actions.pasteClipboard() }
             ToolbarButton(R.drawable.ic_settings, "Settings") { actions.openSettings() }

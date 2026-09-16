@@ -79,6 +79,12 @@ class KeyboardController(
     /** Hide and language switching belong to the service; it plugs in here. */
     var systemActions: SystemActions? = null
 
+    /** The password manager's chips for the current field, pinned first. */
+    var suggestions: List<net.matasar.keyboard.autofill.SuggestionEntry> by mutableStateOf(emptyList())
+
+    /** Whether the key button's sheet is open. */
+    var managerSheetOpen: Boolean by mutableStateOf(false)
+
     /** Modifiers whose hold was used by another key, so the release must not count as a tap. */
     private val usedHolds = mutableSetOf<ModifierKey>()
 
@@ -97,6 +103,8 @@ class KeyboardController(
         modifiers = Modifiers()
         usedHolds.clear()
         editorActionId = info?.let { editorActionFor(it.imeOptions, it.inputType) }
+        suggestions = emptyList()
+        managerSheetOpen = false
     }
 
     fun onFinishInput() {
@@ -104,6 +112,8 @@ class KeyboardController(
         modifiers = Modifiers()
         usedHolds.clear()
         endTrackpad()
+        suggestions = emptyList()
+        managerSheetOpen = false
     }
 
     fun toggleDeveloperMode() {

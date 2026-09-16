@@ -4,6 +4,16 @@ import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.inputmethodservice.InputMethodService
+import android.os.Build
+import android.os.Bundle
+import android.view.inputmethod.InlineSuggestionsRequest
+import android.view.inputmethod.InlineSuggestionsResponse
+import androidx.compose.ui.graphics.toArgb
+import net.matasar.keyboard.autofill.AndroidAutofillActions
+import net.matasar.keyboard.autofill.InlineSuggestions
+import net.matasar.keyboard.autofill.SuggestionColors
+import net.matasar.keyboard.ui.theme.LocalKeyboardColors
+import androidx.compose.runtime.SideEffect
 import android.view.View
 import android.view.inputmethod.EditorInfo
 import androidx.compose.runtime.collectAsState
@@ -56,8 +66,12 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
 
     private val controller = KeyboardController(InputDispatcher(AndroidEditorPort { currentInputConnection }))
     private lateinit var prefs: Prefs
+    private val autofillActions by lazy { AndroidAutofillActions(this) }
     private var inputView: View? = null
     private var currentPackage: String? = null
+
+    /** The chip colours, captured from the theme so the inline request can style the chips. */
+    private var suggestionColors = SuggestionColors(0xFFFFFFFF.toInt(), 0xFF1B1C1F.toInt(), 0xFF5C5F66.toInt())
 
     override fun onCreate() {
         super.onCreate()
@@ -90,9 +104,14 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
             setContent {
                 val settings by prefs.settings.collectAsState(initial = Settings())
                 KeyboardTheme(darkTheme = settings.theme.asDarkTheme()) {
+                    val colors = LocalKeyboardColors.current
+                    SideEffect {
+                        suggestionColors = SuggestionColors(colors.key.toArgb(), colors.onKey.toArgb(), colors.subtle.toArgb())
+                    }
                     KeyboardScreen(
                         controller = controller,
                         actions = this@KeyboardService,
+                        autofill = autofillActions,
                         feel = KeyboardFeel(
                             haptics = settings.haptics,
                             previews = settings.previews,
@@ -148,7 +167,24 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
         super.onDestroy()
     }
 
+    // ---- inline autofill (Android 11+) ----
+
+    override fun onCreateInlineSuggestionsRequest(uiExtras: Bundle): InlineSuggestionsRequest? {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) return null
+        return InlineSuggestions.createRequest(this, suggestionColors)
+    }
+
+    override fun onInlineSuggestionsResponse(response: InlineSuggestionsResponse): Boolean {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) return false
+        InlineSuggestions.inflate(this, response, mainExecutor) { entries -> controller.suggestions = entries }
+        return true
+    }
+
     // ---- toolbar ----
+
+    override fun toggleManagerSheet() {
+        controller.managerSheetOpen = !controller.managerSheetOpen
+    }
 
     override fun toggleDeveloperMode() {
         controller.toggleDeveloperMode()
