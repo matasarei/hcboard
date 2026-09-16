@@ -19,6 +19,7 @@ import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 import net.matasar.keyboard.input.AndroidEditorPort
 import net.matasar.keyboard.input.InputDispatcher
 import net.matasar.keyboard.ui.KeyboardScreen
+import net.matasar.keyboard.ui.PopupMetrics
 import net.matasar.keyboard.ui.theme.KeyboardTheme
 
 /**
@@ -40,6 +41,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
     override val savedStateRegistry: SavedStateRegistry get() = savedStateController.savedStateRegistry
 
     private val controller = KeyboardController(InputDispatcher(AndroidEditorPort { currentInputConnection }))
+    private var inputView: View? = null
 
     override fun onCreate() {
         super.onCreate()
@@ -49,7 +51,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
 
     override fun onCreateInputView(): View {
         lifecycleRegistry.currentState = Lifecycle.State.STARTED
-        return ComposeView(this).apply {
+        return ComposeView(this).also { inputView = it }.apply {
             setViewTreeLifecycleOwner(this@KeyboardService)
             setViewTreeViewModelStoreOwner(this@KeyboardService)
             setViewTreeSavedStateRegistryOwner(this@KeyboardService)
@@ -73,6 +75,20 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
         if (lifecycleRegistry.currentState == Lifecycle.State.RESUMED) {
             lifecycleRegistry.currentState = Lifecycle.State.STARTED
         }
+    }
+
+    /**
+     * The top [PopupMetrics.overhang] of the input view is room for popups: the app keeps that
+     * strip (content and visible insets move down) and touches there fall through to it.
+     */
+    override fun onComputeInsets(outInsets: Insets) {
+        super.onComputeInsets(outInsets)
+        val view = inputView ?: return
+        val overhang = (PopupMetrics.overhang.value * resources.displayMetrics.density).toInt()
+        outInsets.contentTopInsets += overhang
+        outInsets.visibleTopInsets += overhang
+        outInsets.touchableInsets = Insets.TOUCHABLE_INSETS_REGION
+        outInsets.touchableRegion.set(0, outInsets.contentTopInsets, view.width, outInsets.contentTopInsets + view.height)
     }
 
     override fun onFinishInput() {

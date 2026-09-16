@@ -7,6 +7,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import net.matasar.keyboard.input.InputDispatcher
 import net.matasar.keyboard.input.Latch
+import net.matasar.keyboard.input.TrackpadGesture
 import net.matasar.keyboard.layout.Key
 import net.matasar.keyboard.layout.KeyAction
 import net.matasar.keyboard.layout.KeyboardLayout
@@ -32,6 +33,12 @@ class KeyboardController(
     var editorActionId: Int? by mutableStateOf(null)
         private set
 
+    /** True while space is held and the finger moves the cursor. Keys hide their labels. */
+    var trackpad: Boolean by mutableStateOf(false)
+        private set
+
+    private var trackpadGesture: TrackpadGesture? = null
+
     /** What a letter key shows and commits right now. */
     fun displayLabel(key: Key): String = when (val action = key.action) {
         is KeyAction.Letter -> if (shift.active) action.upper else action.lower
@@ -46,6 +53,7 @@ class KeyboardController(
 
     fun onFinishInput() {
         shift = Latch()
+        endTrackpad()
     }
 
     fun onKey(key: Key) {
@@ -63,6 +71,32 @@ class KeyboardController(
             is KeyAction.KeyCode -> dispatcher.sendKey(action.keyCode)
             is KeyAction.Modifier, KeyAction.HideKeyboard, KeyAction.SwitchLanguage -> Unit // step 5 and 6
         }
+    }
+
+    /** The accent candidates a long press on [key] offers, in the current case. */
+    fun accentsFor(key: Key): List<String> =
+        if (shift.active) key.longPress.map { it.uppercase() } else key.longPress
+
+    /** A chosen accent goes in like a letter: it consumes a one-shot shift. */
+    fun commitAccent(text: String) {
+        dispatcher.commitText(text)
+        shift = shift.consume()
+    }
+
+    fun startTrackpad(stepPx: Float) {
+        trackpadGesture = TrackpadGesture(stepPx)
+        trackpad = true
+    }
+
+    /** More horizontal travel while space is held. */
+    fun trackpadMove(dxPx: Float) {
+        val steps = trackpadGesture?.move(dxPx) ?: return
+        if (steps != 0) dispatcher.moveCursor(steps)
+    }
+
+    fun endTrackpad() {
+        trackpadGesture = null
+        trackpad = false
     }
 
     /** Backspace held down: one more deletion per repeat tick. */

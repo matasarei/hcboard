@@ -41,4 +41,13 @@ class InputDispatcher(private val port: EditorPort) {
 
     /** A key event down/up pair with the given meta state. */
     fun sendKey(keyCode: Int, metaState: Int = 0) = port.sendKey(keyCode, metaState)
+
+    /**
+     * Moves the cursor by [steps] characters (negative is left) with arrow keys, which every
+     * editor and terminal honours; setSelection would need the absolute position first.
+     */
+    fun moveCursor(steps: Int) {
+        val keyCode = if (steps < 0) KeyEvent.KEYCODE_DPAD_LEFT else KeyEvent.KEYCODE_DPAD_RIGHT
+        repeat(kotlin.math.abs(steps)) { port.sendKey(keyCode, 0) }
+    }
 }
