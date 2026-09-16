@@ -1,5 +1,6 @@
 package net.matasar.keyboard.autofill
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.drawable.Icon
 import net.matasar.keyboard.R
@@ -42,7 +43,14 @@ object InlineSuggestions {
 
     const val MAX_SUGGESTIONS = 6
 
-    /** Builds the request the system forwards to the autofill service. */
+    /**
+     * Builds the request the system forwards to the autofill service.
+     *
+     * RestrictedApi is suppressed on purpose: ViewStyle.Builder's setPadding/setBackground are
+     * public, but lint resolves them to the library-restricted BaseBuilder they override. The
+     * Android autofill sample carries the same suppression.
+     */
+    @SuppressLint("RestrictedApi")
     fun createRequest(context: Context, colors: SuggestionColors): InlineSuggestionsRequest {
         val metrics = context.resources.displayMetrics
         val sizes = inlineSizes(metrics.widthPixels, metrics.density)
