@@ -1,6 +1,8 @@
 package net.matasar.keyboard.autofill
 
 import android.content.Context
+import android.graphics.drawable.Icon
+import net.matasar.keyboard.R
 import android.os.Build
 import android.os.Bundle
 import android.util.Size
@@ -45,11 +47,13 @@ object InlineSuggestions {
         val metrics = context.resources.displayMetrics
         val sizes = inlineSizes(metrics.widthPixels, metrics.density)
         val padding = (10 * metrics.density).toInt()
+        // The chip background is a drawable (with a night variant): the public style API takes
+        // an Icon, and the manager's process renders it, so it cannot follow dynamic colour.
         val style = InlineSuggestionUi.newStyleBuilder()
             .setChipStyle(
                 ViewStyle.Builder()
-                    .setBackgroundColor(colors.chipBackground)
                     .setPadding(padding, 0, padding, 0)
+                    .setBackground(Icon.createWithResource(context, R.drawable.bg_suggestion_chip))
                     .build(),
             )
             .setTitleStyle(TextViewStyle.Builder().setTextColor(colors.chipText).setTextSize(13f).build())
