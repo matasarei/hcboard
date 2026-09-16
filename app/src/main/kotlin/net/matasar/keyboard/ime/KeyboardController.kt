@@ -1,17 +1,23 @@
 package net.matasar.keyboard.ime
 
 import android.text.InputType
+import android.view.KeyEvent
 import android.view.inputmethod.EditorInfo
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import net.matasar.keyboard.input.EditingAction
 import net.matasar.keyboard.input.InputDispatcher
+import net.matasar.keyboard.input.KeyStroke
 import net.matasar.keyboard.input.Latch
+import net.matasar.keyboard.input.Modifiers
 import net.matasar.keyboard.input.TrackpadGesture
+import net.matasar.keyboard.input.keyStrokeFor
 import net.matasar.keyboard.layout.Key
 import net.matasar.keyboard.layout.KeyAction
 import net.matasar.keyboard.layout.KeyboardLayout
 import net.matasar.keyboard.layout.LayerId
+import net.matasar.keyboard.layout.ModifierKey
 import net.matasar.keyboard.layout.PhoneLayout
 
 /**
@@ -29,6 +35,14 @@ class KeyboardController(
     var shift: Latch by mutableStateOf(Latch())
         private set
 
+    /** Ctrl, Alt, Shift, Meta, Fn: armed, locked or held. Survives layer switches. */
+    var modifiers: Modifiers by mutableStateOf(Modifiers())
+        private set
+
+    /** Whether the modifier strip shows above the layers. */
+    var developerMode: Boolean by mutableStateOf(false)
+        private set
+
     /** The editor action Enter performs, or null when Enter should be a real key. */
     var editorActionId: Int? by mutableStateOf(null)
         private set
@@ -37,50 +51,154 @@ class KeyboardController(
     var trackpad: Boolean by mutableStateOf(false)
         private set
 
+    /** A field with no input type at all: a terminal. Ctrl+C there must stay a key event. */
+    var terminalField: Boolean by mutableStateOf(false)
+        private set
+
+    /** Setting: Ctrl+A/C/V/X become the editor's own actions in ordinary text fields. */
+    var editingShortcutsInTextFields: Boolean = true
+
     private var trackpadGesture: TrackpadGesture? = null
+
+    /** Modifiers whose hold was used by another key, so the release must not count as a tap. */
+    private val usedHolds = mutableSetOf<ModifierKey>()
+
+    private val uppercase: Boolean get() = shift.active || modifiers.isActive(ModifierKey.SHIFT)
 
     /** What a letter key shows and commits right now. */
     fun displayLabel(key: Key): String = when (val action = key.action) {
-        is KeyAction.Letter -> if (shift.active) action.upper else action.lower
+        is KeyAction.Letter -> if (uppercase) action.upper else action.lower
         else -> key.label
     }
 
     fun onStartInput(info: EditorInfo?) {
         layer = LayerId.LETTERS
         shift = Latch()
+        modifiers = Modifiers()
+        usedHolds.clear()
         editorActionId = info?.let { editorActionFor(it.imeOptions, it.inputType) }
+        terminalField = info != null && info.inputType == InputType.TYPE_NULL
     }
 
     fun onFinishInput() {
         shift = Latch()
+        modifiers = Modifiers()
+        usedHolds.clear()
         endTrackpad()
     }
 
+    fun toggleDeveloperMode() {
+        developerMode = !developerMode
+    }
+
     fun onKey(key: Key) {
-        when (val action = key.action) {
+        val fnAction = key.fnAction
+        if (modifiers.isActive(ModifierKey.FN) && fnAction != null) {
+            perform(key, fnAction)
+            return
+        }
+        perform(key, key.action)
+    }
+
+    private fun perform(key: Key, action: KeyAction) {
+        when (action) {
             is KeyAction.Letter -> {
-                dispatcher.commitText(if (shift.active) action.upper else action.lower)
-                shift = shift.consume()
+                val text = if (uppercase) action.upper else action.lower
+                if (modifiers.anyMetaActive) sendCombo(text, key) else dispatcher.commitText(text)
+                afterKey()
             }
-            is KeyAction.Text -> dispatcher.commitText(action.text)
-            KeyAction.Space -> dispatcher.commitText(" ")
-            KeyAction.Backspace -> dispatcher.backspace()
-            KeyAction.Enter -> dispatcher.enter(editorActionId)
+            is KeyAction.Text -> {
+                if (modifiers.anyMetaActive) sendCombo(action.text, key) else dispatcher.commitText(action.text)
+                afterKey()
+            }
+            KeyAction.Space -> {
+                if (modifiers.anyMetaActive) sendCombo(" ", key) else dispatcher.commitText(" ")
+                afterKey()
+            }
+            KeyAction.Backspace -> {
+                when {
+                    modifiers.isActive(ModifierKey.FN) -> dispatcher.forwardDelete()
+                    modifiers.anyMetaActive -> dispatcher.sendKey(KeyEvent.KEYCODE_DEL, modifiers.metaState())
+                    else -> dispatcher.backspace()
+                }
+                afterKey()
+            }
+            KeyAction.Enter -> {
+                if (modifiers.anyMetaActive) dispatcher.sendKey(KeyEvent.KEYCODE_ENTER, modifiers.metaState())
+                else dispatcher.enter(editorActionId)
+                afterKey()
+            }
             KeyAction.Shift -> shift = shift.tap(clock())
             is KeyAction.SwitchLayer -> layer = action.layer
-            is KeyAction.KeyCode -> dispatcher.sendKey(action.keyCode)
-            is KeyAction.Modifier, KeyAction.HideKeyboard, KeyAction.SwitchLanguage -> Unit // step 5 and 6
+            is KeyAction.KeyCode -> {
+                val code = if (modifiers.isActive(ModifierKey.FN) && action.fnKeyCode != null) action.fnKeyCode else action.keyCode
+                dispatcher.sendKey(code, modifiers.metaState())
+                afterKey()
+            }
+            is KeyAction.Modifier -> onModifierTap(action.modifier)
+            KeyAction.HideKeyboard, KeyAction.SwitchLanguage -> Unit // handled by the service and step 6
+        }
+    }
+
+    /**
+     * A character with Ctrl/Alt/Shift/Meta active. Ctrl+A/C/V/X in an ordinary text field go
+     * through the editor's own actions; everything else is a key event with meta state.
+     */
+    private fun sendCombo(text: String, key: Key) {
+        val onlyCtrl = modifiers.active.filter { it != ModifierKey.FN } == listOf(ModifierKey.CTRL)
+        if (onlyCtrl && editingShortcutsInTextFields && !terminalField) {
+            EditingAction.forLetter(text)?.let { action ->
+                if (dispatcher.sendEditingAction(action)) return
+            }
+        }
+        val stroke: KeyStroke = keyStrokeFor(text) ?: keyStrokeFor(key.label) ?: return
+        dispatcher.sendCombo(stroke, modifiers.metaState())
+    }
+
+    /** A key went out: one-shot shift and modifiers release; held ones remember they were used. */
+    private fun afterKey() {
+        if (modifiers.held.isNotEmpty()) usedHolds += modifiers.held
+        shift = shift.consume()
+        modifiers = modifiers.consume()
+    }
+
+    private fun onModifierTap(modifier: ModifierKey) {
+        if (usedHolds.remove(modifier)) return
+        modifiers = modifiers.tap(modifier, clock())
+    }
+
+    /** A finger lands on a modifier: it is held until the finger lifts (chording). */
+    fun onModifierPressStart(modifier: ModifierKey) {
+        modifiers = modifiers.hold(modifier)
+    }
+
+    /** The finger lifts. A tap follows from the gesture unless another key used the hold. */
+    fun onModifierPressEnd(modifier: ModifierKey) {
+        modifiers = modifiers.releaseHold(modifier)
+    }
+
+    /** Backspace held down: one more deletion per repeat tick. */
+    fun onKeyRepeat(key: Key) {
+        if (key.action == KeyAction.Backspace) dispatcher.backspace()
+    }
+
+    fun onKeyLongPress(key: Key) {
+        when (val action = key.action) {
+            KeyAction.Shift -> shift = shift.longPress()
+            // The gesture sends no tap after a long press, so nothing to ignore here.
+            is KeyAction.Modifier -> modifiers = modifiers.longPress(action.modifier)
+            else -> Unit
         }
     }
 
     /** The accent candidates a long press on [key] offers, in the current case. */
     fun accentsFor(key: Key): List<String> =
-        if (shift.active) key.longPress.map { it.uppercase() } else key.longPress
+        if (uppercase) key.longPress.map { it.uppercase() } else key.longPress
 
     /** A chosen accent goes in like a letter: it consumes a one-shot shift. */
     fun commitAccent(text: String) {
         dispatcher.commitText(text)
-        shift = shift.consume()
+        afterKey()
     }
 
     fun startTrackpad(stepPx: Float) {
@@ -97,15 +215,6 @@ class KeyboardController(
     fun endTrackpad() {
         trackpadGesture = null
         trackpad = false
-    }
-
-    /** Backspace held down: one more deletion per repeat tick. */
-    fun onKeyRepeat(key: Key) {
-        if (key.action == KeyAction.Backspace) dispatcher.backspace()
-    }
-
-    fun onKeyLongPress(key: Key) {
-        if (key.action == KeyAction.Shift) shift = shift.longPress()
     }
 
     companion object {

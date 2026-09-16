@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -53,7 +54,14 @@ fun KeyboardScreen(controller: KeyboardController, feel: KeyboardFeel = Keyboard
                     .background(colors.background)
                     .navigationBarsPadding(),
             ) {
-                Box(modifier = Modifier.fillMaxWidth().height(Dimens.toolbarHeight)) // toolbar: step 6
+                // Toolbar proper lands in step 6; the chip already needs a home.
+                Box(modifier = Modifier.fillMaxWidth().height(Dimens.toolbarHeight), contentAlignment = androidx.compose.ui.Alignment.Center) {
+                    val chip = when {
+                        controller.trackpad -> "Move cursor"
+                        else -> controller.modifiers.chipText()
+                    }
+                    if (chip != null) ModifierChip(chip)
+                }
                 LayerGrid(controller, feel, popups)
             }
         }
@@ -74,16 +82,14 @@ private fun LayerGrid(controller: KeyboardController, feel: KeyboardFeel, popups
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(
-                    start = Dimens.sidePadding,
-                    end = Dimens.sidePadding,
-                    top = Dimens.topPadding,
-                    bottom = Dimens.bottomPadding,
-                ),
+                .padding(top = Dimens.topPadding, bottom = Dimens.bottomPadding),
             verticalArrangement = Arrangement.spacedBy(Dimens.rowGap),
         ) {
+            if (controller.developerMode) {
+                ModifierStrip(controller, feel, callbacks, unitWidth)
+            }
             for (row in layer.rows) {
-                KeyRow(row = row, unitWidth = unitWidth, gap = Dimens.keyGap) { key ->
+                KeyRow(row = row, unitWidth = unitWidth, gap = Dimens.keyGap, modifier = Modifier.padding(horizontal = Dimens.sidePadding)) { key ->
                     KeyButton(
                         key = key,
                         label = controller.displayLabel(key),
@@ -111,12 +117,14 @@ private class KeyScreenCallbacks(
     private var lastX = 0f
 
     override fun onPressStart(key: Key, bounds: Rect) {
+        (key.action as? KeyAction.Modifier)?.let { controller.onModifierPressStart(it.modifier) }
         if (feel.previews && key.showsPreview()) {
             popups.preview = PressPreview(bounds, controller.displayLabel(key))
         }
     }
 
     override fun onPressEnd(key: Key) {
+        (key.action as? KeyAction.Modifier)?.let { controller.onModifierPressEnd(it.modifier) }
         popups.preview = null
     }
 

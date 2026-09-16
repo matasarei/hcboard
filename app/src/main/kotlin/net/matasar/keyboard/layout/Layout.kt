@@ -51,6 +51,8 @@ data class Key(
     val longPress: List<String> = emptyList(),
     /** True for keys that repeat while held (backspace). */
     val repeats: Boolean = false,
+    /** What the key does while Fn is active, when that is not a plain key code (60% board). */
+    val fnAction: KeyAction? = null,
 ) {
     /** A stable identity for pressed-state tracking and tests. */
     val id: String get() = "$label:$action"
