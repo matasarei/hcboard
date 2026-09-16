@@ -87,6 +87,7 @@ fun KeyButton(
     var pressed by remember { mutableStateOf(false) }
     var bounds by remember { mutableStateOf(Rect.Zero) }
     val currentCallbacks by rememberUpdatedState(callbacks)
+    val currentHaptics by rememberUpdatedState(haptics)
     val shape = RoundedCornerShape(Dimens.keyRadius)
     val scale by animateFloatAsState(
         targetValue = if (pressed) 0.96f else 1f,
@@ -102,7 +103,7 @@ fun KeyButton(
             override fun onPressStart() {
                 pressed = true
                 repeated = false
-                if (haptics) view.keyDownTick()
+                if (currentHaptics) view.keyDownTick()
                 currentCallbacks.onPressStart(key, bounds)
                 if (key.repeats) {
                     repeatJob = scope.launch {
