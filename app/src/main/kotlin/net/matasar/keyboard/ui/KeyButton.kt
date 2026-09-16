@@ -34,6 +34,7 @@ import androidx.compose.ui.platform.LocalViewConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.Job
@@ -79,6 +80,8 @@ fun KeyButton(
     legend: String? = key.fnLegend,
     legendColor: Color? = null,
     topLegend: String? = key.shiftedLabel,
+    /** Overrides the size of a small (word) label; the strip's narrow keys use it. */
+    labelSize: TextUnit = Dimens.labelSize,
 ) {
     val colors = LocalKeyboardColors.current
     val view = LocalView.current
@@ -189,7 +192,7 @@ fun KeyButton(
                 text = label,
                 color = visual.foreground,
                 fontSize = when {
-                    small -> Dimens.labelSize
+                    small -> labelSize
                     topLegend != null -> Dimens.dualMainSize
                     compact -> Dimens.compactLetterSize
                     else -> Dimens.letterSize
