@@ -54,8 +54,7 @@ interface KeyCallbacks {
     fun onPressStart(key: Key, bounds: Rect)
     fun onPressEnd(key: Key)
     fun onTap(key: Key)
-    /** True when a long press opened something the finger now steers. */
-    fun onLongPress(key: Key, bounds: Rect): Boolean
+    fun onLongPress(key: Key, bounds: Rect): LongPressResult
     fun onLongPressMove(key: Key, rootPosition: Offset)
     fun onLongPressRelease(key: Key, rootPosition: Offset)
     fun onRepeat(key: Key)
@@ -128,8 +127,8 @@ fun KeyButton(
                 if (!repeated) currentCallbacks.onTap(key)
             }
 
-            override fun onLongPress(): Boolean {
-                if (key.repeats) return false
+            override fun onLongPress(): LongPressResult {
+                if (key.repeats) return LongPressResult.HANDLED
                 return currentCallbacks.onLongPress(key, bounds)
             }
 

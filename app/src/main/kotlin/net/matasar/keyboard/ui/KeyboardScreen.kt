@@ -158,23 +158,24 @@ private class KeyScreenCallbacks(
 
     override fun onTap(key: Key) = controller.onKey(key)
 
-    override fun onLongPress(key: Key, bounds: Rect): Boolean {
+    override fun onLongPress(key: Key, bounds: Rect): LongPressResult {
         val accents = controller.accentsFor(key)
         return when {
             accents.isNotEmpty() -> {
                 popups.preview = null
                 popups.accents = AccentChoice(bounds, accents, selected = 0)
-                true
+                LongPressResult.STEER
             }
             key.action == KeyAction.Space -> {
                 lastX = bounds.center.x
                 controller.startTrackpad(trackpadStepPx)
-                true
+                LongPressResult.STEER
             }
-            else -> {
+            key.action == KeyAction.Shift || key.action is KeyAction.Modifier -> {
                 controller.onKeyLongPress(key)
-                false
+                LongPressResult.HANDLED
             }
+            else -> LongPressResult.NONE
         }
     }
 
