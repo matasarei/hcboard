@@ -1,0 +1,15 @@
+hcboard
+Copyright 2026 Yevhen Matasar
+
+Licensed under the Apache License, Version 2.0 (see LICENSE).
+
+This product includes software and data from other Apache-2.0 projects:
+
+- The glide-typing classifier (app/src/main/kotlin/net/matasar/keyboard/input/glide/GlideClassifier.kt)
+  is derived from StatisticalGlideTypingClassifier.kt in FlorisBoard,
+  Copyright (C) The FlorisBoard Contributors, https://github.com/florisboard/florisboard,
+  Apache License 2.0. Modifications are marked in the file header.
+
+- The English word list (app/src/main/assets/dictionaries/en_US.txt) is derived from
+  en_US_wordlist.combined in the Android Open Source Project (packages/inputmethods/LatinIME),
+  Copyright (C) The Android Open Source Project, Apache License 2.0.
