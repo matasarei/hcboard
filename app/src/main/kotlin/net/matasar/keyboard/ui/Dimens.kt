@@ -14,9 +14,14 @@ object Dimens {
     val keyRadius = 10.dp
     val toolbarHeight = 44.dp
     val letterSize = 22.sp
+    val compactLetterSize = 17.sp
+    val compactKeyHeight = 40.dp
     val labelSize = 12.sp
     val legendSize = 9.sp
     val popupRadius = 16.dp
+
+    /** The keyboard never takes more than this share of the screen height. */
+    const val maxHeightFraction = 0.6f
 
     /** From here up the window gets the 60% board. */
     val wideBreakpoint = 600.dp

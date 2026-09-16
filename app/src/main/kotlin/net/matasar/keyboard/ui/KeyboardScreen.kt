@@ -18,6 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import net.matasar.keyboard.ime.KeyboardController
@@ -83,8 +84,12 @@ private fun LayerGrid(controller: KeyboardController, feel: KeyboardFeel, popups
         val layout = if (wide) WideLayout else PhoneLayout
         val layer = layout.layers[controller.layer] ?: layout.layers.values.first()
         val sidePadding = if (wide) Dimens.wideSidePadding else Dimens.sidePadding
-        val keyHeight = (if (wide) Dimens.wideKeyHeight else Dimens.keyHeight) * feel.heightScale
         val rowGap = if (wide) Dimens.wideRowGap else Dimens.rowGap
+        // Short windows (a phone in landscape) get shorter keys so the whole board stays on screen.
+        val rows = layer.rows.size + (if (controller.developerMode && !wide) 1 else 0)
+        val budget = LocalConfiguration.current.screenHeightDp.dp * Dimens.maxHeightFraction -
+            Dimens.toolbarHeight - Dimens.topPadding - Dimens.bottomPadding - rowGap * (rows - 1)
+        val keyHeight = minOf((if (wide) Dimens.wideKeyHeight else Dimens.keyHeight) * feel.heightScale, budget / rows)
         val unitWidth = (maxWidth - sidePadding * 2 - Dimens.keyGap * (layer.units.toInt() - 1)) / layer.units
         val fnActive = controller.modifiers.isActive(ModifierKey.FN)
         Column(

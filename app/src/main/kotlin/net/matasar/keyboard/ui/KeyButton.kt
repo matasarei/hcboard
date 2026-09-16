@@ -161,6 +161,11 @@ fun KeyButton(
         contentAlignment = Alignment.Center,
     ) {
         if (!showLabel) return@Box
+        // Short keys (a phone in landscape) have no room for two legends: keep the Fn legend
+        // only while Fn is active, drop the shifted symbol, and shrink the glyph.
+        val compact = height < Dimens.compactKeyHeight
+        val topLegend = if (compact) null else topLegend
+        val legend = if (compact && legendColor == null) null else legend
         if (icon != null) {
             Icon(
                 painter = painterResource(icon.drawable()),
@@ -181,10 +186,14 @@ fun KeyButton(
             Text(
                 text = label,
                 color = visual.foreground,
-                fontSize = if (small) Dimens.labelSize else Dimens.letterSize,
+                fontSize = if (small) Dimens.labelSize else if (compact) Dimens.compactLetterSize else Dimens.letterSize,
                 fontWeight = if (small) FontWeight.Medium else FontWeight.Normal,
                 maxLines = 1,
-                modifier = if (topLegend != null) Modifier.align(Alignment.BottomCenter).padding(bottom = 4.dp) else Modifier,
+                modifier = when {
+                    topLegend != null -> Modifier.align(Alignment.BottomCenter).padding(bottom = 4.dp)
+                    legend != null -> Modifier.align(Alignment.BottomCenter).padding(bottom = 5.dp)
+                    else -> Modifier
+                },
             )
         }
         if (legend != null) {
