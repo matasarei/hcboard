@@ -34,10 +34,14 @@ fun changeManagerIntent(packageName: String, sdkInt: Int = Build.VERSION.SDK_INT
 
 class AndroidAutofillActions(private val context: Context) : AutofillActions {
 
-    private fun currentComponent(): ComponentName? =
-        runCatching { Settings.Secure.getString(context.contentResolver, AUTOFILL_SERVICE_SETTING) }
-            .getOrNull()
-            ?.let { ComponentName.unflattenFromString(it) }
+    private fun currentComponent(): ComponentName? {
+        fun read(key: String) = runCatching { Settings.Secure.getString(context.contentResolver, key) }.getOrNull()
+        return pickManagerComponent(
+            primaryCredentialProvider = read(CREDENTIAL_SERVICE_PRIMARY_SETTING),
+            autofillService = read(AUTOFILL_SERVICE_SETTING),
+            credentialProviders = read(CREDENTIAL_SERVICE_SETTING),
+        )?.let { ComponentName.unflattenFromString(it) }
+    }
 
     /** The service's own label ("Google", "Enpass"), falling back to the app's. */
     override fun currentManagerLabel(): String? {
@@ -58,7 +62,31 @@ class AndroidAutofillActions(private val context: Context) : AutofillActions {
     }
 
     private companion object {
-        /** `Settings.Secure.AUTOFILL_SERVICE`, which is not in the public API. */
+        /** `Settings.Secure.AUTOFILL_SERVICE`, not in the public API. */
         const val AUTOFILL_SERVICE_SETTING = "autofill_service"
+
+        /** Android 14+: the preferred Credential Manager provider, one flattened component. */
+        const val CREDENTIAL_SERVICE_PRIMARY_SETTING = "credential_service_primary"
+
+        /** Android 14+: every enabled credential provider, colon-separated. */
+        const val CREDENTIAL_SERVICE_SETTING = "credential_service"
     }
+}
+
+/**
+ * The manager Android will ask first. On Android 14+ the "preferred service" in Settings is a
+ * Credential Manager provider and `autofill_service` may be empty, so that setting is read
+ * first, then the classic autofill service, then the first enabled provider. Pure, for tests.
+ */
+fun pickManagerComponent(
+    primaryCredentialProvider: String?,
+    autofillService: String?,
+    credentialProviders: String?,
+): String? {
+    val candidates = listOf(primaryCredentialProvider, autofillService) +
+        credentialProviders.orEmpty().split(':')
+    return candidates
+        .filterNotNull()
+        .map { it.trim() }
+        .firstOrNull { it.contains('/') && !it.startsWith("PLACEHOLDER", ignoreCase = true) }
 }
