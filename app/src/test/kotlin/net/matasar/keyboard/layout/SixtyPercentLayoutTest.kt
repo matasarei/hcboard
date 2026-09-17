@@ -55,7 +55,8 @@ class SixtyPercentLayoutTest {
         val keys = layer.rows.flatMap { it.keys }
         assertEquals("Tab й ц у к е н г ш щ з х ї \\", layer.rows[1].keys.joinToString(" ") { it.label })
         assertEquals(KeyAction.Text("[", "{"), keys.first { it.label == "х" }.fnAction)
-        assertEquals("]", keys.first { it.label == "ї" }.fnLegend)
+        assertEquals("]}", keys.first { it.label == "ї" }.fnLegend)
+        assertEquals("[{", keys.first { it.label == "х" }.fnLegend)
         assertEquals(']', keys.first { it.label == "ї" }.slot)
         assertEquals("Caps ф і в а п р о л д ж є enter", layer.rows[2].keys.joinToString(" ") { it.label })
         assertEquals(KeyAction.Text("'", "\""), keys.first { it.label == "є" }.fnAction)
