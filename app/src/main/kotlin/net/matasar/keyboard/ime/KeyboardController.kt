@@ -429,7 +429,8 @@ class KeyboardController(
             return
         }
         if (word == current.typed) return
-        dispatcher.replaceWordBeforeCursor(current.typed, "$word ")
+        // The field may have changed under the strip; replace only what is still there.
+        if (dispatcher.textEndsWith(current.typed)) dispatcher.replaceWordBeforeCursor(current.typed, "$word ")
         candidates = null
     }
 
@@ -466,7 +467,7 @@ class KeyboardController(
     private fun commitSeparator(separator: String) {
         val current = candidates
         val correction = current?.correction
-        if (autoCorrect && current != null && correction != null && lastGlideWord == null) {
+        if (autoCorrect && current != null && correction != null && lastGlideWord == null && dispatcher.textEndsWith(current.typed)) {
             dispatcher.replaceWordBeforeCursor(current.typed, correction)
             lastAutocorrect = Autocorrect(current.typed, correction, separator)
         }

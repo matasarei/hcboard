@@ -155,6 +155,20 @@ class SuggestionControllerTest {
     }
 
     @Test
+    fun `a field that changed under the strip is not edited`() {
+        textField()
+        type("chek")
+        port.before = "changed"
+        controller.onKey(space)
+        assertEquals("changed ", port.before)
+        type("chek")
+        port.before = "x"
+        controller.pickCandidate("check")
+        assertEquals("x", port.before)
+        assertNull(controller.candidates)
+    }
+
+    @Test
     fun `a moved cursor re-derives the word and a language switch clears the strip`() {
         textField()
         port.before = "hello spel"
