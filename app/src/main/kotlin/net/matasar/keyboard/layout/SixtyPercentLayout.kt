@@ -35,10 +35,12 @@ private fun punctuation(slot: Char) = dual(slot.toString(), SlotPunctuation.getV
 /**
  * A letters row of the 60% board: the language's letters fill the row's ANSI slots left to right,
  * each carrying its slot and the slot's Fn meaning. A letter that takes a punctuation slot keeps
- * that punctuation as its Fn legend, both symbols (`[{`: Fn+х is `[`, Fn+Shift+х is `{`); the slots left over keep
- * their punctuation keys, so English renders the standard board.
+ * that punctuation as its Fn legend, both symbols (`;:` on ж: Fn+ж is `;`, Fn+Shift+ж is `:`),
+ * and the slots left over keep their punctuation keys, so English renders the standard board.
+ * With [keepPunctuation] the row's punctuation keys stay separate whatever the letters take
+ * (the Tab row, see [wideTopRow]), so only the letters come back.
  */
-private fun wideRow(language: Language, index: Int): List<Key> {
+private fun wideRow(language: Language, index: Int, keepPunctuation: Boolean = false): List<Key> {
     val slots = AnsiSlots.rows[index]
     val letters = language.rows[index]
     require(letters.length <= slots.length) { "${language.tag} row $index has ${letters.length} letters for ${slots.length} slots" }
@@ -51,11 +53,31 @@ private fun wideRow(language: Language, index: Int): List<Key> {
             fnPair != null -> key.copy(fnLegend = fnPair.first, fnAction = fnPair.second)
             // Both symbols of the slot in the legend (`[{`): the shifted one has no other home on
             // a Cyrillic board, and Fn+Shift on this key types it.
-            displaced != null -> key.copy(fnLegend = slot.toString() + displaced, fnAction = KeyAction.Text(slot.toString(), displaced))
+            displaced != null && !keepPunctuation -> key.copy(fnLegend = slot.toString() + displaced, fnAction = KeyAction.Text(slot.toString(), displaced))
             else -> key
         }
     }
-    return onSlots + slots.drop(letters.length).map(::punctuation)
+    return if (keepPunctuation) onSlots else onSlots + slots.drop(letters.length).map(::punctuation)
+}
+
+/**
+ * The Tab row keeps `[`, `]` and `\` as keys of their own on every board. A language with
+ * eleven or twelve letters in its top row (ü, х, ї) narrows Tab, the brackets and the backslash
+ * to make room instead of taking the bracket keys over, so brackets are typed the same way in
+ * every language: 10 letters is the standard board, 11 gives 1.25 / 0.875 / 1.0, 12 gives
+ * 1.0 / 0.75 / 0.5.
+ */
+private fun wideTopRow(language: Language): Row {
+    val extra = language.rows[0].length - 10
+    require(extra in 0..2) { "${language.tag} top row has ${language.rows[0].length} letters; 10 to 12 fit" }
+    val bracket = 1f - 0.125f * extra
+    return row(
+        fn("Tab", KeyAction.KeyCode(KeyEvent.KEYCODE_TAB), 1.5f - 0.25f * extra),
+        *wideRow(language, 0, keepPunctuation = true).toTypedArray(),
+        dual("[", "{", width = bracket),
+        dual("]", "}", width = bracket),
+        dual("\\", "|", width = 1.5f - 0.5f * extra),
+    )
 }
 
 /**
@@ -108,11 +130,7 @@ fun sixtyPercentLayer(language: Language, withGlobe: Boolean) = Layer(
             dual("=", "+", fnLegend = "F12", fnAction = fkey(11)),
             Key("backspace", KeyAction.Backspace, 2f, KeyStyle.FUNCTION, KeyIcon.BACKSPACE, fnLegend = "Del", repeats = true),
         ),
-        row(
-            fn("Tab", KeyAction.KeyCode(KeyEvent.KEYCODE_TAB), 1.5f),
-            *wideRow(language, 0).toTypedArray(),
-            dual("\\", "|", width = 1.5f),
-        ),
+        wideTopRow(language),
         row(
             Key("Caps", KeyAction.CapsLock, 1.75f, KeyStyle.MODIFIER),
             *wideRow(language, 1).toTypedArray(),

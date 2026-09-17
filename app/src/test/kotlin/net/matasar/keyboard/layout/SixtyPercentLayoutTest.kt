@@ -53,10 +53,11 @@ class SixtyPercentLayoutTest {
     fun `ukrainian takes the punctuation slots and keeps their symbols on fn`() {
         val layer = sixtyPercentLayer(Languages.ukrainian, withGlobe = false)
         val keys = layer.rows.flatMap { it.keys }
-        assertEquals("Tab й ц у к е н г ш щ з х ї \\", layer.rows[1].keys.joinToString(" ") { it.label })
-        assertEquals(KeyAction.Text("[", "{"), keys.first { it.label == "х" }.fnAction)
-        assertEquals("]}", keys.first { it.label == "ї" }.fnLegend)
-        assertEquals("[{", keys.first { it.label == "х" }.fnLegend)
+        assertEquals("Tab й ц у к е н г ш щ з х ї [ ] \\", layer.rows[1].keys.joinToString(" ") { it.label })
+        assertEquals(listOf(1f, 0.75f, 0.75f, 0.5f), listOf("Tab", "[", "]", "\\").map { l -> layer.rows[1].keys.first { it.label == l }.width })
+        assertEquals(null, keys.first { it.label == "х" }.fnLegend)
+        assertEquals(null, keys.first { it.label == "ї" }.fnAction)
+        assertEquals(KeyAction.Text("[", "{"), keys.first { it.label == "[" }.action)
         assertEquals(']', keys.first { it.label == "ї" }.slot)
         assertEquals("Caps ф і в а п р о л д ж є enter", layer.rows[2].keys.joinToString(" ") { it.label })
         assertEquals(KeyAction.Text("'", "\""), keys.first { it.label == "є" }.fnAction)
@@ -80,7 +81,8 @@ class SixtyPercentLayoutTest {
     @Test
     fun `german keeps the closing bracket and puts the displaced apostrophe on fn`() {
         val layer = sixtyPercentLayer(Languages.german, withGlobe = false)
-        assertEquals("Tab q w e r t z u i o p ü ] \\", layer.rows[1].keys.joinToString(" ") { it.label })
+        assertEquals("Tab q w e r t z u i o p ü [ ] \\", layer.rows[1].keys.joinToString(" ") { it.label })
+        assertEquals(listOf(1.25f, 0.875f, 0.875f, 1f), listOf("Tab", "[", "]", "\\").map { l -> layer.rows[1].keys.first { it.label == l }.width })
         assertTrue(layer.rows[2].keys.none { it.label == ";" || it.label == "'" })
         assertEquals(KeyAction.Text("'", "\""), layer.rows[2].keys.first { it.label == "ä" }.fnAction)
         assertEquals(KeyAction.Text(";", ":"), layer.rows[2].keys.first { it.label == "ö" }.fnAction)
@@ -90,6 +92,8 @@ class SixtyPercentLayoutTest {
     @Test
     fun `english renders the standard board and its letters carry their own slot`() {
         assertEquals("Shift z x c v b n m , . / Shift", SixtyPercentLayer.rows[3].keys.joinToString(" ") { it.label })
+        assertEquals("Tab q w e r t y u i o p [ ] \\", SixtyPercentLayer.rows[1].keys.joinToString(" ") { it.label })
+        assertEquals(listOf(1.5f, 1f, 1f, 1.5f), listOf("Tab", "[", "]", "\\").map { l -> SixtyPercentLayer.rows[1].keys.first { it.label == l }.width })
         assertEquals(listOf(2.75f, 2.25f), listOf(SixtyPercentLayer.rows[3].keys.first().width, SixtyPercentLayer.rows[3].keys.last().width))
         assertEquals('c', SixtyPercentLayer.rows[3].keys.first { it.label == "c" }.slot)
         assertEquals(null, SixtyPercentLayer.rows[3].keys.first { it.label == "/" }.slot)

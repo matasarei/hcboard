@@ -69,7 +69,8 @@ emulator profile is `medium_phone`; boot it headless with
   disagreed with ours and its picker never reached the keys), and the first-run default is English
   plus the phone's languages the keyboard ships (`Languages.defaultEnabled`). The 60% board is
   built from the same data (`layout/SixtyPercentLayout.kt`): letters fill the ANSI slots of
-  `AnsiSlots.rows` left to right, a letter on a punctuation slot carries that punctuation on Fn,
+  `AnsiSlots.rows` left to right; the Tab row keeps `[` `]` `\` as keys and narrows Tab and them
+  for 11 or 12 letters, a home-row letter on a punctuation slot carries that punctuation on Fn,
   and a nine-letter Shift row shrinks both Shifts to keep `.` and `/`. Every letter key carries
   `Key.slot`, the US character of its slot: modifier combinations send the slot (Ctrl+С is
   Ctrl+C) and `displayLabel` shows it while Ctrl, Alt or Meta is active.
