@@ -63,7 +63,7 @@ jobs:
           if-no-files-found: ignore
 
   dev-release:
-    name: Refresh the dev pre-release
+    name: Re-create the dev pre-release
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     needs: build
     runs-on: ubuntu-latest
@@ -74,11 +74,14 @@ jobs:
         with:
           name: hcboard-dev
 
-      # One rolling pre-release. The tag moves to this commit and the asset is replaced in
-      # place: nothing is deleted, because GitHub turns a release into a draft when its tag is
-      # deleted, and that happened asynchronously to the release recreated seconds later. The
-      # last line makes the job fail if the release is ever a draft again.
-      - name: Refresh the dev release
+      # One rolling pre-release, re-created on every push to main so it is always the newest
+      # release on the page; an edited release keeps the date it was first published and sinks.
+      # The tag is moved, never deleted: GitHub turns a release into a draft when its tag is
+      # deleted, and it did so asynchronously to a release re-created seconds later. Only the
+      # release object is removed, and the new one is created on the tag that is already there.
+      # The last loop fails the job if the new release is a draft or not a pre-release, and looks
+      # again after a pause, because that conversion arrived late.
+      - name: Re-create the dev release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -88,10 +91,12 @@ jobs:
 
           Install: download \`hcboard-dev.apk\`, open it on the phone (allow installs from your browser or files app), then enable and select **hcboard** under Settings › System › Keyboard › On-screen keyboard. Or with adb: \`adb install -r hcboard-dev.apk\`."
           git push --force origin "$GITHUB_SHA:refs/tags/dev"
-          if gh release view dev >/dev/null 2>&1; then
-            gh release upload dev hcboard-dev.apk --clobber
-            gh release edit dev --draft=false --prerelease --title "Dev build" --notes "$notes"
-          else
-            gh release create dev hcboard-dev.apk --prerelease --title "Dev build" --notes "$notes"
-          fi
-          test "$(gh release view dev --json isDraft -q .isDraft)" = false
+          # No release yet is the first run; any other failure surfaces as "already exists" below.
+          gh release delete dev --yes || true
+          gh release create dev hcboard-dev.apk --verify-tag --prerelease --title "Dev build" --notes "$notes"
+          for pause in 0 20; do
+            sleep "$pause"
+            state="$(gh release view dev --json isDraft,isPrerelease -q '"\(.isDraft) \(.isPrerelease)"')"
+            echo "dev release after ${pause}s: draft/prerelease = $state"
+            test "$state" = "false true"
+          done
