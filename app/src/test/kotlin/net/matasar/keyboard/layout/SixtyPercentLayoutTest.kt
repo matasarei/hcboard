@@ -61,7 +61,7 @@ class SixtyPercentLayoutTest {
         assertEquals(KeyAction.Text("'", "\""), keys.first { it.label == "є" }.fnAction)
         val shiftRow = layer.rows[3].keys
         assertEquals("Shift я ч с м и т ь б ю . / Shift", shiftRow.joinToString(" ") { it.label })
-        assertEquals(listOf(1.75f, 2.25f), listOf(shiftRow.first().width, shiftRow.last().width))
+        assertEquals(listOf(2.25f, 1.75f), listOf(shiftRow.first().width, shiftRow.last().width))
         assertEquals(KeyAction.Text(".", ","), shiftRow.first { it.label == "." }.action)
         assertEquals(KeyAction.Text("<", ">"), shiftRow.first { it.label == "." }.fnAction)
         assertEquals(KeyAction.Text("/", "?"), shiftRow.first { it.label == "/" }.action)
@@ -89,7 +89,7 @@ class SixtyPercentLayoutTest {
     @Test
     fun `english renders the standard board and its letters carry their own slot`() {
         assertEquals("Shift z x c v b n m , . / Shift", SixtyPercentLayer.rows[3].keys.joinToString(" ") { it.label })
-        assertEquals(listOf(2.25f, 2.75f), listOf(SixtyPercentLayer.rows[3].keys.first().width, SixtyPercentLayer.rows[3].keys.last().width))
+        assertEquals(listOf(2.75f, 2.25f), listOf(SixtyPercentLayer.rows[3].keys.first().width, SixtyPercentLayer.rows[3].keys.last().width))
         assertEquals('c', SixtyPercentLayer.rows[3].keys.first { it.label == "c" }.slot)
         assertEquals(null, SixtyPercentLayer.rows[3].keys.first { it.label == "/" }.slot)
     }
