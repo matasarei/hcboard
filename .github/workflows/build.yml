@@ -94,8 +94,9 @@ jobs:
 
           Install: download \`hcboard-dev.apk\`, open it on the phone (allow installs from your browser or files app), then enable and select **hcboard** under Settings › System › Keyboard › On-screen keyboard. Or with adb: \`adb install -r hcboard-dev.apk\`."
           git push --force origin "$GITHUB_SHA:refs/tags/dev"
-          # No release yet is the first run; any other failure surfaces as "already exists" below.
-          gh release delete dev --yes || true
+          # Only a missing release is skipped (the first run); a delete that fails stops here,
+          # with its own message, before anything else is touched.
+          if gh release view dev >/dev/null 2>&1; then gh release delete dev --yes; fi
           gh release create dev hcboard-dev.apk --verify-tag --prerelease --title "Dev build" --notes "$notes"
           for pause in 0 20; do
             sleep "$pause"
