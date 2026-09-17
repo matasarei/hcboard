@@ -98,6 +98,17 @@ private fun SettingsScreen(settings: Settings, prefs: Prefs) {
             valueRange = 0.8f..1.2f,
             steps = 7,
         )
+        Text(
+            stringResource(R.string.settings_bottom_padding, settings.bottomPaddingDp),
+            style = MaterialTheme.typography.bodyLarge,
+        )
+        Text(stringResource(R.string.settings_bottom_padding_hint), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Slider(
+            value = settings.bottomPaddingDp.toFloat(),
+            onValueChange = { scope.launch { prefs.setBottomPaddingDp((it / 4).roundToInt() * 4) } },
+            valueRange = 0f..Settings.MAX_BOTTOM_PADDING_DP.toFloat(),
+            steps = Settings.MAX_BOTTOM_PADDING_DP / 4 - 1,
+        )
         SwitchRow(stringResource(R.string.settings_key_borders), settings.keyBorders) { scope.launch { prefs.setKeyBorders(it) } }
 
         Section(stringResource(R.string.settings_section_feel))
