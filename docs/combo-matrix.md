@@ -9,5 +9,6 @@ keyboard sends; Android leaves it to each app whether to honour key events from 
 | Chrome (address bar, page textarea) | text / web | | | | | | |
 | Termux | `TYPE_NULL` | | | | | | Ctrl+C must interrupt; fallback is off for `TYPE_NULL` |
 | Code editor (e.g. Acode) | text | | | | | | |
+| Any of the above, Ukrainian or Russian board | as above | | | | | | Ctrl+С must behave as Ctrl+C: the key sends its slot, and the keys read Q W E R T Y while Ctrl is armed |
 
 Legend: ✓ works · ✗ ignored · ~ partial (say what).

@@ -58,7 +58,12 @@ emulator profile is `medium_phone`; boot it headless with
   mid-gesture and shifts every later pointer position.
 - **Languages** are data in `layout/Languages.kt`: rows, accents, native name. A layer sizes itself to
   its widest row. The globe key exists only with two or more languages enabled; the persisted
-  current language is authoritative and the service follows changes to it.
+  current language is authoritative and the service follows changes to it. The 60% board is
+  built from the same data (`layout/SixtyPercentLayout.kt`): letters fill the ANSI slots of
+  `AnsiSlots.rows` left to right, a letter on a punctuation slot carries that punctuation on Fn,
+  and a nine-letter Shift row shrinks both Shifts to keep `.` and `/`. Every letter key carries
+  `Key.slot`, the US character of its slot: modifier combinations send the slot (Ctrl+С is
+  Ctrl+C) and `displayLabel` shows it while Ctrl, Alt or Meta is active.
 - **Privacy rules:** no `INTERNET` permission, ever; never log typed text or anything from a
   password field; never read or cache the content of inline autofill suggestions, only host the
   views the manager draws.
