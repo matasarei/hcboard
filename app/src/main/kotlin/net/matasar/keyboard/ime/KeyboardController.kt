@@ -186,6 +186,9 @@ class KeyboardController(
 
     private data class Autocorrect(val typed: String, val correction: String, val separator: String)
 
+    /** A word whose correction was undone: it is offered no correction until it changes. */
+    private var uncorrectable: String? = null
+
     /** The password manager's chips for the current field, pinned first. */
     var suggestions: List<net.matasar.keyboard.autofill.SuggestionEntry> by mutableStateOf(emptyList())
 
@@ -446,7 +449,10 @@ class KeyboardController(
             return
         }
         lastGlideWord = null
-        candidates = engine.forWord(dispatcher.wordBeforeCursor())
+        val word = dispatcher.wordBeforeCursor()
+        if (word != uncorrectable) uncorrectable = null
+        val found = engine.forWord(word)
+        candidates = if (found != null && word == uncorrectable) found.copy(correction = null) else found
     }
 
     /** The cursor moved (the service's onUpdateSelection): the word under it may be another one. */
@@ -481,7 +487,8 @@ class KeyboardController(
             return
         }
         dispatcher.replaceWordBeforeCursor(applied, undo.typed)
-        candidates = if (suggestionsAvailable) candidateEngine?.forWord(undo.typed)?.copy(correction = null) else null
+        uncorrectable = undo.typed
+        refreshCandidates()
     }
 
     private fun clearCandidates() {
@@ -489,6 +496,7 @@ class KeyboardController(
         candidatesCollapsed = false
         lastGlideWord = null
         lastAutocorrect = null
+        uncorrectable = null
     }
 
     /** The accent candidates a long press on [key] offers, in the current case; none in passwords. */

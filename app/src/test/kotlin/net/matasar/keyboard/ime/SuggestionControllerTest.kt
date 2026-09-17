@@ -52,10 +52,13 @@ class SuggestionControllerTest {
         assertNull(controller.candidates)
         controller.onKey(backspace)
         assertEquals("chek", port.before)
+        controller.onSelectionChanged() // the field reports our own replacement; the undo must survive it
         assertNull(controller.candidates?.correction)
         assertEquals("chek", controller.candidates?.typed)
         controller.onKey(space)
         assertEquals("chek ", port.before)
+        type("chek")
+        assertEquals("check", controller.candidates?.correction) // a new word, corrected again
     }
 
     @Test
