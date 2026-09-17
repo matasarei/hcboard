@@ -29,13 +29,17 @@ object Dimens {
      * runs from 80% (a 36.8 dp key on the 60% board) and a short landscape window squeezes the
      * keys further still, and a legend nobody can see is the same as no legend at all.
      */
-    fun legendLine(keyHeight: Dp): Dp = (keyHeight * 0.26f).coerceIn(8.dp, 14.dp)
+    fun legendLine(keyHeight: Dp): Dp = (legendTextSize(keyHeight).value * 1.5f).dp
 
-    /** The two legends on that line, sized to fit it. */
-    fun legendTextSize(keyHeight: Dp): TextUnit = (legendLine(keyHeight).value * 0.72f).coerceIn(6.5f, 10f).sp
+    /**
+     * The two legends on that line. The legend leads and the line follows it, not the other way
+     * round: a legend has a size below which it stops being readable at all, so it holds at 7.5 sp
+     * on the shortest keys and gives the glyph what is left.
+     */
+    fun legendTextSize(keyHeight: Dp): TextUnit = (keyHeight.value * 0.22f).coerceIn(7.5f, 10f).sp
 
     /** The glyph under the line: what the key types right now, in what the line leaves. */
-    fun glyphSize(keyHeight: Dp): TextUnit = ((keyHeight - legendLine(keyHeight)).value * 0.62f).coerceIn(11f, 19f).sp
+    fun glyphSize(keyHeight: Dp): TextUnit = ((keyHeight - legendLine(keyHeight)).value * 0.62f).coerceIn(10f, 19f).sp
 
     /** The glyph on a key with no legend line (the phone's letters): the whole key is its own. */
     fun plainGlyphSize(keyHeight: Dp): TextUnit = (keyHeight.value * 0.52f).coerceIn(13f, 22f).sp

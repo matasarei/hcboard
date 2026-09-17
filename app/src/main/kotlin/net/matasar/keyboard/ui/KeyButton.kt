@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
@@ -187,24 +188,32 @@ fun KeyButton(
         val legendLine = legendBand || topLegend != null || legend != null
         Column(modifier = Modifier.fillMaxSize()) {
             if (legendLine) {
-                Box(modifier = Modifier.fillMaxWidth().height(Dimens.legendLine(height))) {
+                // A minimum, not a cap: the line reserves the same room on every key in the row so
+                // they share a baseline, and grows rather than clipping a legend if the font is
+                // taller than the reserve (a large system font scale).
+                Box(modifier = Modifier.fillMaxWidth().heightIn(min = Dimens.legendLine(height))) {
+                    val legendSize = Dimens.legendTextSize(height)
                     if (topLegend != null) {
                         Text(
                             text = topLegend,
                             color = topLegendColor ?: colors.subtle,
-                            fontSize = Dimens.legendTextSize(height),
+                            fontSize = legendSize,
+                            // Pinned: a line box left to the font's own metrics is far taller than
+                            // the size suggests, and the two zones are measured in advance.
+                            lineHeight = legendSize * 1.25f,
                             maxLines = 1,
-                            modifier = Modifier.align(Alignment.TopStart).padding(start = 6.dp),
+                            modifier = Modifier.align(Alignment.CenterStart).padding(start = 6.dp),
                         )
                     }
                     if (legend != null) {
                         Text(
                             text = legend,
                             color = legendColor ?: colors.subtle,
-                            fontSize = Dimens.legendTextSize(height),
+                            fontSize = legendSize,
+                            lineHeight = legendSize * 1.25f,
                             fontWeight = FontWeight.Medium,
                             maxLines = 1,
-                            modifier = Modifier.align(Alignment.TopEnd).padding(end = 5.dp),
+                            modifier = Modifier.align(Alignment.CenterEnd).padding(end = 5.dp),
                         )
                     }
                 }
@@ -222,14 +231,16 @@ fun KeyButton(
                     )
                 } else {
                     val word = key.style != KeyStyle.LETTER || label.length > 1
+                    val size = when {
+                        word -> Dimens.wordSize(height, labelSize)
+                        legendLine -> Dimens.glyphSize(height)
+                        else -> Dimens.plainGlyphSize(height)
+                    }
                     Text(
                         text = label,
                         color = visual.foreground,
-                        fontSize = when {
-                            word -> Dimens.wordSize(height, labelSize)
-                            legendLine -> Dimens.glyphSize(height)
-                            else -> Dimens.plainGlyphSize(height)
-                        },
+                        fontSize = size,
+                        lineHeight = size * 1.15f,
                         fontWeight = if (word) FontWeight.Medium else FontWeight.Normal,
                         maxLines = 1,
                     )
