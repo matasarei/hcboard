@@ -45,6 +45,33 @@ class EditorInfoMappingTest {
     }
 
     @Test
+    fun `the field report names the numbers and what they decided, and carries no text`() {
+        val info = EditorInfo().apply {
+            packageName = "com.google.android.apps.bard"
+            fieldId = 42
+            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS
+            imeOptions = EditorInfo.IME_ACTION_SEND
+            hintText = "Ask Gemini"
+            initialSelStart = 3
+        }
+        val report = fieldReport(info)
+        assertTrue(report.contains("com.google.android.apps.bard"), report)
+        assertTrue(report.contains("fieldId=42"), report)
+        assertTrue(report.contains("inputType=0x${Integer.toHexString(info.inputType)}"), report)
+        assertTrue(report.contains("suggestions off"), report)
+        assertTrue(report.contains("TEXT"), report)
+        // Never the field's own words: a report is pasted into bug reports.
+        assertFalse(report.contains("Ask Gemini"), report)
+    }
+
+    @Test
+    fun `the field report says what an ordinary text field allows`() {
+        val report = fieldReport(EditorInfo().apply { inputType = InputType.TYPE_CLASS_TEXT })
+        assertTrue(report.contains("suggestions allowed"), report)
+        assertTrue(report.contains("glide allowed"), report)
+    }
+
+    @Test
     fun `candidates are allowed in plain text only`() {
         assertTrue(suggestionsAllowed(InputType.TYPE_CLASS_TEXT))
         assertTrue(suggestionsAllowed(InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_MULTI_LINE or InputType.TYPE_TEXT_FLAG_AUTO_CORRECT))

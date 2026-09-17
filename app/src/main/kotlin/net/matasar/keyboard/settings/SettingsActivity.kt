@@ -42,7 +42,7 @@ import kotlinx.coroutines.launch
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.ui.text.font.FontFamily
 import net.matasar.keyboard.R
-import net.matasar.keyboard.ime.BottomBarDiagnostics
+import net.matasar.keyboard.ime.KeyboardDiagnostics
 import net.matasar.keyboard.layout.Languages
 import net.matasar.keyboard.ui.theme.KeyboardTheme
 import kotlin.math.roundToInt
@@ -177,7 +177,7 @@ private fun SettingsScreen(settings: Settings, prefs: Prefs) {
         Text(stringResource(R.string.settings_diagnostics_hint), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         SelectionContainer {
             Text(
-                BottomBarDiagnostics.report,
+                KeyboardDiagnostics.field + "\n\n" + KeyboardDiagnostics.insets,
                 style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace),
                 modifier = Modifier.padding(top = 4.dp),
             )

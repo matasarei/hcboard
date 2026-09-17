@@ -281,7 +281,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
         // Layout passes are frequent; the report is only worth rebuilding when the numbers moved.
         if (measurement != lastMeasurement) {
             lastMeasurement = measurement
-            BottomBarDiagnostics.report = insetReport()
+            KeyboardDiagnostics.insets = insetReport()
         }
     }
 
@@ -337,10 +337,10 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
         return if (id != 0) resources.getDimensionPixelSize(id) else 0
     }
 
-    /** `adb shell dumpsys activity service net.matasar.keyboard/.ime.KeyboardService`: the inset picture on this device. */
+    /** `adb shell dumpsys activity service net.matasar.keyboard/.ime.KeyboardService`: the field and the insets. */
     override fun dump(fd: FileDescriptor, fout: PrintWriter, args: Array<String>) {
         super.dump(fd, fout, args)
-        for (line in insetReport().lines()) fout.println("hcboard $line")
+        for (line in (KeyboardDiagnostics.field + "\n" + insetReport()).lines()) fout.println("hcboard $line")
     }
 
     /**
@@ -349,6 +349,11 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
      */
     override fun onStartInput(attribute: EditorInfo?, restarting: Boolean) {
         super.onStartInput(attribute, restarting)
+        // Our own screens are skipped: the report is read on the settings screen, and walking
+        // there must not overwrite what the app being diagnosed reported.
+        if (attribute != null && attribute.packageName != packageName) {
+            KeyboardDiagnostics.field = fieldReport(attribute)
+        }
         if (attribute == null || attribute.privateImeOptions == FILL_SCREEN_IME_OPTION) return
         val field = attribute.packageName?.let { FillTarget(it, attribute.fieldId) }
         PendingFill.shared.takeFor(field) { password ->

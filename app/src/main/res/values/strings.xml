@@ -19,7 +19,7 @@
     <string name="settings_section_feel">Feel</string>
     <string name="settings_section_developer">Developer mode</string>
     <string name="settings_section_diagnostics">Diagnostics</string>
-    <string name="settings_diagnostics_hint">What the keyboard window last learned about the system\'s bottom bar. Show the keyboard in the field above, then copy these lines into a bug report; they hold sizes only.</string>
+    <string name="settings_diagnostics_hint">What the keyboard last learned about the field it was typing into and about the system\'s bottom bar. Type in the app that misbehaves, come back here, then copy these lines into a bug report. They hold an input type, a package name and sizes — never anything typed.</string>
     <string name="settings_theme">Theme</string>
     <string name="settings_theme_system">System</string>
     <string name="settings_theme_light">Light</string>

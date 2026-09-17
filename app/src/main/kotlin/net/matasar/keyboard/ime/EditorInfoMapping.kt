@@ -47,6 +47,23 @@ fun suggestionsAllowed(inputType: Int): Boolean {
     }
 }
 
+/**
+ * What a field told the keyboard, and what the keyboard made of it, for the diagnostics on the
+ * settings screen. The numbers are the field's own declaration, which is what decides whether
+ * suggestions, glide typing and the developer strip are offered at all; an app that sets the
+ * no-suggestions flag or asks for a web or e-mail variation turns the strip off, and this is how
+ * to tell from the phone which of those happened. Carries no text: not the field's content, not
+ * its hint.
+ */
+fun fieldReport(info: EditorInfo): String {
+    val kind = fieldKindOf(info.inputType)
+    return listOf(
+        "app: ${info.packageName} fieldId=${info.fieldId}",
+        "inputType=0x${Integer.toHexString(info.inputType)} imeOptions=0x${Integer.toHexString(info.imeOptions)} privateImeOptions=${info.privateImeOptions}",
+        "read as: $kind, suggestions ${if (suggestionsAllowed(info.inputType)) "allowed" else "off"}, glide ${if (kind == FieldKind.TEXT) "allowed" else "off"}",
+    ).joinToString("\n")
+}
+
 fun FieldKind.initialLayer(): LayerId = if (this == FieldKind.NUMBER) LayerId.SYMBOLS else LayerId.LETTERS
 
 /** The icon the Enter key shows for the field's action. */
