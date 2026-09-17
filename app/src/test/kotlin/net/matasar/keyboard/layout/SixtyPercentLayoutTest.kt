@@ -102,7 +102,7 @@ class SixtyPercentLayoutTest {
         assertEquals(KeyAction.Space, with[4].action)
         assertEquals(5f, with[4].width)
         assertEquals(6.25f, SixtyPercentLayer.rows[4].keys.first { it.action == KeyAction.Space }.width)
-        assertEquals(KeyAction.SwitchLanguage, with[4].fnAction)
+        assertEquals(null, with[4].fnLegend)
     }
 
     @Test
