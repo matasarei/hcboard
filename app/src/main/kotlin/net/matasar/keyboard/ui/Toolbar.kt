@@ -40,6 +40,8 @@ fun Toolbar(
     actions: ToolbarActions,
     modifier: Modifier = Modifier,
     sheetOpen: Boolean = false,
+    /** The 60% board carries its modifiers itself, so the strip toggle has nothing to do there. */
+    showDeveloperToggle: Boolean = true,
     center: (@Composable () -> Unit)? = null,
 ) {
     Row(
@@ -51,7 +53,7 @@ fun Toolbar(
     ) {
         Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
             ToolbarButton(R.drawable.ic_key, "Password manager", active = sheetOpen) { actions.toggleManagerSheet() }
-            ToolbarButton(R.drawable.ic_code, "Developer mode", active = developerMode) { actions.toggleDeveloperMode() }
+            if (showDeveloperToggle) ToolbarButton(R.drawable.ic_code, "Developer mode", active = developerMode) { actions.toggleDeveloperMode() }
             ToolbarButton(R.drawable.ic_clipboard, "Paste") { actions.pasteClipboard() }
             ToolbarButton(R.drawable.ic_settings, "Settings") { actions.openSettings() }
         }

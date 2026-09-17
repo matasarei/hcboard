@@ -71,7 +71,7 @@ fun KeyboardScreen(
     val colors = LocalKeyboardColors.current
     val popups = remember { PopupState() }
     val trailColor = colors.armedRing
-    Box(
+    BoxWithConstraints(
         modifier = Modifier
             .fillMaxWidth()
             .onSizeChanged { popups.rootWidthPx = it.width.toFloat() }
@@ -83,6 +83,7 @@ fun KeyboardScreen(
                 drawGlideTrail(popups.trail, trailColor)
             },
     ) {
+        val wide = maxWidth >= Dimens.wideBreakpoint
         Column(modifier = Modifier.fillMaxWidth()) {
             Spacer(modifier = Modifier.height(PopupMetrics.overhang))
             Column(
@@ -93,6 +94,7 @@ fun KeyboardScreen(
             ) {
                 Toolbar(
                     developerMode = controller.developerMode,
+                    showDeveloperToggle = !wide,
                     chipText = if (controller.trackpad) "Move cursor" else controller.modifiers.chipText(),
                     actions = actions,
                     sheetOpen = controller.managerSheetOpen,
