@@ -12,9 +12,6 @@ import kotlin.test.assertTrue
  */
 class KeyMetricsTest {
 
-    /** A line of text takes about a third more room than its size; the zones must fit in the key. */
-    private fun lineHeight(sizeSp: Float) = sizeSp * 1.33f
-
     @Test
     fun `the legend line and the glyph fit inside the key at every height`() {
         // 26 dp is the shortest key the layout produces: a phone in landscape is over the 600 dp
@@ -22,9 +19,11 @@ class KeyMetricsTest {
         var height = 26f
         while (height <= 56f) {
             val key = height.dp
-            val used = Dimens.legendLine(key).value + lineHeight(Dimens.glyphSize(key).value)
+            // The ratios KeyButton pins on its own Texts, so the proof and the code cannot drift.
+            val used = Dimens.legendLine(key).value + Dimens.glyphSize(key).value * Dimens.glyphLineHeightRatio
             assertTrue(used <= height, "a ${height}dp key needs ${used}dp for its legend line and glyph")
-            assertTrue(Dimens.legendTextSize(key).value <= Dimens.legendLine(key).value, "legend over its line at ${height}dp")
+            val legendBox = Dimens.legendTextSize(key).value * Dimens.legendLineHeightRatio
+            assertTrue(legendBox <= Dimens.legendLine(key).value, "the legend's line box overflows its reserve at ${height}dp")
             val withIcon = Dimens.legendLine(key).value + Dimens.iconSize(key, legendLine = true).value
             assertTrue(withIcon <= height, "a ${height}dp key needs ${withIcon}dp for its legend line and icon")
             assertTrue(Dimens.iconSize(key, legendLine = false).value <= height, "icon over a ${height}dp key")

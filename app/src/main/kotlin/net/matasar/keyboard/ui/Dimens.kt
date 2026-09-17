@@ -32,6 +32,15 @@ object Dimens {
     fun legendLine(keyHeight: Dp): Dp = (legendTextSize(keyHeight).value * 1.5f).dp
 
     /**
+     * What a pinned text line box costs, as a multiple of the font size. [KeyButton] sets these on
+     * its `Text`s rather than leaving the line to the font's own metrics, which are far taller than
+     * the size suggests: the two zones are measured in advance, so their line boxes have to be
+     * known here, where the fit is proved against the same numbers.
+     */
+    const val legendLineHeightRatio = 1.25f
+    const val glyphLineHeightRatio = 1.15f
+
+    /**
      * The two legends on that line. The legend leads and the line follows it, not the other way
      * round: a legend has a size below which it stops being readable at all, so it holds at 7.5 sp
      * on the shortest keys and gives the glyph what is left.

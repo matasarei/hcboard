@@ -198,9 +198,9 @@ fun KeyButton(
                             text = topLegend,
                             color = topLegendColor ?: colors.subtle,
                             fontSize = legendSize,
-                            // Pinned: a line box left to the font's own metrics is far taller than
-                            // the size suggests, and the two zones are measured in advance.
-                            lineHeight = legendSize * 1.25f,
+                            // Pinned: the two zones are measured in advance, so the line box has
+                            // to be the one Dimens proved the fit against.
+                            lineHeight = legendSize * Dimens.legendLineHeightRatio,
                             maxLines = 1,
                             modifier = Modifier.align(Alignment.CenterStart).padding(start = 6.dp),
                         )
@@ -210,7 +210,7 @@ fun KeyButton(
                             text = legend,
                             color = legendColor ?: colors.subtle,
                             fontSize = legendSize,
-                            lineHeight = legendSize * 1.25f,
+                            lineHeight = legendSize * Dimens.legendLineHeightRatio,
                             fontWeight = FontWeight.Medium,
                             maxLines = 1,
                             modifier = Modifier.align(Alignment.CenterEnd).padding(end = 5.dp),
@@ -240,7 +240,7 @@ fun KeyButton(
                         text = label,
                         color = visual.foreground,
                         fontSize = size,
-                        lineHeight = size * 1.15f,
+                        lineHeight = size * Dimens.glyphLineHeightRatio,
                         fontWeight = if (word) FontWeight.Medium else FontWeight.Normal,
                         maxLines = 1,
                     )
