@@ -214,11 +214,11 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
             insets.getInsets(WindowInsetsCompat.Type.navigationBars()).bottom,
             insets.getInsetsIgnoringVisibility(WindowInsetsCompat.Type.navigationBars()).bottom,
         )
-        // Samsung's One UI reports the gesture pill as a 13 dp navigation bar but draws its
-        // keyboard-hide button in a 42 dp tappable zone above it; the keys must clear the zone
-        // a finger can hit, so the taller of the two wins.
-        val tappable = insets.getInsets(WindowInsetsCompat.Type.tappableElement()).bottom
-        val reported = if (maxOf(navigationBar, tappable) > 0) maxOf(navigationBar, tappable) else insets.getInsets(WindowInsetsCompat.Type.mandatorySystemGestures()).bottom
+        val reported = reportedBottomBar(
+            navigationBarPx = navigationBar,
+            tappablePx = insets.getInsets(WindowInsetsCompat.Type.tappableElement()).bottom,
+            gestureAreaPx = insets.getInsets(WindowInsetsCompat.Type.mandatorySystemGestures()).bottom,
+        )
         val bar = bottomBarHeight(reported, gestureNavigation(), systemNavigationBarHeightPx())
         val location = IntArray(2).also { view.getLocationInWindow(it) }
         val spaceBelowView = decor.height - (location[1] + view.height)

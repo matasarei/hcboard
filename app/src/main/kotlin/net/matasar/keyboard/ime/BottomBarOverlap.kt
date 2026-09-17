@@ -15,3 +15,13 @@ internal fun bottomBarOverlap(barPx: Int, spaceBelowViewPx: Int): Int = (barPx -
  */
 internal fun bottomBarHeight(reportedPx: Int, gestureNavigation: Boolean, systemBarHeightPx: Int): Int =
     if (reportedPx > 0) reportedPx else if (gestureNavigation) systemBarHeightPx.coerceAtLeast(0) else 0
+
+/**
+ * The bar the window reports, in px: the taller of the navigation bar and the tappable zone,
+ * since Samsung's One UI reports the gesture pill as a 13 dp bar but draws its keyboard-hide
+ * button in a 42 dp tappable zone above it; when neither is reported, the gesture area.
+ */
+internal fun reportedBottomBar(navigationBarPx: Int, tappablePx: Int, gestureAreaPx: Int): Int {
+    val bar = maxOf(navigationBarPx, tappablePx)
+    return if (bar > 0) bar else gestureAreaPx
+}
