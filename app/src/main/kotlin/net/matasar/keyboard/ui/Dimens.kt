@@ -16,6 +16,8 @@ object Dimens {
     val letterSize = 22.sp
     val compactLetterSize = 17.sp
     val compactKeyHeight = 40.dp
+    /** Below this width a word-sized Fn legend (Home, PgUp) collides with a full-size letter. */
+    val narrowKeyWidth = 44.dp
     val labelSize = 12.sp
     val legendSize = 9.sp
     val topLegendSize = 10.sp
