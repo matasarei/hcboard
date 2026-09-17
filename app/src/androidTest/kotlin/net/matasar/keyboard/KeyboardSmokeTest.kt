@@ -2,6 +2,10 @@ package net.matasar.keyboard
 
 import android.content.Intent
 import android.os.SystemClock
+import net.matasar.keyboard.ime.KeyboardService
+import android.view.ViewConfiguration
+import android.view.InputDevice
+import android.view.MotionEvent
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
@@ -148,6 +152,61 @@ class KeyboardSmokeTest {
         device.swipe(segments, 10)
         val arrived = waitUntil(5_000) { fieldText()?.trim() == "hello" }
         assertTrue("expected 'hello', field holds '${fieldText()}'", arrived)
+    }
+
+    /**
+     * A long press on Space opens the cursor trackpad; when the system takes the pointer (a
+     * navigation gesture from the bar right under the space bar), the trackpad must end even
+     * though no release ever arrives. Drives the input view directly, since only the framework
+     * can produce a real cancel.
+     */
+    @Test
+    fun mTrackpadEndsWhenThePointerIsCancelled() {
+        focusFieldAndShowKeyboard()
+        val service = KeyboardService.instance
+        assertNotNull("the service is not running", service)
+        val controller = service!!.controller
+        // The window reports shown a moment before it takes touches: a tap that reaches the
+        // field proves the keyboard is live before the gesture that must not be lost.
+        var awake = false
+        repeat(6) {
+            if (awake) return@repeat
+            tapLetter('a')
+            awake = waitUntil(1_000) { fieldText()?.contains('a') == true }
+        }
+        assertTrue("the keyboard never took a tap", awake)
+        val space = spaceCentre()
+        val instrumentation = InstrumentationRegistry.getInstrumentation()
+        // Injected through the system like a finger, so the window, the pointer ids and the
+        // coordinates are exactly what a real gesture brings; only the cancel is unusual.
+        val downTime = SystemClock.uptimeMillis()
+        fun inject(action: Int, dx: Int) {
+            val event = MotionEvent.obtain(downTime, SystemClock.uptimeMillis(), action, (space.x + dx).toFloat(), space.y.toFloat(), 0)
+            event.source = InputDevice.SOURCE_TOUCHSCREEN
+            assertTrue("injecting action $action failed", instrumentation.uiAutomation.injectInputEvent(event, true))
+            event.recycle()
+        }
+        // Snapshot state is written on the main thread; read it there too, or a stale value shows.
+        fun trackpadOn(): Boolean {
+            var on = false
+            instrumentation.runOnMainSync { on = controller.trackpad }
+            return on
+        }
+        inject(MotionEvent.ACTION_DOWN, 0)
+        val longPress = ViewConfiguration.getLongPressTimeout().toLong()
+        SystemClock.sleep(longPress + 300)
+        inject(MotionEvent.ACTION_MOVE, 40)
+        assertTrue("the trackpad never started (field: '${fieldText()}')", waitUntil(2_000) { trackpadOn() })
+        inject(MotionEvent.ACTION_CANCEL, 40)
+        assertTrue("the trackpad stayed on after the cancel", waitUntil(2_000) { !trackpadOn() })
+    }
+
+    /** The space bar's centre on screen: the middle of the bottom row of the phone letters layer. */
+    private fun spaceCentre(): android.graphics.Point {
+        val density = InstrumentationRegistry.getInstrumentation().targetContext.resources.displayMetrics.density
+        val keyH = Dimens.keyHeight.value * density
+        val y = device.displayHeight - navigationBarHeightPx() - Dimens.bottomPadding.value * density - keyH / 2
+        return android.graphics.Point(device.displayWidth / 2, y.toInt())
     }
 
     /** Runs last (name order): it switches the keyboard's language and switches it back. */

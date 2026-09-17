@@ -16,6 +16,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithContent
@@ -158,6 +159,10 @@ private fun LayerGrid(controller: KeyboardController, feel: KeyboardFeel, popups
                     val keys = letterBounds.map { (char, rect) -> GlideKey(char, rect.center.x, rect.center.y, rect.width, rect.height) }
                     controller.onGlideEnd(path, keys)
                 }
+
+                override fun onGlideCancel() {
+                    popups.trail = emptyList()
+                }
             }
         }
         val layer = layout.layers[controller.layer] ?: layout.layers.values.first()
@@ -171,19 +176,21 @@ private fun LayerGrid(controller: KeyboardController, feel: KeyboardFeel, popups
         val unitWidth = (maxWidth - sidePadding * 2 - Dimens.keyGap * (layer.units.toInt() - 1)) / layer.units
         val fnActive = controller.modifiers.isActive(ModifierKey.FN)
         // Glide lives on the letters layer of either board; the symbols and code pages tap only.
-        val glide = feel.glide && controller.layer == LayerId.LETTERS && controller.glideAvailable
+        // The detector is always attached and asks this at each touch: swapping the modifier in
+        // and out would cancel the gestures under it, which is how a trackpad started by a long
+        // press on Space (glide off while it runs) used to cancel itself.
+        val glide = rememberUpdatedState(feel.glide && controller.layer == LayerId.LETTERS && controller.glideAvailable)
         val unitWidthPx = with(density) { unitWidth.toPx() }
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .then(
-                    if (glide) Modifier.glideDetector(
-                        letterBounds = { letterBounds },
-                        gridOriginInRoot = { gridOrigin },
-                        keyWidthPx = { unitWidthPx },
-                        longPressMs = longPressMs,
-                        listener = glideListener,
-                    ) else Modifier,
+                .glideDetector(
+                    letterBounds = { letterBounds },
+                    gridOriginInRoot = { gridOrigin },
+                    keyWidthPx = { unitWidthPx },
+                    longPressMs = longPressMs,
+                    listener = glideListener,
+                    enabled = { glide.value },
                 )
                 .padding(top = Dimens.topPadding, bottom = Dimens.bottomPadding),
             verticalArrangement = Arrangement.spacedBy(rowGap),
@@ -273,6 +280,11 @@ private class KeyScreenCallbacks(
             popups.accents = null
             return
         }
+        if (controller.trackpad) controller.endTrackpad()
+    }
+
+    override fun onLongPressCancel(key: Key) {
+        popups.accents = null
         if (controller.trackpad) controller.endTrackpad()
     }
 

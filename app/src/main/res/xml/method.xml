@@ -6,6 +6,7 @@
     <subtype
         android:imeSubtypeExtraValue="KeyboardLayoutSet=qwerty"
         android:imeSubtypeLocale="en_US"
+        android:isAsciiCapable="true"
         android:imeSubtypeMode="keyboard"
         android:label="@string/subtype_en_us"
         android:languageTag="en-US" />
@@ -24,36 +25,42 @@
     <subtype
         android:imeSubtypeExtraValue="KeyboardLayoutSet=fr"
         android:imeSubtypeLocale="fr"
+        android:isAsciiCapable="true"
         android:imeSubtypeMode="keyboard"
         android:label="@string/subtype_fr"
         android:languageTag="fr" />
     <subtype
         android:imeSubtypeExtraValue="KeyboardLayoutSet=es"
         android:imeSubtypeLocale="es"
+        android:isAsciiCapable="true"
         android:imeSubtypeMode="keyboard"
         android:label="@string/subtype_es"
         android:languageTag="es" />
     <subtype
         android:imeSubtypeExtraValue="KeyboardLayoutSet=de"
         android:imeSubtypeLocale="de"
+        android:isAsciiCapable="true"
         android:imeSubtypeMode="keyboard"
         android:label="@string/subtype_de"
         android:languageTag="de" />
     <subtype
         android:imeSubtypeExtraValue="KeyboardLayoutSet=it"
         android:imeSubtypeLocale="it"
+        android:isAsciiCapable="true"
         android:imeSubtypeMode="keyboard"
         android:label="@string/subtype_it"
         android:languageTag="it" />
     <subtype
         android:imeSubtypeExtraValue="KeyboardLayoutSet=pt_BR"
         android:imeSubtypeLocale="pt_BR"
+        android:isAsciiCapable="true"
         android:imeSubtypeMode="keyboard"
         android:label="@string/subtype_pt_br"
         android:languageTag="pt-BR" />
     <subtype
         android:imeSubtypeExtraValue="KeyboardLayoutSet=pl"
         android:imeSubtypeLocale="pl"
+        android:isAsciiCapable="true"
         android:imeSubtypeMode="keyboard"
         android:label="@string/subtype_pl"
         android:languageTag="pl" />
