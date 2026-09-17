@@ -2,8 +2,8 @@ package net.matasar.keyboard.ime
 
 import android.content.ClipboardManager
 import android.content.Context
-import android.content.res.Configuration
 import android.content.Intent
+import android.content.res.Configuration
 import android.inputmethodservice.InputMethodService
 import android.os.Build
 import android.os.Bundle
