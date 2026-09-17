@@ -72,10 +72,11 @@ class AndroidAutofillActions(private val context: Context) : AutofillActions {
      * manager with no screen of its own to open lands the user on Android's password settings.
      */
     override fun openManager() {
-        val intent = labelledManagerComponents().firstNotNullOfOrNull(::openIntentFor)
-        // A declared settings screen can still be private to the system (Google's is not exported),
-        // which only the attempt reveals.
-        val opened = intent != null && runCatching { context.startActivity(intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }.isSuccess
+        // A screen that resolves can still refuse a keyboard (a permission, a disabled component),
+        // which only the attempt reveals; the manager's next component gets its turn then.
+        val opened = labelledManagerComponents()
+            .mapNotNull(::openIntentFor)
+            .any { runCatching { context.startActivity(it.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }.isSuccess }
         if (!opened) changeManager()
     }
 
