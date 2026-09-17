@@ -573,10 +573,11 @@ class KeyboardController(
     }
 
     /**
-     * What a long press types on a key that offers no accents: the shifted symbol printed on it,
-     * which is otherwise only reachable through Shift. Caps Lock inverts it, because a tap there
-     * already gives the shifted symbol. Null where the rule does not apply — a letter, a key with
-     * no shifted symbol, or any key while Fn is active, which gives the key another meaning.
+     * What a long press on [key] types: the shifted symbol printed on it, which is otherwise only
+     * reachable through Shift. Caps Lock inverts it, because a tap there already gives the shifted
+     * symbol. Null where the rule does not apply — a letter, a key with no shifted symbol, or any
+     * key while Fn is active, which gives the key another meaning. Accents are not checked here:
+     * the caller offers [accentsFor] first, and a key with accents never reaches this.
      */
     fun longPressText(key: Key): String? {
         if (fnActive) return null
