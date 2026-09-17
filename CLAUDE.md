@@ -70,9 +70,17 @@ emulator profile is `medium_phone`; boot it headless with
   plus the phone's languages the keyboard ships (`Languages.defaultEnabled`). The 60% board is
   built from the same data (`layout/SixtyPercentLayout.kt`): letters fill the ANSI slots of
   `AnsiSlots.rows` left to right, a letter on a punctuation slot carries that punctuation on Fn,
-  and a nine-letter Shift row shrinks both Shifts to keep `.` and `/`. Every letter key carries
-  `Key.slot`, the US character of its slot: modifier combinations send the slot (Ctrl+С is
-  Ctrl+C) and `displayLabel` shows it while Ctrl, Alt or Meta is active.
+  and a nine-letter Shift row shrinks both Shifts to keep `.` and `/`. Both Cyrillic boards fill
+  all twelve top-row slots (ї, ъ), so `[` and `]` are Fn on the same two keys in either. Every
+  letter key carries `Key.slot`, the US character of its slot: modifier combinations send the slot
+  (Ctrl+С is Ctrl+C) and `displayLabel` shows it while Ctrl, Alt or Meta is active.
+- **A key is a legend line and a glyph** (`ui/KeyButton.kt`), never a stack of paddings: the
+  shifted symbol sits top-left, the Fn meaning top-right, and the glyph fills what is left.
+  Nothing is dropped on a short key — both zones are sized from the key's own height by the
+  functions in `ui/Dimens.kt`, because the height setting starts at 80% (a 36.8 dp key) and a
+  landscape window squeezes it further. The glyph is always **what the key would type now**:
+  `KeyboardController.displayLabel` follows Shift, Fn and Fn+Shift, the live legend tints
+  `armedRing`, and an icon steps aside for an Fn meaning that has a name (backspace reads `Del`).
 - **Privacy rules:** no `INTERNET` permission, ever; never log typed text or anything from a
   password field; never read or cache the content of inline autofill suggestions, only host the
   views the manager draws.
