@@ -5,17 +5,26 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
+import android.service.autofill.AutofillService
 import android.provider.Settings
+import android.view.autofill.AutofillManager
 import androidx.core.net.toUri
 import org.xmlpull.v1.XmlPullParser
 
+/** One password manager the sheet can name and open. */
+data class ManagerApp(
+    val packageName: String,
+    /** Its service's own name ("Google", "Enpass"), or the app's. */
+    val label: String,
+    /** Whether opening it reaches the manager itself, rather than Android's settings for it. */
+    val opensItself: Boolean,
+)
+
 /** What the key button's sheet can do; the service implements it with real intents. */
 interface AutofillActions {
-    /** The user-facing name of the preferred autofill service, or null if none or unreadable. */
-    fun currentManagerLabel(): String?
-    /** Whether [openManager] reaches the manager itself, rather than Android's settings for it. */
-    fun canOpenManager(): Boolean
-    fun openManager()
+    /** The password managers to offer, preferred first; empty when none is installed. */
+    fun managers(): List<ManagerApp>
+    fun openManager(manager: ManagerApp)
     fun changeManager()
 }
 
@@ -38,47 +47,50 @@ fun changeManagerIntent(packageName: String, sdkInt: Int = Build.VERSION.SDK_INT
 
 class AndroidAutofillActions(private val context: Context) : AutofillActions {
 
-    private fun read(key: String) = runCatching { Settings.Secure.getString(context.contentResolver, key) }.getOrNull()
-
-    /** Every component that names the manager, the preferred one first. */
-    private fun managerComponents(): List<ComponentName> = managerComponentCandidates(
-        primaryCredentialProvider = read(CREDENTIAL_SERVICE_PRIMARY_SETTING),
-        autofillService = read(AUTOFILL_SERVICE_SETTING),
-        credentialProviders = read(CREDENTIAL_SERVICE_SETTING),
-    ).mapNotNull { ComponentName.unflattenFromString(it) }
-
-    private fun currentComponent(): ComponentName? = managerComponents().firstOrNull()
-
     /**
-     * The components of the manager the sheet names, and no other: when the preferred one has
-     * nothing to open, another component of the same app may, but "Open Enpass" must never open
-     * a different app that happens to be next in the list.
+     * Every installed autofill and credential-provider service. Android 14+ keeps the user's
+     * preferred provider in a setting no ordinary app may read, so the sheet asks which apps
+     * offer the services instead; the manifest's `<queries>` makes exactly those apps visible.
      */
-    private fun labelledManagerComponents(): List<ComponentName> {
-        val all = managerComponents()
-        val labelled = all.firstOrNull()?.packageName ?: return emptyList()
-        return all.filter { it.packageName == labelled }
-    }
-
-    /** The service's own label ("Google", "Enpass"), falling back to the app's. */
-    override fun currentManagerLabel(): String? {
-        val component = currentComponent() ?: return null
+    private fun managerServices(): List<ComponentName> {
         val pm = context.packageManager
-        return runCatching { pm.getServiceInfo(component, 0).loadLabel(pm).toString() }.getOrNull()
-            ?: runCatching { pm.getApplicationInfo(component.packageName, 0).loadLabel(pm).toString() }.getOrNull()
+        return SERVICE_ACTIONS.flatMap { action ->
+            @Suppress("DEPRECATION") // the flags overload is API 33+; the int one serves every version
+            runCatching { pm.queryIntentServices(Intent(action), 0) }.getOrDefault(emptyList())
+        }.map { ComponentName(it.serviceInfo.packageName, it.serviceInfo.name) }
+    }
+
+    /** The package of the autofill service Android reports: public, unlike the provider setting. */
+    private fun preferredPackage(): String? = runCatching {
+        context.getSystemService(AutofillManager::class.java)?.autofillServiceComponentName?.packageName
+    }.getOrNull()
+
+    override fun managers(): List<ManagerApp> {
+        val services = managerServices()
+        return managersToOffer(services.map { it.packageName }, preferredPackage(), context.packageName).map { pkg ->
+            val own = services.filter { it.packageName == pkg }
+            ManagerApp(pkg, labelOf(pkg, own), own.any { openIntentFor(it) != null })
+        }.sortedBy { it.label.lowercase() }
+    }
+
+    /** The first service's own label ("Google", "Enpass"), falling back to the app's. */
+    private fun labelOf(packageName: String, services: List<ComponentName>): String {
+        val pm = context.packageManager
+        return services.firstNotNullOfOrNull { runCatching { pm.getServiceInfo(it, 0).loadLabel(pm).toString() }.getOrNull() }
+            ?: runCatching { pm.getApplicationInfo(packageName, 0).loadLabel(pm).toString() }.getOrNull()
+            ?: packageName
     }
 
     /**
-     * Opens the manager so the user can copy a password and paste it back, which is also the only
-     * way to fill a terminal: Android never offers autofill there. It never does nothing — a
-     * manager with no screen of its own to open lands the user on Android's password settings.
+     * Opens [manager] so the user can copy a password and paste it back. It never does nothing:
+     * a manager with no screen of its own to open lands the user on Android's password settings.
+     * Only that manager's own services are tried, so "Open Enpass" never opens another app.
      */
-    override fun canOpenManager(): Boolean = labelledManagerComponents().any { openIntentFor(it) != null }
-
-    override fun openManager() {
+    override fun openManager(manager: ManagerApp) {
         // A screen that resolves can still refuse a keyboard (a permission, a disabled component),
-        // which only the attempt reveals; the manager's next component gets its turn then.
-        val opened = labelledManagerComponents()
+        // which only the attempt reveals; the manager's next service gets its turn then.
+        val opened = managerServices()
+            .filter { it.packageName == manager.packageName }
             .mapNotNull(::openIntentFor)
             .any { runCatching { context.startActivity(it.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }.isSuccess }
         if (!opened) changeManager()
@@ -127,45 +139,32 @@ class AndroidAutofillActions(private val context: Context) : AutofillActions {
     }
 
     private companion object {
-        /** `Settings.Secure.AUTOFILL_SERVICE`, not in the public API. */
-        const val AUTOFILL_SERVICE_SETTING = "autofill_service"
-
-        /** Android 14+: the preferred Credential Manager provider, one flattened component. */
-        const val CREDENTIAL_SERVICE_PRIMARY_SETTING = "credential_service_primary"
-
-        /** Android 14+: every enabled credential provider, colon-separated. */
-        const val CREDENTIAL_SERVICE_SETTING = "credential_service"
+        /**
+         * The two kinds of service a password manager offers; the second is
+         * `CredentialProviderService.SERVICE_INTERFACE` by value, which only exists from API 34.
+         */
+        val SERVICE_ACTIONS = listOf(AutofillService.SERVICE_INTERFACE, "android.service.credentials.CredentialProviderService")
 
         /** Where an autofill service and a credential provider each declare their settings screen. */
         val SERVICE_META_DATA = listOf("android.autofill", "android.credentials.provider")
     }
 }
 
-/**
- * The manager Android will ask first. On Android 14+ the "preferred service" in Settings is a
- * Credential Manager provider and `autofill_service` may be empty, so that setting is read
- * first, then the classic autofill service, then the first enabled provider. Pure, for tests.
- */
-fun pickManagerComponent(
-    primaryCredentialProvider: String?,
-    autofillService: String?,
-    credentialProviders: String?,
-): String? = managerComponentCandidates(primaryCredentialProvider, autofillService, credentialProviders).firstOrNull()
+/** The platform's own credential-manager proxy: it stands in for a provider, it is not one. */
+const val CREDENTIAL_MANAGER_PROXY = "com.android.credentialmanager"
 
 /**
- * Every usable component in the order [pickManagerComponent] prefers them, without repeats: when
- * the preferred one has nothing to open, the next is tried. Pure, for tests.
+ * The password managers the sheet offers, by package. [installed] is every package offering an
+ * autofill or credential service, in any order and with repeats; [preferredPackage] is the
+ * package of the autofill service Android reports. When that names one of [installed], it is the
+ * user's choice and the only one offered. Otherwise every installed manager is, because Android
+ * 14+ keeps the preferred credential provider in a setting no ordinary app may read, and the one
+ * it can read may hold just a placeholder. Pure, for tests.
  */
-fun managerComponentCandidates(
-    primaryCredentialProvider: String?,
-    autofillService: String?,
-    credentialProviders: String?,
-): List<String> =
-    (listOf(primaryCredentialProvider, autofillService) + credentialProviders.orEmpty().split(':'))
-        .filterNotNull()
-        .map { it.trim() }
-        .filter { it.contains('/') && !it.startsWith("PLACEHOLDER", ignoreCase = true) }
-        .distinct()
+fun managersToOffer(installed: Collection<String>, preferredPackage: String?, ownPackage: String): List<String> {
+    val managers = installed.filter { it != ownPackage && it != CREDENTIAL_MANAGER_PROXY }.distinct().sorted()
+    return if (preferredPackage != null && preferredPackage in managers) listOf(preferredPackage) else managers
+}
 
 /** A manifest class name as a full one: `.ui.Settings` belongs to [packageName]. */
 fun qualifiedClassName(packageName: String, className: String): String =
