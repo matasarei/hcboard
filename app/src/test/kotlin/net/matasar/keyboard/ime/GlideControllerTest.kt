@@ -77,6 +77,17 @@ class GlideControllerTest {
     }
 
     @Test
+    fun `a field that turned into a password field while classifying gets nothing`() {
+        controller.onStartInput(EditorInfo().apply { inputType = InputType.TYPE_CLASS_TEXT })
+        controller.onStartInput(EditorInfo().apply {
+            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
+        })
+        controller.commitGlide(listOf("hello"), capitalize = false)
+        assertTrue(port.committed.isEmpty())
+        assertEquals(0, port.textReads)
+    }
+
+    @Test
     fun `a word glided in front of another one keeps them apart`() {
         controller.onStartInput(EditorInfo().apply { inputType = InputType.TYPE_CLASS_TEXT })
         port.before = "hello "

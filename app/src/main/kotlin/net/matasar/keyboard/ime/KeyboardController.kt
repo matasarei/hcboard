@@ -444,6 +444,9 @@ class KeyboardController(
      */
     internal fun commitGlide(words: List<String>, capitalize: Boolean) {
         if (words.isEmpty()) return
+        // Classification is asynchronous, so the field can have become another one since the
+        // gesture: a word must not land in a password field, nor its text be read there.
+        if (passwordField || terminalField) return
         val cased = words.map { if (capitalize) it.replaceFirstChar(Char::uppercase) else it }
         val before = if (dispatcher.needsSpaceBefore()) " " else ""
         val after = if (dispatcher.needsSpaceAfter()) " " else ""
