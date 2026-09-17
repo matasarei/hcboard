@@ -18,8 +18,9 @@ class UkrainianOverlayTest {
         .map { it.substringBefore('#').trim() }
         .filter { it.isNotEmpty() }
         .map { line ->
-            val (word, frequency) = line.split('\t')
-            word to frequency.toInt()
+            val parts = line.split('\t')
+            assertEquals(2, parts.size, "expected 'word<TAB>frequency', got '$line'")
+            parts[0] to parts[1].toInt()
         }
 
     @Test
