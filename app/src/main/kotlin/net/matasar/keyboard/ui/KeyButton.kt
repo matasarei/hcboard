@@ -214,10 +214,11 @@ fun KeyButton(
                 // A dual key's glyph sits under its shifted symbol, and on the 60% board every
                 // glyph sits under the key's legend line, legend or not, so a row keeps one
                 // baseline and a legend can never meet the glyph. Word labels (Esc, Shift, the
-                // space bar's language) stay centred.
+                // space bar's language) stay centred, and so do compact keys, whose legend line
+                // is empty at rest and whose glyph is already small.
                 modifier = when {
                     topLegend != null -> Modifier.align(Alignment.BottomCenter).padding(bottom = 4.dp)
-                    legendBand && !small -> Modifier.align(Alignment.BottomCenter).padding(bottom = 4.dp)
+                    legendBand && !small && !compact -> Modifier.align(Alignment.BottomCenter).padding(bottom = 4.dp)
                     else -> Modifier
                 },
             )
