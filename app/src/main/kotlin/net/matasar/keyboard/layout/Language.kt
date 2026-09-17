@@ -26,21 +26,24 @@ data class Language(
             id = LayerId.LETTERS,
             units = units,
             rows = listOf(
-                row(*keysFor(rows[0]), leading = (units - rows[0].length) / 2f, trailing = (units - rows[0].length) / 2f),
-                row(*keysFor(rows[1]), leading = (units - rows[1].length) / 2f, trailing = (units - rows[1].length) / 2f),
-                row(shiftKey(edge), *keysFor(rows[2]), backspaceKey(edge)),
+                row(*keysFor(0), leading = (units - rows[0].length) / 2f, trailing = (units - rows[0].length) / 2f),
+                row(*keysFor(1), leading = (units - rows[1].length) / 2f, trailing = (units - rows[1].length) / 2f),
+                row(shiftKey(edge), *keysFor(2), backspaceKey(edge)),
                 bottomRow(LayerId.SYMBOLS, "?123", units, nativeName, withGlobe),
             ),
         )
     }
 
-    private fun keysFor(chars: String): Array<Key> = chars.map { c ->
+    /** The keys of row [index]; each letter carries the ANSI slot it sits in. */
+    fun keysFor(index: Int): Array<Key> = rows[index].mapIndexed { i, c -> keyFor(c, AnsiSlots.rows[index].getOrNull(i)) }.toTypedArray()
+
+    /** One key of a letters row: a letter with its accents and slot, or a plain text key. */
+    fun keyFor(c: Char, slot: Char?): Key =
         if (c.isLetter()) {
-            Key(label = c.toString(), action = KeyAction.Letter(c.toString(), c.uppercase()), longPress = accents[c].orEmpty())
+            Key(label = c.toString(), action = KeyAction.Letter(c.toString(), c.uppercase()), longPress = accents[c].orEmpty(), slot = slot)
         } else {
             Key(label = c.toString(), action = KeyAction.Text(c.toString()))
         }
-    }.toTypedArray()
 
     companion object {
         /** Shift and backspace take at least 1.5 units each. */

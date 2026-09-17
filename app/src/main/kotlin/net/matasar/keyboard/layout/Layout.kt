@@ -90,6 +90,14 @@ data class KeyboardLayout(val layers: Map<LayerId, Layer>, val units: Float = 10
     fun layer(id: LayerId): Layer = layers.getValue(id)
 }
 
+/**
+ * The three letter rows of a US ANSI board as slot characters. A language's row fills them left
+ * to right; the slot is what a letter sends in a modifier combination on any board.
+ */
+internal object AnsiSlots {
+    val rows: List<String> = listOf("qwertyuiop[]", "asdfghjkl;'", "zxcvbnm,./")
+}
+
 // ---- small builders so the layer files read like the mocks ----
 
 internal fun row(vararg keys: Key, leading: Float = 0f, trailing: Float = 0f) =

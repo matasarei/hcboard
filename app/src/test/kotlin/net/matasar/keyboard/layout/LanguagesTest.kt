@@ -55,6 +55,21 @@ class LanguagesTest {
     }
 
     @Test
+    fun `every letter sits in an ANSI slot, so ctrl combos are positional`() {
+        fun slot(language: Language, letter: String) =
+            language.lettersLayer(false).rows.flatMap { it.keys }.first { it.label == letter }.slot
+        assertEquals('q', slot(Languages.english, "q"))
+        assertEquals('q', slot(Languages.ukrainian, "й"))
+        assertEquals(']', slot(Languages.ukrainian, "ї"))
+        assertEquals('c', slot(Languages.russian, "с"))
+        assertEquals('a', slot(Languages.french, "q"))
+        for (language in Languages.all) {
+            val letters = language.lettersLayer(false).rows.flatMap { it.keys }.filter { it.action is KeyAction.Letter }
+            assertTrue(letters.all { it.slot != null }, "${language.tag} has a letter without a slot")
+        }
+    }
+
+    @Test
     fun `a non-letter in a row is a plain text key`() {
         val apostrophe = Languages.french.lettersLayer(false).rows[2].keys.first { it.label == "'" }
         assertEquals(KeyAction.Text("'"), apostrophe.action)
