@@ -212,7 +212,7 @@ private fun LayerGrid(controller: KeyboardController, feel: KeyboardFeel, popups
                         haptics = feel.haptics,
                         keyBorders = feel.keyBorders,
                         showLabel = !controller.trackpad,
-                        narrow = unitWidth < Dimens.narrowKeyWidth,
+                        legendBand = wide,
                         legendColor = if (fnActive) colors.armedRing else null,
                         onBounds = if (key.action is KeyAction.Letter) ({ k, rect -> letterBounds[(k.action as KeyAction.Letter).lower[0]] = rect }) else null,
                     )
