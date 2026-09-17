@@ -35,7 +35,7 @@ private fun punctuation(slot: Char) = dual(slot.toString(), SlotPunctuation.getV
 /**
  * A letters row of the 60% board: the language's letters fill the row's ANSI slots left to right,
  * each carrying its slot and the slot's Fn meaning. A letter that takes a punctuation slot keeps
- * that punctuation as its Fn legend (Fn+х is `[`, Fn+Shift+х is `{`); the slots left over keep
+ * that punctuation as its Fn legend, both symbols (`[{`: Fn+х is `[`, Fn+Shift+х is `{`); the slots left over keep
  * their punctuation keys, so English renders the standard board.
  */
 private fun wideRow(language: Language, index: Int): List<Key> {
@@ -49,7 +49,9 @@ private fun wideRow(language: Language, index: Int): List<Key> {
         val displaced = SlotPunctuation[slot]
         when {
             fnPair != null -> key.copy(fnLegend = fnPair.first, fnAction = fnPair.second)
-            displaced != null -> key.copy(fnLegend = slot.toString(), fnAction = KeyAction.Text(slot.toString(), displaced))
+            // Both symbols of the slot in the legend (`[{`): the shifted one has no other home on
+            // a Cyrillic board, and Fn+Shift on this key types it.
+            displaced != null -> key.copy(fnLegend = slot.toString() + displaced, fnAction = KeyAction.Text(slot.toString(), displaced))
             else -> key
         }
     }

@@ -78,8 +78,12 @@ fun KeyButton(
     haptics: Boolean = true,
     keyBorders: Boolean = true,
     showLabel: Boolean = true,
-    /** A key too narrow for a word-sized Fn legend beside a full-size letter (a Fold's 60% board). */
-    narrow: Boolean = false,
+    /**
+     * The 60% board: every key keeps its top line for legends (the shifted symbol left, the Fn
+     * meaning right) and draws its main glyph below it, so the two never meet and every key in a
+     * row shares one baseline whether or not it carries a legend.
+     */
+    legendBand: Boolean = false,
     legend: String? = key.fnLegend,
     legendColor: Color? = null,
     topLegend: String? = key.shiftedLabel,
@@ -175,10 +179,7 @@ fun KeyButton(
         // only while Fn is active, drop the shifted symbol, and shrink the glyph.
         val compact = height < Dimens.compactKeyHeight
         val topLegend = if (compact) null else topLegend
-        // A word legend (Home, PgUp) on a narrow key would touch the letter's ascender: it shows
-        // only while Fn is armed, and the letter shrinks to make room then. Arrows stay.
-        val wordLegend = legend != null && legend.length > 1
-        val legend = if ((compact || (narrow && wordLegend)) && legendColor == null) null else legend
+        val legend = if (compact && legendColor == null) null else legend
         if (icon != null) {
             Icon(
                 painter = painterResource(icon.drawable()),
@@ -205,20 +206,19 @@ fun KeyButton(
                     small -> labelSize
                     topLegend != null -> Dimens.dualMainSize
                     compact -> Dimens.compactLetterSize
-                    narrow && legend != null && wordLegend -> Dimens.compactLetterSize
+                    legendBand -> Dimens.wideLetterSize
                     else -> Dimens.letterSize
                 },
                 fontWeight = if (small) FontWeight.Medium else FontWeight.Normal,
                 maxLines = 1,
-                // A letter keeps the row's baseline whether or not it carries an Fn legend: the
-                // legend is small and top-right, and a glyph moved down or aside to make room
-                // for it read as misaligned next to its neighbours. Two exceptions: a dual key
-                // (shifted symbol on top) sits at the bottom under that symbol, and on a narrow
-                // key a word legend shows only while Fn is armed, when the letter tucks
-                // bottom-left out from under it for that moment.
+                // A dual key's glyph sits under its shifted symbol, and on the 60% board every
+                // glyph sits under the key's legend line, legend or not, so a row keeps one
+                // baseline and a legend can never meet the glyph. Word labels (Esc, Shift, the
+                // space bar's language) stay centred, and so do compact keys, whose legend line
+                // is empty at rest and whose glyph is already small.
                 modifier = when {
                     topLegend != null -> Modifier.align(Alignment.BottomCenter).padding(bottom = 4.dp)
-                    narrow && legend != null && wordLegend -> Modifier.align(Alignment.BottomStart).padding(start = 6.dp, bottom = 4.dp)
+                    legendBand && !small && !compact -> Modifier.align(Alignment.BottomCenter).padding(bottom = 4.dp)
                     else -> Modifier
                 },
             )
