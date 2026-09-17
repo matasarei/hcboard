@@ -41,16 +41,18 @@ class GlideControllerTest {
         controller.onStartInput(EditorInfo().apply { inputType = InputType.TYPE_CLASS_TEXT })
         controller.onGlideEnd(path("helo"), keys)
         assertEquals(listOf("hello "), port.committed)
-        assertEquals("hello", controller.textSuggestions.first())
-        assertTrue(controller.textSuggestions.size > 1)
+        assertEquals("hello", controller.candidates!!.words.first())
+        assertTrue(controller.candidates!!.words.size > 1)
+        controller.onSelectionChanged()
+        assertEquals("hello", controller.candidates!!.words.first())
     }
 
     @Test
     fun `tapping an alternative replaces the glided word and its space`() {
         controller.onStartInput(EditorInfo().apply { inputType = InputType.TYPE_CLASS_TEXT })
         controller.onGlideEnd(path("helo"), keys)
-        val alternative = controller.textSuggestions[1]
-        controller.pickSuggestion(alternative)
+        val alternative = controller.candidates!!.words[1]
+        controller.pickCandidate(alternative)
         assertEquals(listOf(6 to 0), port.deletions) // "hello" + the space
         assertEquals("$alternative ", port.committed.last())
     }
@@ -83,6 +85,6 @@ class GlideControllerTest {
         controller.onStartInput(EditorInfo().apply { inputType = InputType.TYPE_CLASS_TEXT })
         controller.onGlideEnd(path("helo"), keys)
         controller.onKey(LettersLayer.rows[0].keys[0])
-        assertTrue(controller.textSuggestions.isEmpty())
+        assertEquals(null, controller.candidates)
     }
 }

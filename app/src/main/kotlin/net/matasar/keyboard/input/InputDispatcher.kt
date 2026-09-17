@@ -42,6 +42,9 @@ class InputDispatcher(private val port: EditorPort) {
         return before.takeLastWhile { it.isLetter() }.toString()
     }
 
+    /** Whether the text before the cursor ends with [suffix]; the undo of a correction checks it is still there. */
+    fun textEndsWith(suffix: String): Boolean = port.textBeforeCursor(suffix.length)?.toString() == suffix
+
     /** Replaces the [old] word before the cursor (as [wordBeforeCursor] returned it) with [new]. */
     fun replaceWordBeforeCursor(old: String, new: String) {
         port.deleteSurroundingText(old.length, 0)

@@ -100,7 +100,7 @@ fun KeyboardScreen(
                     sheetOpen = controller.managerSheetOpen,
                     center = when {
                         controller.suggestions.isNotEmpty() -> ({ SuggestionStrip(controller.suggestions) })
-                        controller.textSuggestions.isNotEmpty() -> ({ TextSuggestionStrip(controller.textSuggestions, onPick = controller::pickSuggestion) })
+                        controller.candidates != null -> ({ TextSuggestionStrip(controller.candidates!!.words, onPick = controller::pickCandidate) })
                         else -> null
                     },
                 )
