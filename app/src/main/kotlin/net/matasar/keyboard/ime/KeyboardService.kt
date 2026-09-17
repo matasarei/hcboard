@@ -247,7 +247,9 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
     private fun measureBottomBarOverlap() {
         val view = inputView ?: return
         val decor = window?.window?.decorView ?: return
-        if (decor.height == 0) return // not laid out yet; the next pass has real numbers
+        // Neither laid out yet; the next pass has real numbers. A view measured at zero would
+        // read as leaving the whole decor free below it, and the keys would lose their padding.
+        if (decor.height == 0 || view.height == 0) return
         val insets = ViewCompat.getRootWindowInsets(decor) ?: return
         // The bar as the framework sizes its own nav-bar frame. Unlike the framework, which
         // uses the visible inset, this also counts a bar reported hidden: a skin that hides
