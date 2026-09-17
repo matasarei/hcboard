@@ -157,6 +157,8 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
                 controller.editingShortcutsInTextFields = settings.editingShortcuts
                 controller.doubleTapLock = settings.doubleTapLock
                 controller.glideEnabled = settings.glide
+                controller.suggestionsEnabled = settings.suggestions
+                controller.autoCorrect = settings.autoCorrect
                 autoBottomPadding = settings.bottomPaddingAuto
                 manualBottomPaddingDp = settings.bottomPaddingDp
                 controller.enabledLanguages = settings.enabledLanguages

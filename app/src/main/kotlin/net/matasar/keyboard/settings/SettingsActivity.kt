@@ -128,6 +128,10 @@ private fun SettingsScreen(settings: Settings, prefs: Prefs) {
             SwitchRow("${language.nativeName} · ${language.englishName}", enabled) { scope.launch { prefs.setLanguageEnabled(language.tag, it) } }
         }
 
+        Section(stringResource(R.string.settings_section_suggestions))
+        SwitchRow(stringResource(R.string.settings_suggestions), settings.suggestions) { scope.launch { prefs.setSuggestions(it) } }
+        SwitchRow(stringResource(R.string.settings_auto_correct), settings.autoCorrect) { scope.launch { prefs.setAutoCorrect(it) } }
+
         Section(stringResource(R.string.settings_section_glide))
         SwitchRow(stringResource(R.string.settings_glide), settings.glide) { scope.launch { prefs.setGlide(it) } }
         SwitchRow(stringResource(R.string.settings_glide_trail), settings.glideTrail) { scope.launch { prefs.setGlideTrail(it) } }
