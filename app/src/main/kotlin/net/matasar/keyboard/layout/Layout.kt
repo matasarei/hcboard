@@ -60,6 +60,12 @@ data class Key(
     val repeats: Boolean = false,
     /** What the key does while Fn is active, when that is not a plain key code (60% board). */
     val fnAction: KeyAction? = null,
+    /**
+     * The US character of the physical slot a letter sits in: what a modifier combination sends
+     * and what the key shows while Ctrl, Alt or Meta is active, so Ctrl+С on a Cyrillic board is
+     * Ctrl+C as on a PC. Only letter keys carry one.
+     */
+    val slot: Char? = null,
 ) {
     /** A stable identity for pressed-state tracking and tests. */
     val id: String get() = "$label:$action"

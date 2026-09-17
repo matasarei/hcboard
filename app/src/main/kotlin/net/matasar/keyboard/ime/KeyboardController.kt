@@ -274,13 +274,15 @@ class KeyboardController(
      * through the editor's own actions; everything else is a key event with meta state.
      */
     private fun sendCombo(text: String, key: Key) {
+        // A letter sends the key of the slot it sits in: Ctrl+С on a Cyrillic board is Ctrl+C.
+        val physical = key.slot?.let { if (uppercase) it.uppercase() else it.toString() } ?: text
         val onlyCtrl = modifiers.active.filter { it != ModifierKey.FN } == listOf(ModifierKey.CTRL)
         if (onlyCtrl && editingShortcutsInTextFields && !terminalField) {
-            EditingAction.forLetter(text)?.let { action ->
+            EditingAction.forLetter(physical)?.let { action ->
                 if (dispatcher.sendEditingAction(action)) return
             }
         }
-        val stroke: KeyStroke = keyStrokeFor(text) ?: keyStrokeFor(key.label) ?: return
+        val stroke: KeyStroke = keyStrokeFor(physical) ?: keyStrokeFor(text) ?: keyStrokeFor(key.label) ?: return
         dispatcher.sendCombo(stroke, modifiers.metaState())
     }
 
