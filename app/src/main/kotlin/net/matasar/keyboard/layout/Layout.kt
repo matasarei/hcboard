@@ -62,8 +62,8 @@ data class Key(
     val fnAction: KeyAction? = null,
     /**
      * The US character of the physical slot a letter sits in: what a modifier combination sends
-     * and what the key shows while Ctrl, Alt or Meta is active, so Ctrl+С on a Cyrillic board is
-     * Ctrl+C as on a PC. Only letter keys carry one.
+     * and what the key shows while a combination modifier is active, so Ctrl+С on a Cyrillic
+     * board is Ctrl+C as on a PC. Only letter keys carry one.
      */
     val slot: Char? = null,
 ) {

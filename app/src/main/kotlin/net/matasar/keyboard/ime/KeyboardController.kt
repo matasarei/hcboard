@@ -174,8 +174,10 @@ class KeyboardController(
     private val uppercase: Boolean get() = shift.active || modifiers.isActive(ModifierKey.SHIFT)
 
     /**
-     * What a letter key shows right now. While Ctrl, Alt or Meta is active a letter shows the
-     * US letter of its slot, so a Cyrillic board reads Q W E R T Y and Ctrl+С is visibly Ctrl+C.
+     * What a letter key shows right now. While a combination modifier is active (Ctrl, Alt, Meta,
+     * or the strip's Shift, which all send a key event) a letter shows the US letter of its slot,
+     * so a Cyrillic board reads Q W E R T Y and Ctrl+С is visibly Ctrl+C. The Shift latch alone
+     * keeps the language: it only changes case.
      */
     fun displayLabel(key: Key): String = when (val action = key.action) {
         is KeyAction.Letter -> when {

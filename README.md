@@ -18,8 +18,8 @@ the way you expect.
   shifted symbols printed on the keys and F1–F12 behind Fn. The board follows the current
   language: its letters sit on the ANSI slots, punctuation a long alphabet displaces stays
   reachable through Fn, and a globe key appears when more than one language is enabled.
-- **Positional shortcuts:** Ctrl+С on a Cyrillic board is Ctrl+C, as on a PC, and while Ctrl, Alt
-  or Meta is armed the keys show the Latin letters they will send.
+- **Positional shortcuts:** Ctrl+С on a Cyrillic board is Ctrl+C, as on a PC, and while a
+  combination modifier is armed the keys show the Latin letters they will send.
 - **Password managers:** the keyboard hosts Android's inline autofill suggestions from whichever
   manager you chose in system settings, and a key button opens or changes it.
 - **Nine languages:** English, Ukrainian, Russian, French, Spanish, German, Italian, Portuguese
