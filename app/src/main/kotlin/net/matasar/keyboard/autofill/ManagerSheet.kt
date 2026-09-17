@@ -47,6 +47,17 @@ class AndroidAutofillActions(private val context: Context) : AutofillActions {
 
     private fun currentComponent(): ComponentName? = managerComponents().firstOrNull()
 
+    /**
+     * The components of the manager the sheet names, and no other: when the preferred one has
+     * nothing to open, another component of the same app may, but "Open Enpass" must never open
+     * a different app that happens to be next in the list.
+     */
+    private fun labelledManagerComponents(): List<ComponentName> {
+        val all = managerComponents()
+        val labelled = all.firstOrNull()?.packageName ?: return emptyList()
+        return all.filter { it.packageName == labelled }
+    }
+
     /** The service's own label ("Google", "Enpass"), falling back to the app's. */
     override fun currentManagerLabel(): String? {
         val component = currentComponent() ?: return null
@@ -61,7 +72,7 @@ class AndroidAutofillActions(private val context: Context) : AutofillActions {
      * manager with no screen of its own to open lands the user on Android's password settings.
      */
     override fun openManager() {
-        val intent = managerComponents().firstNotNullOfOrNull(::openIntentFor)
+        val intent = labelledManagerComponents().firstNotNullOfOrNull(::openIntentFor)
         // A declared settings screen can still be private to the system (Google's is not exported),
         // which only the attempt reveals.
         val opened = intent != null && runCatching { context.startActivity(intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }.isSuccess
