@@ -183,9 +183,12 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
         val view = inputView ?: return
         val decor = window?.window?.decorView ?: return
         val insets = ViewCompat.getRootWindowInsets(decor) ?: return
-        // The bar as the framework sizes its own nav-bar frame; only a skin that reports no
-        // navigation bar at all falls back to the gesture area, which is taller than the bar
-        // on stock Android and would otherwise leave a dead strip under the keys.
+        // The bar as the framework sizes its own nav-bar frame. Unlike the framework, which
+        // uses the visible inset, this also counts a bar reported hidden: a skin that hides
+        // the bar for the IME and still draws its pill is the case this exists for, at the
+        // cost of a padded strip under a bar an immersive app has genuinely hidden. Only a
+        // skin that reports no navigation bar at all falls back to the gesture area, which
+        // is taller than the bar on stock Android and would leave a dead strip under the keys.
         val navigationBar = maxOf(
             insets.getInsets(WindowInsetsCompat.Type.navigationBars()).bottom,
             insets.getInsetsIgnoringVisibility(WindowInsetsCompat.Type.navigationBars()).bottom,
