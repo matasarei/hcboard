@@ -92,6 +92,9 @@ class KeyboardController(
         languageSheetOpen = false
         if (to == language) return
         language = to
+        // The symbols and code pages are the same in every language, so a language picked there
+        // is a request for its letters. A number field, which opens on symbols, keeps its page.
+        if (layer != LayerId.LETTERS && fieldKind.initialLayer() == LayerId.LETTERS) layer = LayerId.LETTERS
         clearCandidates()
         onLanguageChanged?.invoke(to)
     }
