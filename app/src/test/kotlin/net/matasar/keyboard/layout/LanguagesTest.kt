@@ -70,6 +70,16 @@ class LanguagesTest {
     }
 
     @Test
+    fun `the first-run languages are english plus the phone's shipped languages`() {
+        val uk = java.util.Locale("uk", "UA"); val ru = java.util.Locale("ru", "RU"); val ja = java.util.Locale("ja", "JP")
+        assertEquals(setOf("en_US", "uk", "ru"), Languages.defaultEnabled(listOf(uk, ru)))
+        assertEquals(setOf("en_US", "pt_BR"), Languages.defaultEnabled(listOf(java.util.Locale("pt", "PT"))))
+        assertEquals(setOf("en_US"), Languages.defaultEnabled(listOf(ja)))
+        assertEquals(setOf("en_US"), Languages.defaultEnabled(listOf(java.util.Locale("en", "GB"))))
+        assertEquals(setOf("en_US"), Languages.defaultEnabled(emptyList()))
+    }
+
+    @Test
     fun `a non-letter in a row is a plain text key`() {
         val apostrophe = Languages.french.lettersLayer(false).rows[2].keys.first { it.label == "'" }
         assertEquals(KeyAction.Text("'"), apostrophe.action)

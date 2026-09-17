@@ -2,15 +2,6 @@
 <resources>
     <string name="app_name">hcboard</string>
     <string name="ime_label">hcboard</string>
-    <string name="subtype_en_us">English (US)</string>
-    <string name="subtype_uk">Українська</string>
-    <string name="subtype_ru">Русский</string>
-    <string name="subtype_fr">Français</string>
-    <string name="subtype_es">Español</string>
-    <string name="subtype_de">Deutsch</string>
-    <string name="subtype_it">Italiano</string>
-    <string name="subtype_pt_br">Português (Brasil)</string>
-    <string name="subtype_pl">Polski</string>
 
     <string name="enable_title">Set up the keyboard</string>
     <string name="enable_step1_title">1. Enable it</string>
@@ -42,7 +33,7 @@
     <string name="settings_editing_shortcuts">Ctrl+A/C/V/X as select, copy, paste, cut in text fields</string>
     <string name="settings_double_tap_lock">Double-tap a modifier to lock it</string>
     <string name="settings_section_languages">Languages</string>
-    <string name="settings_languages_hint">With more than one language on, a globe key appears: tap it to switch, hold it to pick.</string>
+    <string name="settings_languages_hint">Until you change this list it follows your phone\'s languages, plus English. With more than one language on, a globe key appears: tap it to switch, hold it to pick.</string>
     <string name="settings_section_glide">Glide typing</string>
     <string name="settings_glide">Glide typing: slide across the letters to type a word</string>
     <string name="settings_glide_trail">Show the trail while gliding</string>
