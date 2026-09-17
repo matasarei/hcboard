@@ -9,7 +9,15 @@ import kotlin.test.assertTrue
 class PendingFillTest {
 
     private var now = 1_000L
-    private val fill = PendingFill { now }
+    private val scheduled = mutableListOf<Pair<Long, () -> Unit>>()
+    private val fill = PendingFill(clock = { now }, schedule = { delay, task -> scheduled += (now + delay) to task })
+
+    /** Moves the clock on and runs every task that is due, as the main looper would. */
+    private fun advanceTo(time: Long) {
+        now = time
+        scheduled.filter { it.first <= time }.forEach { it.second() }
+        scheduled.removeAll { it.first <= time }
+    }
     private val termux = "com.termux"
 
     private fun secret() = "s3cret".toCharArray()
@@ -29,6 +37,25 @@ class PendingFillTest {
         fill.offer(termux, secret())
         assertNull(fill.takeFor("com.evil.app") { String(it) })
         assertNull(fill.takeFor(termux) { String(it) })
+    }
+
+    @Test
+    fun `a password nobody takes is wiped when it expires, and a newer one outlives the old timer`() {
+        val first = secret()
+        fill.offer(termux, first)
+        advanceTo(now + PendingFill.TTL_MS - 1)
+        assertTrue(fill.waiting)
+        advanceTo(now + 1)
+        assertFalse(fill.waiting)
+        assertTrue(first.wiped())
+
+        fill.offer(termux, secret())
+        advanceTo(now + 10_000)
+        fill.offer(termux, secret()) // replaces it; the first timer fires before this one expires
+        advanceTo(now + PendingFill.TTL_MS - 10_000)
+        assertTrue(fill.waiting)
+        advanceTo(now + 10_000)
+        assertFalse(fill.waiting)
     }
 
     @Test

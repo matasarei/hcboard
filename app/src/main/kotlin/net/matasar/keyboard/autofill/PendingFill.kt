@@ -1,5 +1,7 @@
 package net.matasar.keyboard.autofill
 
+import android.os.Handler
+import android.os.Looper
 import android.os.SystemClock
 
 /**
@@ -12,8 +14,10 @@ import android.os.SystemClock
  * a password that went nowhere does not linger either.
  *
  * @param clock uptime in milliseconds (`SystemClock.uptimeMillis`), never wall-clock time.
+ * @param schedule runs a task after a delay in milliseconds; it wipes a password nobody took
+ *   when it expires, rather than whenever the next field happens to connect.
  */
-class PendingFill(private val clock: () -> Long) {
+class PendingFill(private val clock: () -> Long, private val schedule: (Long, () -> Unit) -> Unit) {
 
     private var password: CharArray? = null
     private var targetPackage: String? = null
@@ -30,6 +34,13 @@ class PendingFill(private val clock: () -> Long) {
         this.password = password
         targetPackage = packageName
         expiresAt = clock() + ttlMs
+        schedule(ttlMs, ::clearIfExpired)
+    }
+
+    /** Wipes the password once it has expired; a newer one, with a later expiry, is left alone. */
+    @Synchronized
+    fun clearIfExpired() {
+        if (clock() >= expiresAt) clear()
     }
 
     /**
@@ -65,6 +76,9 @@ class PendingFill(private val clock: () -> Long) {
         val WIPED = Char(0)
 
         /** The one the fill screen and the keyboard share. */
-        val shared = PendingFill(SystemClock::uptimeMillis)
+        val shared: PendingFill by lazy {
+            val main = Handler(Looper.getMainLooper())
+            PendingFill(SystemClock::uptimeMillis) { delayMs, task -> main.postDelayed(task, delayMs) }
+        }
     }
 }
