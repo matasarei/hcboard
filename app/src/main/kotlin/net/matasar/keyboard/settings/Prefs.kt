@@ -95,7 +95,11 @@ class Prefs(private val context: Context) {
         p[DEV_MODE_PACKAGES] = if (on) current + packageName else current - packageName
     }
 
-    /** Until the user touches the list: English plus the phone's own languages that the keyboard ships. */
+    /**
+     * Until the user touches the list: English plus the phone's own languages that the keyboard
+     * ships. Not persisted, so it follows the phone's languages as they change; the first toggle
+     * stores the set as it stands then, and the service copes when the current language drops out.
+     */
     private fun defaultEnabledLanguages(): Set<String> {
         // The resource configuration carries per-app languages as well as the system's; the
         // process-wide default list does not.
