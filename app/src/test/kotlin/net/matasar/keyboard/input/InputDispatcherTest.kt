@@ -73,7 +73,7 @@ class InputDispatcherTest {
 
     @Test
     fun `a word needs a space in front of it only after something that ends a word`() {
-        for (text in listOf("hello", "hello,", "hello.", "hello!", "hello?", "don't", "(hello)", "7")) {
+        for (text in listOf("hello", "hello,", "hello.", "hello!", "hello?", "don't", "(hello)", "7", "\u201chello\u201d", "\u00abhello\u00bb")) {
             val port = FakeEditorPort(before = text)
             assertTrue(InputDispatcher(port).needsSpaceBefore(), "after $text")
         }

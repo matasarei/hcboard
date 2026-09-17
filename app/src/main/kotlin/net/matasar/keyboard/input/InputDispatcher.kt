@@ -104,8 +104,11 @@ class InputDispatcher(private val port: EditorPort) {
 /** How much text the word before the cursor may span; longer runs are cut, not suggested. */
 const val MAX_WORD_LENGTH = 32
 
-/** What a word can end with, after which the next word needs a space of its own. */
-private const val WORD_ENDING_PUNCTUATION = ",.!?;:)]}\"'"
+/**
+ * What a word can end with, after which the next word needs a space of its own. The curly quotes
+ * and the guillemets are here too: a keyboard that offers them has to space what follows them.
+ */
+private const val WORD_ENDING_PUNCTUATION = ",.!?;:)]}\"'\u201d\u2019\u00bb"
 
 /** The four editing shortcuts that have a context-menu equivalent. */
 enum class EditingAction(val id: Int) {
