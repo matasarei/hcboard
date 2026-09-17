@@ -207,7 +207,7 @@ fun KeyButton(
                     if (legend != null) {
                         Text(
                             text = legend,
-                            color = legendColor ?: colors.subtle,
+                            color = legendColor ?: colors.legend,
                             fontSize = legendSize,
                             lineHeight = legendSize * Dimens.legendLineHeightRatio,
                             fontWeight = FontWeight.Medium,

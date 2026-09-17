@@ -48,8 +48,14 @@ data class KeyboardColors(
     val icon: Color,
     val chip: Color,
     val onChip: Color,
-    /** Secondary labels: space-bar language, Fn legends, top legends. */
+    /** Secondary labels: space-bar language, the shifted symbol on a key, the language sheet. */
     val subtle: Color,
+    /**
+     * A key's Fn legend while Fn is idle. Every key on the 60% board carries one, and at full
+     * strength thirty of them read as loudly as the glyphs do; recessed, they are there to be
+     * looked up rather than read. Fn arming a key still tints it [armedRing].
+     */
+    val legend: Color,
     /** The one-pixel shadow under keys ("key borders"). */
     val keyShadow: Color,
 )
@@ -109,6 +115,7 @@ private fun ColorScheme.toKeyboardColors(dark: Boolean): KeyboardColors = Keyboa
     chip = primaryContainer,
     onChip = onPrimaryContainer,
     subtle = onSurfaceVariant,
+    legend = onSurfaceVariant.copy(alpha = 0.55f),
     keyShadow = if (dark) Color(0x80000000) else Color(0x29000000),
 )
 
