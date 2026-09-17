@@ -35,11 +35,15 @@ class InputDispatcher(private val port: EditorPort) {
 
     /**
      * The letters immediately before the cursor, the word being typed; empty when the text ends
-     * in a separator. Reads at most [MAX_WORD_LENGTH] characters.
+     * in a separator, and empty when a letter follows the cursor, because a cursor inside a word
+     * is not typing that word. Reads at most [MAX_WORD_LENGTH] characters.
      */
     fun wordBeforeCursor(): String {
         val before = port.textBeforeCursor(MAX_WORD_LENGTH) ?: return ""
-        return before.takeLastWhile { it.isLetter() }.toString()
+        val word = before.takeLastWhile { it.isLetter() }.toString()
+        if (word.isEmpty()) return ""
+        if (port.textAfterCursor(1)?.firstOrNull()?.isLetter() == true) return ""
+        return word
     }
 
     /** Whether the text before the cursor ends with [suffix]; the undo of a correction checks it is still there. */

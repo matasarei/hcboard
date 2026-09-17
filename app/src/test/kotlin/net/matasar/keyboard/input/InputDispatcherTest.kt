@@ -57,6 +57,8 @@ class InputDispatcherTest {
         assertEquals("привіт", InputDispatcher(FakeEditorPort(before = "hi привіт")).wordBeforeCursor())
         assertEquals("", InputDispatcher(FakeEditorPort()).wordBeforeCursor())
         assertEquals(MAX_WORD_LENGTH, InputDispatcher(FakeEditorPort(before = "a".repeat(40))).wordBeforeCursor().length)
+        assertEquals("", InputDispatcher(FakeEditorPort(before = "che", after = "ck")).wordBeforeCursor())
+        assertEquals("che", InputDispatcher(FakeEditorPort(before = "che", after = " ck")).wordBeforeCursor())
     }
 
     @Test

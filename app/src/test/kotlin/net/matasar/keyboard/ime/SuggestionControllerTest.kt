@@ -144,6 +144,17 @@ class SuggestionControllerTest {
     }
 
     @Test
+    fun `a cursor inside a word gets no candidates, so space does not correct the first half`() {
+        textField()
+        port.before = "che"
+        port.after = "ck"
+        controller.onSelectionChanged()
+        assertNull(controller.candidates)
+        controller.onKey(space)
+        assertEquals("che ", port.before)
+    }
+
+    @Test
     fun `a moved cursor re-derives the word and a language switch clears the strip`() {
         textField()
         port.before = "hello spel"

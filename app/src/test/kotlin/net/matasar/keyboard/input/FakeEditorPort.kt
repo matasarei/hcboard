@@ -6,6 +6,7 @@ package net.matasar.keyboard.input
  */
 class FakeEditorPort(
     var before: String = "",
+    var after: String = "",
     var selected: String = "",
     var acceptsEditorAction: Boolean = true,
     var acceptsSetSelection: Boolean = true,
@@ -23,6 +24,7 @@ class FakeEditorPort(
     override fun commitText(text: CharSequence) { committed += text.toString(); before += text }
     override fun deleteSurroundingText(before: Int, after: Int) { deletions += before to after; this.before = this.before.dropLast(before) }
     override fun textBeforeCursor(length: Int): CharSequence { textReads++; return before.takeLast(length) }
+    override fun textAfterCursor(length: Int): CharSequence { textReads++; return after.take(length) }
     override fun selectedText(): CharSequence = selected
     override fun sendKey(keyCode: Int, metaState: Int) { keys += keyCode to metaState }
     override fun performEditorAction(actionId: Int): Boolean { editorActions += actionId; return acceptsEditorAction }

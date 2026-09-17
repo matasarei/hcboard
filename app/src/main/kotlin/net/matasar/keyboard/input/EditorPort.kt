@@ -13,6 +13,7 @@ interface EditorPort {
     fun commitText(text: CharSequence)
     fun deleteSurroundingText(before: Int, after: Int)
     fun textBeforeCursor(length: Int): CharSequence?
+    fun textAfterCursor(length: Int): CharSequence?
     fun selectedText(): CharSequence?
     fun sendKey(keyCode: Int, metaState: Int)
     fun performEditorAction(actionId: Int): Boolean
@@ -31,6 +32,8 @@ class AndroidEditorPort(private val connection: () -> InputConnection?) : Editor
     }
 
     override fun textBeforeCursor(length: Int): CharSequence? = connection()?.getTextBeforeCursor(length, 0)
+
+    override fun textAfterCursor(length: Int): CharSequence? = connection()?.getTextAfterCursor(length, 0)
 
     override fun selectedText(): CharSequence? = connection()?.getSelectedText(0)
 
