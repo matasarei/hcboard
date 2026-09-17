@@ -15,8 +15,8 @@ import net.matasar.keyboard.autofill.AndroidAutofillActions
 import net.matasar.keyboard.autofill.FILL_SCREEN_IME_OPTION
 import net.matasar.keyboard.autofill.FillActivity
 import net.matasar.keyboard.autofill.FillTarget
-import net.matasar.keyboard.autofill.PendingFill
 import net.matasar.keyboard.autofill.InlineSuggestions
+import net.matasar.keyboard.autofill.PendingFill
 import net.matasar.keyboard.autofill.SuggestionColors
 import net.matasar.keyboard.ui.theme.LocalKeyboardColors
 import androidx.compose.runtime.SideEffect
@@ -35,8 +35,8 @@ import androidx.compose.ui.unit.dp
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import java.io.FileDescriptor
-import java.nio.CharBuffer
 import java.io.PrintWriter
+import java.nio.CharBuffer
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.lifecycle.Lifecycle
