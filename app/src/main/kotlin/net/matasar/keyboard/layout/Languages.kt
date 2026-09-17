@@ -17,7 +17,7 @@ object Languages {
 
     val russian = Language(
         tag = "ru", nativeName = "Русский", englishName = "Russian",
-        rows = listOf("йцукенгшщзх", "фывапролджэ", "ячсмитьбю"),
+        rows = listOf("йцукенгшщзхъ", "фывапролджэ", "ячсмитьбю"),
         accents = mapOf('е' to listOf("ё"), 'ь' to listOf("ъ"), 'и' to listOf("і", "ї"), 'г' to listOf("ґ")),
     )
 

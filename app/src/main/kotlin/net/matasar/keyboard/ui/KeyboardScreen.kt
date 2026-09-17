@@ -214,7 +214,10 @@ private fun LayerGrid(controller: KeyboardController, feel: KeyboardFeel, popups
                         keyBorders = feel.keyBorders,
                         showLabel = !controller.trackpad,
                         legendBand = wide,
+                        // The legends stay where they are; the one that is live tints, and the
+                        // glyph below already says what the key would type.
                         legendColor = if (fnActive) colors.armedRing else null,
+                        topLegendColor = if (controller.shiftActive) colors.armedRing else null,
                         onBounds = if (key.action is KeyAction.Letter) ({ k, rect -> letterBounds[(k.action as KeyAction.Letter).lower[0]] = rect }) else null,
                     )
                 }
@@ -302,6 +305,8 @@ private fun Key.showsPreview(): Boolean =
     style == KeyStyle.LETTER && icon == null && label.length == 1 && action != KeyAction.Space
 
 private fun iconFor(key: Key, controller: KeyboardController): KeyIcon? = when {
+    // Fn's meaning is drawn as the glyph, so the icon it replaces goes (backspace reads Del).
+    !controller.showsIcon(key) -> null
     key.action == KeyAction.Shift && key.icon != null && controller.shift.active -> KeyIcon.SHIFT_FILLED
     key.action == KeyAction.Enter -> controller.enterIcon
     else -> key.icon

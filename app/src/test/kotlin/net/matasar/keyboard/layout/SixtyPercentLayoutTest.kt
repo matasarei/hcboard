@@ -69,6 +69,25 @@ class SixtyPercentLayoutTest {
     }
 
     @Test
+    fun `russian fills the bracket slots the way ukrainian does`() {
+        val layer = sixtyPercentLayer(Languages.russian, withGlobe = false)
+        val keys = layer.rows.flatMap { it.keys }
+        assertEquals("Tab й ц у к е н г ш щ з х ъ \\", layer.rows[1].keys.joinToString(" ") { it.label })
+        assertEquals('[', keys.first { it.label == "х" }.slot)
+        assertEquals(']', keys.first { it.label == "ъ" }.slot)
+        assertEquals("[{", keys.first { it.label == "х" }.fnLegend)
+        assertEquals("]}", keys.first { it.label == "ъ" }.fnLegend)
+        assertEquals(KeyAction.Text("[", "{"), keys.first { it.label == "х" }.fnAction)
+        assertEquals(KeyAction.Text("]", "}"), keys.first { it.label == "ъ" }.fnAction)
+        // The same two keys on the Ukrainian board, so a language switch does not move the brackets.
+        val ukrainian = sixtyPercentLayer(Languages.ukrainian, withGlobe = false).rows.flatMap { it.keys }
+        assertEquals(
+            listOf("[{", "]}"),
+            listOf("х", "ї").map { l -> ukrainian.first { it.label == l }.fnLegend },
+        )
+    }
+
+    @Test
     fun `fn navigation stays on the slots of i j k l for every alphabet`() {
         val keys = sixtyPercentLayer(Languages.ukrainian, withGlobe = false).rows.flatMap { it.keys }
         assertEquals(KeyAction.KeyCode(KeyEvent.KEYCODE_DPAD_UP), keys.first { it.label == "ш" }.fnAction)

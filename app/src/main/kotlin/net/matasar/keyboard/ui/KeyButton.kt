@@ -6,8 +6,11 @@ import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
@@ -85,8 +88,11 @@ fun KeyButton(
      */
     legendBand: Boolean = false,
     legend: String? = key.fnLegend,
+    /** Tints the Fn legend while Fn is active: the legend that is live right now. */
     legendColor: Color? = null,
     topLegend: String? = key.shiftedLabel,
+    /** Tints the shifted legend while Shift is active, the same way. */
+    topLegendColor: Color? = null,
     /** Overrides the size of a small (word) label; the strip's narrow keys use it. */
     labelSize: TextUnit = Dimens.labelSize,
     /** Receives the key's bounds in root coordinates; the glide detector maps fingers to keys with it. */
@@ -172,66 +178,73 @@ fun KeyButton(
             .background(if (pressed) colors.pressedKey else visual.background)
             .then(if (visual.ring != null) Modifier.border(2.dp, visual.ring, shape) else Modifier)
             .keyGestures(key.id, longPressMs, listener),
-        contentAlignment = Alignment.Center,
     ) {
         if (!showLabel) return@Box
-        // Short keys (a phone in landscape) have no room for two legends: keep the Fn legend
-        // only while Fn is active, drop the shifted symbol, and shrink the glyph.
-        val compact = height < Dimens.compactKeyHeight
-        val topLegend = if (compact) null else topLegend
-        val legend = if (compact && legendColor == null) null else legend
-        if (icon != null) {
-            Icon(
-                painter = painterResource(icon.drawable()),
-                contentDescription = key.label,
-                tint = visual.foreground,
-                modifier = Modifier.height(22.dp),
-            )
-        } else {
-            val small = key.style != KeyStyle.LETTER || label.length > 1
-            // The shifted symbol sits top-left, clear of the Fn legend top-right, and the main
-            // glyph shrinks so both fit in a 46 dp key.
-            if (topLegend != null) {
-                Text(
-                    text = topLegend,
-                    color = colors.subtle,
-                    fontSize = Dimens.topLegendSize,
-                    modifier = Modifier.align(Alignment.TopStart).padding(top = 3.dp, start = 7.dp),
-                )
+        // A key is two zones, never a stack of paddings: the legend line on top, the glyph in what
+        // is left. A key with nothing to say on that line does without it, and the 60% board keeps
+        // it on every key so a row shares one baseline. Nothing is dropped on a short key — both
+        // zones are sized from the key's own height, so the 80% setting shrinks them instead.
+        val hasLegendLine = legendBand || topLegend != null || legend != null
+        Column(modifier = Modifier.fillMaxSize()) {
+            if (hasLegendLine) {
+                // A minimum, not a cap: the line reserves the same room on every key in the row so
+                // they share a baseline, and grows rather than clipping a legend if the font is
+                // taller than the reserve (a large system font scale).
+                Box(modifier = Modifier.fillMaxWidth().heightIn(min = Dimens.legendLine(height))) {
+                    val legendSize = Dimens.legendTextSize(height)
+                    if (topLegend != null) {
+                        Text(
+                            text = topLegend,
+                            color = topLegendColor ?: colors.subtle,
+                            fontSize = legendSize,
+                            // Pinned: the two zones are measured in advance, so the line box has
+                            // to be the one Dimens proved the fit against.
+                            lineHeight = legendSize * Dimens.legendLineHeightRatio,
+                            maxLines = 1,
+                            modifier = Modifier.align(Alignment.CenterStart).padding(start = 6.dp),
+                        )
+                    }
+                    if (legend != null) {
+                        Text(
+                            text = legend,
+                            color = legendColor ?: colors.subtle,
+                            fontSize = legendSize,
+                            lineHeight = legendSize * Dimens.legendLineHeightRatio,
+                            fontWeight = FontWeight.Medium,
+                            maxLines = 1,
+                            modifier = Modifier.align(Alignment.CenterEnd).padding(end = 5.dp),
+                        )
+                    }
+                }
             }
-            Text(
-                text = label,
-                color = visual.foreground,
-                fontSize = when {
-                    small -> labelSize
-                    topLegend != null -> Dimens.dualMainSize
-                    compact -> Dimens.compactLetterSize
-                    legendBand -> Dimens.wideLetterSize
-                    else -> Dimens.letterSize
-                },
-                fontWeight = if (small) FontWeight.Medium else FontWeight.Normal,
-                maxLines = 1,
-                // A dual key's glyph sits under its shifted symbol, and on the 60% board every
-                // glyph sits under the key's legend line, legend or not, so a row keeps one
-                // baseline and a legend can never meet the glyph. Word labels (Esc, Shift, the
-                // space bar's language) stay centred, and so do compact keys, whose legend line
-                // is empty at rest and whose glyph is already small.
-                modifier = when {
-                    topLegend != null -> Modifier.align(Alignment.BottomCenter).padding(bottom = 4.dp)
-                    legendBand && !small && !compact -> Modifier.align(Alignment.BottomCenter).padding(bottom = 4.dp)
-                    else -> Modifier
-                },
-            )
-        }
-        if (legend != null) {
-            Text(
-                text = legend,
-                color = legendColor ?: colors.subtle,
-                fontSize = Dimens.legendSize,
-                fontWeight = FontWeight.Medium,
-                maxLines = 1,
-                modifier = Modifier.align(Alignment.TopEnd).padding(top = 3.dp, end = 5.dp),
-            )
+            Box(
+                modifier = Modifier.fillMaxWidth().weight(1f),
+                contentAlignment = Alignment.Center,
+            ) {
+                if (icon != null) {
+                    Icon(
+                        painter = painterResource(icon.drawable()),
+                        contentDescription = key.label,
+                        tint = visual.foreground,
+                        modifier = Modifier.height(Dimens.iconSize(height, hasLegendLine)),
+                    )
+                } else {
+                    val word = key.style != KeyStyle.LETTER || label.length > 1
+                    val size = when {
+                        word -> Dimens.wordSize(height, labelSize, hasLegendLine)
+                        hasLegendLine -> Dimens.glyphSize(height)
+                        else -> Dimens.plainGlyphSize(height)
+                    }
+                    Text(
+                        text = label,
+                        color = visual.foreground,
+                        fontSize = size,
+                        lineHeight = size * Dimens.glyphLineHeightRatio,
+                        fontWeight = if (word) FontWeight.Medium else FontWeight.Normal,
+                        maxLines = 1,
+                    )
+                }
+            }
         }
     }
 }
