@@ -33,6 +33,21 @@ class InputDispatcher(private val port: EditorPort) {
         port.commitText("$new ")
     }
 
+    /**
+     * The letters immediately before the cursor, the word being typed; empty when the text ends
+     * in a separator. Reads at most [MAX_WORD_LENGTH] characters.
+     */
+    fun wordBeforeCursor(): String {
+        val before = port.textBeforeCursor(MAX_WORD_LENGTH) ?: return ""
+        return before.takeLastWhile { it.isLetter() }.toString()
+    }
+
+    /** Replaces the [old] word before the cursor (as [wordBeforeCursor] returned it) with [new]. */
+    fun replaceWordBeforeCursor(old: String, new: String) {
+        port.deleteSurroundingText(old.length, 0)
+        port.commitText(new)
+    }
+
     /** Forward delete of one character after the cursor. */
     fun forwardDelete() = port.deleteSurroundingText(0, 1)
 
@@ -66,6 +81,9 @@ class InputDispatcher(private val port: EditorPort) {
         repeat(kotlin.math.abs(steps)) { port.sendKey(keyCode, 0) }
     }
 }
+
+/** How much text the word before the cursor may span; longer runs are cut, not suggested. */
+const val MAX_WORD_LENGTH = 32
 
 /** The four editing shortcuts that have a context-menu equivalent. */
 enum class EditingAction(val id: Int) {
