@@ -45,8 +45,8 @@ def read_boost(path: str) -> dict[str, int]:
             if not text:
                 continue
             match = ASSET_LINE.match(text)
-            if not match or not match.group(1).isalpha():
-                sys.exit(f"{path}:{number}: expected 'word<TAB>frequency', got {line.rstrip()!r}")
+            if not match or not match.group(1).isalpha() or int(match.group(2)) > 255:
+                sys.exit(f"{path}:{number}: expected 'word<TAB>frequency' with frequency 0-255, got {line.rstrip()!r}")
             boosts[match.group(1)] = int(match.group(2))
     return boosts
 
