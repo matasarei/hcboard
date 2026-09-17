@@ -117,6 +117,10 @@ class SuggestionControllerTest {
             controller.onKey(space)
             assertTrue(port.before.endsWith("chek "), port.before)
         }
+        controller.onFinishInput()
+        port.before = "spel"
+        controller.onSelectionChanged()
+        assertNull(controller.candidates)
         assertEquals(0, port.textReads)
     }
 

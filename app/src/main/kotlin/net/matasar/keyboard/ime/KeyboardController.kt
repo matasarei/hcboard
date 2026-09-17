@@ -241,6 +241,7 @@ class KeyboardController(
         endTrackpad()
         suggestions = emptyList()
         managerSheetOpen = false
+        fieldAllowsSuggestions = false
         clearCandidates()
     }
 
