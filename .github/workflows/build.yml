@@ -108,8 +108,17 @@ jobs:
           # took, six minutes on 2026-09-17. Published first, then the file.
           say "creating the release"
           gh release create dev --verify-tag --prerelease --title "Dev build" --notes "$notes"
+          # Publishing before the upload is what makes the window short, and it is also the one
+          # thing release immutability forbids: it refuses a change to a published release's
+          # assets. It is off for this repository (no rulesets, and this job has been clobbering
+          # the same asset for weeks). Turning it on means giving up either the short window or
+          # the re-created release: upload to a draft and publish afterwards, or stop deleting
+          # the release and edit it in place, which costs the top spot on the releases page.
           say "uploading the APK"
-          gh release upload dev hcboard-dev.apk --clobber
+          gh release upload dev hcboard-dev.apk --clobber || {
+            echo "The upload failed. If release immutability has been enabled since this was written, see the note above: a published release's assets cannot be replaced." >&2
+            exit 1
+          }
           say "checking what the release ended up as"
           for pause in 0 20; do
             sleep "$pause"
