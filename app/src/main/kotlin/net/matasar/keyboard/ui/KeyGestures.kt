@@ -20,6 +20,9 @@ interface KeyGestureListener {
     fun onLongPress(): LongPressResult
     fun onLongPressMove(position: Offset)
     fun onLongPressRelease(position: Offset)
+
+    /** The system took the pointer mid-steer (a navigation gesture, a window change): undo, do not commit. */
+    fun onLongPressCancel()
 }
 
 /**
@@ -72,7 +75,12 @@ fun Modifier.keyGestures(key: Any, longPressMs: Long, listener: KeyGestureListen
                 val event = awaitPointerEvent(PointerEventPass.Initial)
                 val change = event.changes.firstOrNull { it.id == down.id } ?: continue
                 if (change.isConsumed) {
+                    // A consumed change here is a cancellation: the pointer went to the system
+                    // (Samsung's gesture bar sits right under the space bar) or to another
+                    // handler. Whatever the long press opened must close, or the trackpad
+                    // stays on with the finger already gone.
                     listener.onPressEnd()
+                    if (steering) listener.onLongPressCancel()
                     return@awaitEachGesture
                 }
                 change.consume()

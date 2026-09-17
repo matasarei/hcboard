@@ -58,6 +58,7 @@ interface KeyCallbacks {
     fun onLongPress(key: Key, bounds: Rect): LongPressResult
     fun onLongPressMove(key: Key, rootPosition: Offset)
     fun onLongPressRelease(key: Key, rootPosition: Offset)
+    fun onLongPressCancel(key: Key)
     fun onRepeat(key: Key)
 }
 
@@ -143,6 +144,8 @@ fun KeyButton(
 
             override fun onLongPressRelease(position: Offset) =
                 currentCallbacks.onLongPressRelease(key, bounds.topLeft + position)
+
+            override fun onLongPressCancel() = currentCallbacks.onLongPressCancel(key)
         }
     }
 

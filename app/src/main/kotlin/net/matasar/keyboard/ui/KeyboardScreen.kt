@@ -276,6 +276,11 @@ private class KeyScreenCallbacks(
         if (controller.trackpad) controller.endTrackpad()
     }
 
+    override fun onLongPressCancel(key: Key) {
+        popups.accents = null
+        if (controller.trackpad) controller.endTrackpad()
+    }
+
     override fun onRepeat(key: Key) = controller.onKeyRepeat(key)
 
     private fun cellPx() = PopupMetrics.accentCell.value * popups.density
