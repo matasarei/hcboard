@@ -7,9 +7,14 @@ import androidx.compose.ui.unit.sp
 
 /** The metrics from the mocks. Heights scale with the height setting; widths come from the row. */
 object Dimens {
-    val keyHeight = 42.dp
-    val keyGap = 6.dp
-    val rowGap = 12.dp
+    /**
+     * The phone board's proportions follow Samsung's keyboard, measured from a screenshot of it:
+     * a key about 1.3 times as tall as it is wide, and gaps that are a small share of the pitch.
+     */
+    val keyHeight = 46.dp
+    val keyGap = 5.dp
+    /** At 100% height; it shrinks and grows with the height setting, as the keys do. */
+    val rowGap = 10.dp
     val sidePadding = 4.dp
     val topPadding = 8.dp
     val bottomPadding = 12.dp
@@ -64,6 +69,7 @@ object Dimens {
     /** From here up the window gets the 60% board. */
     val wideBreakpoint = 600.dp
     val wideKeyHeight = 46.dp
+    /** At 100% height, like [rowGap]. */
     val wideRowGap = 10.dp
     val wideSidePadding = 8.dp
 }
