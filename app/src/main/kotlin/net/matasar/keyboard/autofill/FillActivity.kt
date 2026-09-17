@@ -148,6 +148,9 @@ private class FillField(context: Context, private val onFilled: ((CharSequence) 
     init {
         importantForAutofill = IMPORTANT_FOR_AUTOFILL_YES
         isSingleLine = true
+        // A landscape keyboard would otherwise go fullscreen over the dialog and hide the form
+        // the manager's list is attached to.
+        imeOptions = EditorInfo.IME_FLAG_NO_EXTRACT_UI or EditorInfo.IME_FLAG_NO_FULLSCREEN
     }
 
     override fun autofill(value: AutofillValue) {
