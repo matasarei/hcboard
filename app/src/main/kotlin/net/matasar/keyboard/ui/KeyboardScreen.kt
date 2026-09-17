@@ -170,8 +170,8 @@ private fun LayerGrid(controller: KeyboardController, feel: KeyboardFeel, popups
         val keyHeight = minOf((if (wide) Dimens.wideKeyHeight else Dimens.keyHeight) * feel.heightScale, budget / rows)
         val unitWidth = (maxWidth - sidePadding * 2 - Dimens.keyGap * (layer.units.toInt() - 1)) / layer.units
         val fnActive = controller.modifiers.isActive(ModifierKey.FN)
-        // Glide lives on the phone letters layer; the 60% board and the other layers tap only.
-        val glide = feel.glide && !wide && controller.layer == LayerId.LETTERS && controller.glideAvailable
+        // Glide lives on the letters layer of either board; the symbols and code pages tap only.
+        val glide = feel.glide && controller.layer == LayerId.LETTERS && controller.glideAvailable
         val unitWidthPx = with(density) { unitWidth.toPx() }
         Column(
             modifier = Modifier
