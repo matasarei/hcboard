@@ -27,7 +27,7 @@ class LanguageSwitchingTest {
     private fun globe() = controller.phoneLayout.layer(net.matasar.keyboard.layout.LayerId.LETTERS).rows[3].keys.firstOrNull { it.action == KeyAction.SwitchLanguage }
 
     @Test
-    fun `one enabled language means no globe and the system switcher on Fn+Space`() {
+    fun `one enabled language means no globe and the system switcher on a switch action`() {
         assertFalse(controller.withGlobe)
         assertNull(globe())
         controller.onKey(net.matasar.keyboard.layout.Key("globe", KeyAction.SwitchLanguage))

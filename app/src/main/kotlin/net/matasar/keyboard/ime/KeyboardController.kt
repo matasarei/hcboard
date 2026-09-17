@@ -276,7 +276,7 @@ class KeyboardController(
             }
             is KeyAction.Modifier -> onModifierTap(action.modifier)
             KeyAction.HideKeyboard -> systemActions?.hideKeyboard()
-            // With one language enabled the globe is absent and Fn+Space goes to the system switcher.
+            // With one language enabled the globe is absent; a switch action then goes to the system switcher.
             KeyAction.SwitchLanguage -> {
                 if (withGlobe) nextLanguage() else systemActions?.switchToNextInputMethod()
                 afterKey()

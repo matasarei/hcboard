@@ -73,12 +73,12 @@ private fun wideShiftRow(language: Language): Row {
 
 /**
  * Modifiers around the space bar, which names the language. The globe sits left of Space when
- * there is more than one language to switch to; Fn+Space cycles as well.
+ * there is more than one language to switch to.
  */
 private fun wideBottomRow(spaceLabel: String, withGlobe: Boolean): Row {
     val keys = mutableListOf(mod("Ctrl", ModifierKey.CTRL, 1.25f), mod("Meta", ModifierKey.META, 1.25f), mod("Alt", ModifierKey.ALT, 1.25f))
     if (withGlobe) keys += Key("globe", KeyAction.SwitchLanguage, 1.25f, KeyStyle.FUNCTION, KeyIcon.GLOBE)
-    keys += Key(spaceLabel, KeyAction.Space, if (withGlobe) 5f else 6.25f, KeyStyle.SPACE, fnLegend = "Lang", fnAction = KeyAction.SwitchLanguage)
+    keys += Key(spaceLabel, KeyAction.Space, if (withGlobe) 5f else 6.25f, KeyStyle.SPACE)
     keys += mod("Alt", ModifierKey.ALT, 1.25f)
     keys += mod("Fn", ModifierKey.FN, 1.25f)
     keys += mod("Ctrl", ModifierKey.CTRL, 1.25f)
