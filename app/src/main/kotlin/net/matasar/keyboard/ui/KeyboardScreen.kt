@@ -40,7 +40,6 @@ import net.matasar.keyboard.layout.KeyIcon
 import net.matasar.keyboard.layout.KeyStyle
 import net.matasar.keyboard.layout.LayerId
 import net.matasar.keyboard.layout.ModifierKey
-import net.matasar.keyboard.layout.WideLayout
 import net.matasar.keyboard.ui.theme.KeyboardColors
 import net.matasar.keyboard.ui.theme.LocalKeyboardColors
 
@@ -130,34 +129,35 @@ private fun LayerGrid(controller: KeyboardController, feel: KeyboardFeel, popups
     val callbacks = remember(controller, popups, feel, density) {
         KeyScreenCallbacks(controller, popups, feel, trackpadStepPx = with(density) { 16.dp.toPx() })
     }
-    // Letter-key bounds in root coordinates, kept for the glide detector and the classifier.
-    // Rebuilt per layout: a language switch must not leave the previous alphabet's keys behind.
-    val letterBounds = remember(controller.phoneLayout) { mutableStateMapOf<Char, Rect>() }
     var gridOrigin by remember { mutableStateOf(Offset.Zero) }
-    val longPressMs = LocalViewConfiguration.current.longPressTimeoutMillis
-    // Keyed on the bounds map too: a new layout brings a new map, and the detector must restart
-    // with it rather than keep classifying against the previous alphabet.
-    val glideListener = remember(controller, popups, feel, letterBounds) {
-        object : GlideListener {
-            override fun onGlideStart() {
-                popups.preview = null
-            }
-
-            override fun onGlideMove(path: List<GlidePoint>) {
-                if (feel.glideTrail) popups.trail = path.map { Offset(it.x, it.y) }
-            }
-
-            override fun onGlideEnd(path: List<GlidePoint>) {
-                popups.trail = emptyList()
-                val keys = letterBounds.map { (char, rect) -> GlideKey(char, rect.center.x, rect.center.y, rect.width, rect.height) }
-                controller.onGlideEnd(path, keys)
-            }
-        }
-    }
     BoxWithConstraints(modifier = Modifier.fillMaxWidth().onGloballyPositioned { gridOrigin = it.positionInRoot() }) {
         // 600 dp and wider (a Fold's inner display, a tablet) gets the 60% board.
         val wide = maxWidth >= Dimens.wideBreakpoint
-        val layout = if (wide) WideLayout else controller.phoneLayout
+        val layout = if (wide) controller.wideLayout else controller.phoneLayout
+        // Letter-key bounds in root coordinates, kept for the glide detector and the classifier.
+        // Rebuilt per layout: a language switch, or unfolding onto the 60% board, must not leave
+        // the previous board's keys behind.
+        val letterBounds = remember(layout) { mutableStateMapOf<Char, Rect>() }
+        val longPressMs = LocalViewConfiguration.current.longPressTimeoutMillis
+        // Keyed on the bounds map too: a new layout brings a new map, and the detector must restart
+        // with it rather than keep classifying against the previous alphabet.
+        val glideListener = remember(controller, popups, feel, letterBounds) {
+            object : GlideListener {
+                override fun onGlideStart() {
+                    popups.preview = null
+                }
+
+                override fun onGlideMove(path: List<GlidePoint>) {
+                    if (feel.glideTrail) popups.trail = path.map { Offset(it.x, it.y) }
+                }
+
+                override fun onGlideEnd(path: List<GlidePoint>) {
+                    popups.trail = emptyList()
+                    val keys = letterBounds.map { (char, rect) -> GlideKey(char, rect.center.x, rect.center.y, rect.width, rect.height) }
+                    controller.onGlideEnd(path, keys)
+                }
+            }
+        }
         val layer = layout.layers[controller.layer] ?: layout.layers.values.first()
         val sidePadding = if (wide) Dimens.wideSidePadding else Dimens.sidePadding
         val rowGap = if (wide) Dimens.wideRowGap else Dimens.rowGap
