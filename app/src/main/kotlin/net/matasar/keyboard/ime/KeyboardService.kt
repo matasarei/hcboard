@@ -20,6 +20,11 @@ import android.view.inputmethod.InputMethodSubtype
 import net.matasar.keyboard.layout.Languages
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalDensity
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.lifecycle.Lifecycle
@@ -89,6 +94,15 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
     private lateinit var prefs: Prefs
     private val autofillActions by lazy { AndroidAutofillActions(this) }
     private var inputView: View? = null
+
+    /**
+     * How far the system's bottom bar (navigation bar or gesture area) reaches into the input
+     * view, in px. The IME window always extends under that bar; AOSP either pads the decor for
+     * it or hands the insets to the content, but some skins (Samsung's One UI) do neither and the
+     * pill lands on the bottom row. Measured after every layout, so the keys are padded by
+     * exactly what is still uncovered and never twice.
+     */
+    private var bottomBarOverlapPx by mutableIntStateOf(0)
     private var currentPackage: String? = null
 
     /** The chip colours, captured from the theme so the inline request can style the chips. */
@@ -134,6 +148,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
             decor.setViewTreeSavedStateRegistryOwner(this)
         }
         return ComposeView(this).also { inputView = it }.apply {
+            viewTreeObserver.addOnGlobalLayoutListener { measureBottomBarOverlap() }
             setViewTreeLifecycleOwner(this@KeyboardService)
             setViewTreeViewModelStoreOwner(this@KeyboardService)
             setViewTreeSavedStateRegistryOwner(this@KeyboardService)
@@ -149,6 +164,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
                         controller = controller,
                         actions = this@KeyboardService,
                         autofill = autofillActions,
+                        bottomInset = with(LocalDensity.current) { bottomBarOverlapPx.toDp() },
                         feel = KeyboardFeel(
                             haptics = settings.haptics,
                             previews = settings.previews,
@@ -161,6 +177,24 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
                 }
             }
         }
+    }
+
+    private fun measureBottomBarOverlap() {
+        val view = inputView ?: return
+        val decor = window?.window?.decorView ?: return
+        val insets = ViewCompat.getRootWindowInsets(decor) ?: return
+        // The bar as the framework sizes its own nav-bar frame; only a skin that reports no
+        // navigation bar at all falls back to the gesture area, which is taller than the bar
+        // on stock Android and would otherwise leave a dead strip under the keys.
+        val navigationBar = maxOf(
+            insets.getInsets(WindowInsetsCompat.Type.navigationBars()).bottom,
+            insets.getInsetsIgnoringVisibility(WindowInsetsCompat.Type.navigationBars()).bottom,
+        )
+        val bar = if (navigationBar > 0) navigationBar else insets.getInsets(WindowInsetsCompat.Type.mandatorySystemGestures()).bottom
+        val location = IntArray(2).also { view.getLocationInWindow(it) }
+        val spaceBelowView = decor.height - (location[1] + view.height)
+        val overlap = (bar - spaceBelowView).coerceAtLeast(0)
+        if (overlap != bottomBarOverlapPx) bottomBarOverlapPx = overlap
     }
 
     override fun onStartInputView(editorInfo: EditorInfo?, restarting: Boolean) {

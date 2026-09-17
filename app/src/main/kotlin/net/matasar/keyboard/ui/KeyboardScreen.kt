@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
@@ -28,6 +27,7 @@ import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.platform.LocalViewConfiguration
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import net.matasar.keyboard.autofill.AutofillActions
 import net.matasar.keyboard.ime.KeyboardController
@@ -64,6 +64,8 @@ fun KeyboardScreen(
     actions: ToolbarActions,
     autofill: AutofillActions,
     feel: KeyboardFeel = KeyboardFeel(),
+    /** Room to leave under the keys for the system's bottom bar; the service measures it. */
+    bottomInset: Dp = 0.dp,
 ) {
     val colors = LocalKeyboardColors.current
     val popups = remember { PopupState() }
@@ -86,7 +88,7 @@ fun KeyboardScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(colors.background)
-                    .navigationBarsPadding(),
+                    .padding(bottom = bottomInset),
             ) {
                 Toolbar(
                     developerMode = controller.developerMode,
