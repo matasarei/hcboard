@@ -32,6 +32,7 @@ import net.matasar.keyboard.layout.phoneLayout
 import net.matasar.keyboard.layout.LayerId
 import net.matasar.keyboard.layout.ModifierKey
 import net.matasar.keyboard.layout.PhoneLayout
+import net.matasar.keyboard.layout.wideLayout
 
 /** The two things a key can ask of the service rather than the editor. */
 interface SystemActions {
@@ -71,10 +72,15 @@ class KeyboardController(
     val withGlobe: Boolean get() = enabledLanguages.size > 1
 
     private val layoutCache = HashMap<Pair<String, Boolean>, KeyboardLayout>()
+    private val wideLayoutCache = HashMap<Pair<String, Boolean>, KeyboardLayout>()
 
     /** The phone layout for the current language, built once per language and globe state. */
     val phoneLayout: KeyboardLayout
         get() = layoutCache.getOrPut(language.tag to withGlobe) { phoneLayout(language, withGlobe) }
+
+    /** The 60% board for the current language, built the same way. */
+    val wideLayout: KeyboardLayout
+        get() = wideLayoutCache.getOrPut(language.tag to withGlobe) { wideLayout(language, withGlobe) }
 
     /** The enabled languages in cycling order. */
     val enabledLanguageList: List<Language>
@@ -167,9 +173,16 @@ class KeyboardController(
 
     private val uppercase: Boolean get() = shift.active || modifiers.isActive(ModifierKey.SHIFT)
 
-    /** What a letter key shows and commits right now. */
+    /**
+     * What a letter key shows right now. While Ctrl, Alt or Meta is active a letter shows the
+     * US letter of its slot, so a Cyrillic board reads Q W E R T Y and Ctrl+С is visibly Ctrl+C.
+     */
     fun displayLabel(key: Key): String = when (val action = key.action) {
-        is KeyAction.Letter -> if (uppercase) action.upper else action.lower
+        is KeyAction.Letter -> when {
+            modifiers.anyMetaActive && key.slot != null -> key.slot.uppercase()
+            uppercase -> action.upper
+            else -> action.lower
+        }
         else -> key.label
     }
 
