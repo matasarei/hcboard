@@ -1,6 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <!-- The key button names the password manager the user picked and opens it, and package
+         visibility hides every other app by default: without this the sheet cannot read the
+         manager's name or launch it, and says no manager is set. Only apps that offer autofill or
+         credentials are made visible, not every installed package. -->
+    <queries>
+        <intent>
+            <action android:name="android.service.autofill.AutofillService" />
+        </intent>
+        <intent>
+            <action android:name="android.service.credentials.CredentialProviderService" />
+        </intent>
+    </queries>
+
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"

@@ -3,14 +3,18 @@ package net.matasar.keyboard.autofill
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.Build
 import android.provider.Settings
 import androidx.core.net.toUri
+import org.xmlpull.v1.XmlPullParser
 
 /** What the key button's sheet can do; the service implements it with real intents. */
 interface AutofillActions {
     /** The user-facing name of the preferred autofill service, or null if none or unreadable. */
     fun currentManagerLabel(): String?
+    /** Whether [openManager] reaches the manager itself, rather than Android's settings for it. */
+    fun canOpenManager(): Boolean
     fun openManager()
     fun changeManager()
 }
@@ -34,13 +38,26 @@ fun changeManagerIntent(packageName: String, sdkInt: Int = Build.VERSION.SDK_INT
 
 class AndroidAutofillActions(private val context: Context) : AutofillActions {
 
-    private fun currentComponent(): ComponentName? {
-        fun read(key: String) = runCatching { Settings.Secure.getString(context.contentResolver, key) }.getOrNull()
-        return pickManagerComponent(
-            primaryCredentialProvider = read(CREDENTIAL_SERVICE_PRIMARY_SETTING),
-            autofillService = read(AUTOFILL_SERVICE_SETTING),
-            credentialProviders = read(CREDENTIAL_SERVICE_SETTING),
-        )?.let { ComponentName.unflattenFromString(it) }
+    private fun read(key: String) = runCatching { Settings.Secure.getString(context.contentResolver, key) }.getOrNull()
+
+    /** Every component that names the manager, the preferred one first. */
+    private fun managerComponents(): List<ComponentName> = managerComponentCandidates(
+        primaryCredentialProvider = read(CREDENTIAL_SERVICE_PRIMARY_SETTING),
+        autofillService = read(AUTOFILL_SERVICE_SETTING),
+        credentialProviders = read(CREDENTIAL_SERVICE_SETTING),
+    ).mapNotNull { ComponentName.unflattenFromString(it) }
+
+    private fun currentComponent(): ComponentName? = managerComponents().firstOrNull()
+
+    /**
+     * The components of the manager the sheet names, and no other: when the preferred one has
+     * nothing to open, another component of the same app may, but "Open Enpass" must never open
+     * a different app that happens to be next in the list.
+     */
+    private fun labelledManagerComponents(): List<ComponentName> {
+        val all = managerComponents()
+        val labelled = all.firstOrNull()?.packageName ?: return emptyList()
+        return all.filter { it.packageName == labelled }
     }
 
     /** The service's own label ("Google", "Enpass"), falling back to the app's. */
@@ -51,10 +68,58 @@ class AndroidAutofillActions(private val context: Context) : AutofillActions {
             ?: runCatching { pm.getApplicationInfo(component.packageName, 0).loadLabel(pm).toString() }.getOrNull()
     }
 
+    /**
+     * Opens the manager so the user can copy a password and paste it back, which is also the only
+     * way to fill a terminal: Android never offers autofill there. It never does nothing — a
+     * manager with no screen of its own to open lands the user on Android's password settings.
+     */
+    override fun canOpenManager(): Boolean = labelledManagerComponents().any { openIntentFor(it) != null }
+
     override fun openManager() {
-        val component = currentComponent() ?: return
-        val launch = context.packageManager.getLaunchIntentForPackage(component.packageName) ?: return
-        context.startActivity(launch.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+        // A screen that resolves can still refuse a keyboard (a permission, a disabled component),
+        // which only the attempt reveals; the manager's next component gets its turn then.
+        val opened = labelledManagerComponents()
+            .mapNotNull(::openIntentFor)
+            .any { runCatching { context.startActivity(it.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }.isSuccess }
+        if (!opened) changeManager()
+    }
+
+    /**
+     * What opening [component]'s manager means: its app, when the app has a launcher; otherwise
+     * the settings screen its service declares. A manager built into the system keeps its vault
+     * there — Google's lives in Play services, which has no launcher at all.
+     */
+    private fun openIntentFor(component: ComponentName): Intent? =
+        context.packageManager.getLaunchIntentForPackage(component.packageName)
+            ?: settingsActivityOf(component)?.let { Intent(Intent.ACTION_MAIN).setComponent(it) }
+
+    /** The settings activity [component] names in its autofill or credential-provider meta-data. */
+    private fun settingsActivityOf(component: ComponentName): ComponentName? {
+        val pm = context.packageManager
+        val service = runCatching { pm.getServiceInfo(component, PackageManager.GET_META_DATA) }.getOrNull() ?: return null
+        for (name in SERVICE_META_DATA) {
+            val parser = runCatching { service.loadXmlMetaData(pm, name) }.getOrNull() ?: continue
+            try {
+                while (parser.next() != XmlPullParser.END_DOCUMENT) {
+                    if (parser.eventType != XmlPullParser.START_TAG) continue
+                    // By resource id, as the framework reads it: an optimised APK strips the
+                    // attribute names from its compiled XML and a lookup by name finds nothing.
+                    val activity = (0 until parser.attributeCount)
+                        .firstOrNull { parser.getAttributeNameResource(it) == android.R.attr.settingsActivity }
+                        ?.let(parser::getAttributeValue)
+                        ?: break
+                    val settings = ComponentName(component.packageName, qualifiedClassName(component.packageName, activity))
+                    // Only the system may start a private one (Google's), so it is not a way in.
+                    if (runCatching { pm.getActivityInfo(settings, 0).exported }.getOrDefault(false)) return settings
+                    break
+                }
+            } catch (_: Exception) {
+                // A manager's malformed meta-data is not ours to fix; fall through to the next.
+            } finally {
+                parser.close()
+            }
+        }
+        return null
     }
 
     override fun changeManager() {
@@ -70,6 +135,9 @@ class AndroidAutofillActions(private val context: Context) : AutofillActions {
 
         /** Android 14+: every enabled credential provider, colon-separated. */
         const val CREDENTIAL_SERVICE_SETTING = "credential_service"
+
+        /** Where an autofill service and a credential provider each declare their settings screen. */
+        val SERVICE_META_DATA = listOf("android.autofill", "android.credentials.provider")
     }
 }
 
@@ -82,11 +150,23 @@ fun pickManagerComponent(
     primaryCredentialProvider: String?,
     autofillService: String?,
     credentialProviders: String?,
-): String? {
-    val candidates = listOf(primaryCredentialProvider, autofillService) +
-        credentialProviders.orEmpty().split(':')
-    return candidates
+): String? = managerComponentCandidates(primaryCredentialProvider, autofillService, credentialProviders).firstOrNull()
+
+/**
+ * Every usable component in the order [pickManagerComponent] prefers them, without repeats: when
+ * the preferred one has nothing to open, the next is tried. Pure, for tests.
+ */
+fun managerComponentCandidates(
+    primaryCredentialProvider: String?,
+    autofillService: String?,
+    credentialProviders: String?,
+): List<String> =
+    (listOf(primaryCredentialProvider, autofillService) + credentialProviders.orEmpty().split(':'))
         .filterNotNull()
         .map { it.trim() }
-        .firstOrNull { it.contains('/') && !it.startsWith("PLACEHOLDER", ignoreCase = true) }
-}
+        .filter { it.contains('/') && !it.startsWith("PLACEHOLDER", ignoreCase = true) }
+        .distinct()
+
+/** A manifest class name as a full one: `.ui.Settings` belongs to [packageName]. */
+fun qualifiedClassName(packageName: String, className: String): String =
+    if (className.startsWith('.')) packageName + className else className

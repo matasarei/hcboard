@@ -65,6 +65,7 @@ fun SuggestionStrip(entries: List<SuggestionEntry>, modifier: Modifier = Modifie
 fun ManagerSheet(actions: AutofillActions, onDismiss: () -> Unit) {
     val colors = LocalKeyboardColors.current
     val manager = actions.currentManagerLabel()
+    val opensItself = manager != null && actions.canOpenManager()
     Box(modifier = Modifier.fillMaxSize()) {
         Box(
             modifier = Modifier
@@ -107,7 +108,9 @@ fun ManagerSheet(actions: AutofillActions, onDismiss: () -> Unit) {
                 SheetRow(
                     icon = R.drawable.ic_open,
                     title = "Open $manager",
-                    subtitle = "Search the vault, then paste",
+                    // Google's manager lives in Play services, which has no screen a keyboard may
+                    // open: say where the tap really goes rather than promise the vault.
+                    subtitle = if (opensItself) "Search the vault, then paste" else "No app of its own · opens Android's password settings",
                     onClick = { actions.openManager(); onDismiss() },
                 )
             }
