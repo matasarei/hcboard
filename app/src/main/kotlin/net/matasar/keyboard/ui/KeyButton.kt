@@ -212,9 +212,15 @@ fun KeyButton(
                 maxLines = 1,
                 // A letter keeps the row's baseline whether or not it carries an Fn legend: the
                 // legend is small and top-right, and a glyph moved down or aside to make room
-                // for it read as misaligned next to its neighbours. Only a dual key (shifted
-                // symbol on top) sits at the bottom, under that symbol.
-                modifier = if (topLegend != null) Modifier.align(Alignment.BottomCenter).padding(bottom = 4.dp) else Modifier,
+                // for it read as misaligned next to its neighbours. Two exceptions: a dual key
+                // (shifted symbol on top) sits at the bottom under that symbol, and on a narrow
+                // key a word legend shows only while Fn is armed, when the letter tucks
+                // bottom-left out from under it for that moment.
+                modifier = when {
+                    topLegend != null -> Modifier.align(Alignment.BottomCenter).padding(bottom = 4.dp)
+                    narrow && legend != null && wordLegend -> Modifier.align(Alignment.BottomStart).padding(start = 6.dp, bottom = 4.dp)
+                    else -> Modifier
+                },
             )
         }
         if (legend != null) {
