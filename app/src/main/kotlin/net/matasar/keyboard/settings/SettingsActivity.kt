@@ -33,7 +33,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
+import androidx.compose.foundation.text.selection.SelectionContainer
+import androidx.compose.ui.text.font.FontFamily
 import net.matasar.keyboard.R
+import net.matasar.keyboard.ime.BottomBarDiagnostics
 import net.matasar.keyboard.layout.Languages
 import net.matasar.keyboard.ui.theme.KeyboardTheme
 import kotlin.math.roundToInt
@@ -137,6 +140,16 @@ private fun SettingsScreen(settings: Settings, prefs: Prefs) {
             label = { Text(stringResource(R.string.enable_try_label)) },
             modifier = Modifier.fillMaxWidth(),
         )
+
+        Section(stringResource(R.string.settings_section_diagnostics))
+        Text(stringResource(R.string.settings_diagnostics_hint), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        SelectionContainer {
+            Text(
+                BottomBarDiagnostics.report,
+                style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace),
+                modifier = Modifier.padding(top = 4.dp),
+            )
+        }
     }
 }
 

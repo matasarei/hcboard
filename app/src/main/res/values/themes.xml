@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!--
+        The keyboard window's theme: the framework's default for an IME, plus an opt-out from
+        Android 15's edge-to-edge enforcement. Under enforcement the IME window's decor no longer
+        pads for the navigation bar and the keyboard has to read the insets itself, which some
+        skins (Samsung's One UI 7) never deliver to the content; with the opt-out the decor fits
+        system windows again and the framework pads it from what the window manager knows.
+    -->
+    <style name="Theme.Hcboard.Ime" parent="@android:style/Theme.DeviceDefault.InputMethod">
+        <item name="android:windowOptOutEdgeToEdgeEnforcement" tools:targetApi="35">true</item>
+    </style>
+</resources>

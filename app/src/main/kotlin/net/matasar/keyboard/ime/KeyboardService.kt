@@ -8,6 +8,7 @@ import android.os.Build
 import android.os.Bundle
 import android.view.inputmethod.InlineSuggestionsRequest
 import android.view.inputmethod.InlineSuggestionsResponse
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.toArgb
 import net.matasar.keyboard.autofill.AndroidAutofillActions
 import net.matasar.keyboard.autofill.InlineSuggestions
@@ -18,6 +19,7 @@ import android.annotation.SuppressLint
 import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodSubtype
+import net.matasar.keyboard.R
 import net.matasar.keyboard.layout.Languages
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -69,6 +71,11 @@ import net.matasar.keyboard.ui.theme.KeyboardTheme
  * is shown, destroyed in [onDestroy].
  */
 class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwner, SavedStateRegistryOwner, ToolbarActions, SystemActions {
+
+    init {
+        // Before onCreate, as InputMethodService.setTheme requires: see res/values/themes.xml.
+        setTheme(R.style.Theme_Hcboard_Ime)
+    }
 
     private val lifecycleRegistry = LifecycleRegistry(this)
     private val store = ViewModelStore()
@@ -172,6 +179,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
                     val colors = LocalKeyboardColors.current
                     SideEffect {
                         suggestionColors = SuggestionColors(colors.key.toArgb(), colors.onKey.toArgb(), colors.subtle.toArgb())
+                        paintBottomBar(colors.background.toArgb(), light = colors.background.luminance() > 0.5f)
                     }
                     KeyboardScreen(
                         controller = controller,
@@ -212,9 +220,50 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
         val location = IntArray(2).also { view.getLocationInWindow(it) }
         val spaceBelowView = decor.height - (location[1] + view.height)
         val overlap = bottomBarOverlap(bar, spaceBelowView)
-        lastMeasurement = "reported=$reported bar=$bar decorHeight=${decor.height} viewTop=${location[1]} viewHeight=${view.height} " +
+        val measurement = "reported=$reported bar=$bar decorHeight=${decor.height} viewTop=${location[1]} viewHeight=${view.height} " +
             "spaceBelow=$spaceBelowView overlap=$overlap gestureNav=${gestureNavigation()} systemBarHeight=${systemNavigationBarHeightPx()}"
         if (overlap != bottomBarOverlapPx) bottomBarOverlapPx = overlap
+        // Layout passes are frequent; the report is only worth rebuilding when the numbers moved.
+        if (measurement != lastMeasurement) {
+            lastMeasurement = measurement
+            BottomBarDiagnostics.report = insetReport()
+        }
+    }
+
+    /**
+     * The window's bottom bar as the framework's decor paints it, in the keyboard's own colour
+     * so the strip under the keys reads as part of the keyboard rather than a black band.
+     */
+    private fun paintBottomBar(color: Int, light: Boolean) {
+        val w = window?.window ?: return
+        @Suppress("DEPRECATION")
+        w.navigationBarColor = color
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+            @Suppress("DEPRECATION")
+            w.isNavigationBarContrastEnforced = false
+        }
+        androidx.core.view.WindowCompat.getInsetsController(w, w.decorView).isAppearanceLightNavigationBars = light
+    }
+
+    /** Every inset type the decor reports, its padding, and the last measurement, one line each. */
+    private fun insetReport(): String {
+        val lines = mutableListOf("measurement: $lastMeasurement manualPaddingDp=$manualBottomPaddingDp")
+        lines += "device: ${android.os.Build.MANUFACTURER} ${android.os.Build.MODEL}, Android ${android.os.Build.VERSION.RELEASE} (API ${android.os.Build.VERSION.SDK_INT}), navigation_mode=${runCatching { android.provider.Settings.Secure.getInt(contentResolver, "navigation_mode", -1) }.getOrDefault(-1)}"
+        val decor = window?.window?.decorView ?: return (lines + "window: none").joinToString("\n")
+        lines += "decor: padding=[${decor.paddingLeft},${decor.paddingTop},${decor.paddingRight},${decor.paddingBottom}] size=${decor.width}x${decor.height}"
+        val insets = ViewCompat.getRootWindowInsets(decor) ?: return (lines + "insets: none on the decor").joinToString("\n")
+        val types = listOf(
+            "navigationBars" to WindowInsetsCompat.Type.navigationBars(), "statusBars" to WindowInsetsCompat.Type.statusBars(),
+            "systemBars" to WindowInsetsCompat.Type.systemBars(), "mandatorySystemGestures" to WindowInsetsCompat.Type.mandatorySystemGestures(),
+            "systemGestures" to WindowInsetsCompat.Type.systemGestures(), "tappableElement" to WindowInsetsCompat.Type.tappableElement(),
+            "displayCutout" to WindowInsetsCompat.Type.displayCutout(), "captionBar" to WindowInsetsCompat.Type.captionBar(),
+        )
+        for ((name, type) in types) {
+            val visible = insets.getInsets(type)
+            val stable = runCatching { insets.getInsetsIgnoringVisibility(type) }.getOrNull()
+            lines += "$name: bottom=${visible.bottom} stableBottom=${stable?.bottom} visible=${insets.isVisible(type)}"
+        }
+        return lines.joinToString("\n")
     }
 
     /** Whether the device is on gesture navigation (`navigation_mode` 2), the mode that draws a pill over the IME. */
@@ -235,19 +284,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
     /** `adb shell dumpsys activity service net.matasar.keyboard/.ime.KeyboardService`: the inset picture on this device. */
     override fun dump(fd: FileDescriptor, fout: PrintWriter, args: Array<String>) {
         super.dump(fd, fout, args)
-        fout.println("hcboard bottom bar: $lastMeasurement manualPaddingDp=$manualBottomPaddingDp")
-        val decor = window?.window?.decorView ?: return
-        val insets = ViewCompat.getRootWindowInsets(decor) ?: run { fout.println("hcboard insets: none on the decor"); return }
-        val types = listOf(
-            "navigationBars" to WindowInsetsCompat.Type.navigationBars(), "statusBars" to WindowInsetsCompat.Type.statusBars(),
-            "systemBars" to WindowInsetsCompat.Type.systemBars(), "mandatorySystemGestures" to WindowInsetsCompat.Type.mandatorySystemGestures(),
-            "systemGestures" to WindowInsetsCompat.Type.systemGestures(), "tappableElement" to WindowInsetsCompat.Type.tappableElement(),
-            "displayCutout" to WindowInsetsCompat.Type.displayCutout(), "captionBar" to WindowInsetsCompat.Type.captionBar(),
-        )
-        for ((name, type) in types) {
-            fout.println("hcboard insets $name: visible=${insets.getInsets(type)} ignoringVisibility=${runCatching { insets.getInsetsIgnoringVisibility(type) }.getOrNull()} isVisible=${insets.isVisible(type)}")
-        }
-        fout.println("hcboard window: decorPadding=[${decor.paddingLeft},${decor.paddingTop},${decor.paddingRight},${decor.paddingBottom}] decorSize=${decor.width}x${decor.height} attrs=${window?.window?.attributes}")
+        for (line in insetReport().lines()) fout.println("hcboard $line")
     }
 
     override fun onStartInputView(editorInfo: EditorInfo?, restarting: Boolean) {
