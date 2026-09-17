@@ -30,11 +30,18 @@ fun fieldKindOf(inputType: Int): FieldKind {
 /** The layer a field opens on: digits for number and phone fields, letters otherwise. */
 /**
  * Whether word candidates may be read and shown for a field: plain text only, so no passwords,
- * numbers, terminals, addresses or e-mail, and not when the app asks for no suggestions.
+ * numbers, terminals, addresses or e-mail, and not when the app asks for no suggestions — unless
+ * it asks for autocorrect in the same breath, which a search box does.
  */
 fun suggestionsAllowed(inputType: Int): Boolean {
     if (inputType and InputType.TYPE_MASK_CLASS != InputType.TYPE_CLASS_TEXT) return false
-    if (inputType and InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS != 0) return false
+    // A field that asks for no suggestions and for autocorrect in the same breath contradicts
+    // itself, and search boxes do it: the Google app's prompt, where Gemini is typed, reports
+    // both. Correcting a word needs candidates to correct it with, so the flag that asks for
+    // correction wins; a field that asks for no suggestions and nothing else is still obeyed.
+    val noSuggestions = inputType and InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS != 0
+    val autoCorrect = inputType and InputType.TYPE_TEXT_FLAG_AUTO_CORRECT != 0
+    if (noSuggestions && !autoCorrect) return false
     return when (inputType and InputType.TYPE_MASK_VARIATION) {
         InputType.TYPE_TEXT_VARIATION_URI,
         InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS,
