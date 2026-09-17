@@ -38,7 +38,7 @@ fun CandidateStrip(candidates: WordCandidates, onPick: (String) -> Unit, modifie
                     .weight(1f)
                     .fillMaxHeight()
                     .clip(RoundedCornerShape(8.dp))
-                    .then(if (word != null) Modifier.clickable { onPick(word) } else Modifier)
+                    .clickable(enabled = word != null) { word?.let(onPick) }
                     .padding(horizontal = 4.dp),
                 contentAlignment = Alignment.Center,
             ) {
