@@ -439,12 +439,15 @@ class KeyboardController(
      * Commits the best word and keeps the rest as alternatives. No trailing space: what follows a
      * word is the user's to choose, and a comma after one should not arrive as ` ,`. The space
      * goes in front instead, and only when the text already there ends a word, so two glides in a
-     * row still read as two words.
+     * row still read as two words. A word glided in front of another one still gets a space after
+     * it, or the two would join.
      */
     internal fun commitGlide(words: List<String>, capitalize: Boolean) {
         if (words.isEmpty()) return
         val cased = words.map { if (capitalize) it.replaceFirstChar(Char::uppercase) else it }
-        dispatcher.commitText(if (dispatcher.needsSpaceBefore()) " " + cased.first() else cased.first())
+        val before = if (dispatcher.needsSpaceBefore()) " " else ""
+        val after = if (dispatcher.needsSpaceAfter()) " " else ""
+        dispatcher.commitText(before + cased.first() + after)
         lastGlideWord = cased.first()
         lastAutocorrect = null
         candidates = WordCandidates(cased.first(), cased.take(Candidates.MAX_WORDS))

@@ -39,6 +39,13 @@ class InputDispatcher(private val port: EditorPort) {
     }
 
     /**
+     * The same question on the other side: a word committed at the cursor needs a space after it
+     * when a letter follows, or it joins the word already there. The cursor sits at the end of
+     * the text far more often than in front of a word, so this is the rarer half of the pair.
+     */
+    fun needsSpaceAfter(): Boolean = port.textAfterCursor(1)?.firstOrNull()?.isLetter() == true
+
+    /**
      * The letters immediately before the cursor, the word being typed; empty when the text ends
      * in a separator, and empty when a letter follows the cursor, because a cursor inside a word
      * is not typing that word. Reads at most [MAX_WORD_LENGTH] characters.

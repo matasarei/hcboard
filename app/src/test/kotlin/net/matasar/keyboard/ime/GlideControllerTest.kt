@@ -77,6 +77,18 @@ class GlideControllerTest {
     }
 
     @Test
+    fun `a word glided in front of another one keeps them apart`() {
+        controller.onStartInput(EditorInfo().apply { inputType = InputType.TYPE_CLASS_TEXT })
+        port.before = "hello "
+        port.after = "world"
+        controller.onGlideEnd(path("helo"), keys)
+        // The fake has no cursor, so everything committed lands in `before`; what matters is the
+        // space on the end, which in the field sits between the glided word and "world".
+        assertEquals("hello ", port.committed.last())
+        assertEquals("hello hello ", port.before)
+    }
+
+    @Test
     fun `shift capitalises the glided word and is consumed`() {
         controller.onStartInput(EditorInfo().apply { inputType = InputType.TYPE_CLASS_TEXT })
         controller.onKey(LettersLayer.rows[2].keys[0]) // shift
