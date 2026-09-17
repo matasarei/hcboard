@@ -23,4 +23,5 @@ This product also includes data under the Creative Commons Attribution 4.0 licen
   (https://codeberg.org/Helium314/aosp-dictionaries), itself built from the Leipzig Corpora
   Collection word lists (https://wortschatz.uni-leipzig.de/en/download/), Deutscher Wortschatz /
   Leipzig University, licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/).
-  The list was filtered and truncated by scripts/build-wordlist.py.
+  The list was filtered and truncated by scripts/build-wordlist.py and merged with the project's
+  own everyday-word overlay (scripts/wordlists/uk-everyday.tsv, Apache-2.0).

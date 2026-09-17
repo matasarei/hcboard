@@ -52,7 +52,10 @@ emulator profile is `medium_phone`; boot it headless with
 - **Glide typing:** `input/glide/GlideClassifier.kt` is an approved Apache-2.0 copy of FlorisBoard's
   classifier with its header kept; do not "clean it up". Word lists live in `assets/dictionaries/`
   and are built by `scripts/build-wordlist.py` from AOSP (Apache-2.0) and, for Ukrainian, Helium314's
-  CC BY 4.0 list; regenerate, never hand-edit. The grid's letter-bounds registry is rebuilt per
+  CC BY 4.0 list plus the curated overlay `scripts/wordlists/uk-everyday.tsv` (the corpus is news
+  text and under-rates chat words); regenerate, never hand-edit: the builder reads a shipped asset
+  as its source, so `scripts/build-wordlist.py <uk.txt> <uk.txt> --boost <the tsv>` rebuilds it
+  and `UkrainianOverlayTest` fails when the asset drifts below the overlay. The grid's letter-bounds registry is rebuilt per
   layout and the glide listener is keyed on it, or a language switch classifies against the old
   alphabet. The trail is drawn from the root's draw pass: a sized canvas grows the IME window
   mid-gesture and shifts every later pointer position.

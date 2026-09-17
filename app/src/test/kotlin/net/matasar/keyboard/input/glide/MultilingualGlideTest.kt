@@ -5,6 +5,7 @@ import net.matasar.keyboard.layout.Languages
 import net.matasar.keyboard.nlp.WordList
 import java.io.File
 import kotlin.test.Test
+import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 /** Key centres for any language's letters layer at a 412 dp phone width and density 1. */
@@ -52,8 +53,22 @@ class MultilingualGlideTest {
         assertTrue(expected in suggestions, "${language.tag}: '$expected' not in $suggestions for path '$path'")
     }
 
+    /** Stricter than [assertGlides]: the word the user meant must be what gets committed. */
+    private fun assertGlidesFirst(language: Language, word: String) {
+        val (classifier, geometry) = classifier(language)
+        val suggestions = classifier.classify(geometry.path(word), 4)
+        assertEquals(word, suggestions.firstOrNull(), "${language.tag}: got $suggestions for '$word'")
+    }
+
     @Test
     fun `ukrainian glides привіт`() = assertGlides(Languages.ukrainian, "привіт", "привіт")
+
+    @Test
+    fun `ukrainian commits everyday words first thanks to the overlay`() {
+        for (word in listOf("привіт", "дякую", "добре", "зараз", "сьогодні")) assertGlidesFirst(Languages.ukrainian, word)
+        val list = File("src/main/assets/dictionaries/uk.txt").bufferedReader().useLines { WordList.parse(it) }
+        for (word in listOf("окей", "напиши", "подзвони")) assertTrue(list.frequency(word) >= 180, "'$word' missing from uk.txt")
+    }
 
     @Test
     fun `russian glides привет`() = assertGlides(Languages.russian, "привет", "привет")
