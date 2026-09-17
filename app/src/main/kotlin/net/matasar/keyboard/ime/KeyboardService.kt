@@ -3,6 +3,7 @@ package net.matasar.keyboard.ime
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
+import android.content.res.Configuration
 import android.inputmethodservice.InputMethodService
 import android.os.Build
 import android.os.Bundle
@@ -128,6 +129,12 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
      */
     private var bottomBarOverlapPx by mutableIntStateOf(0)
 
+    /** The last configuration seen, so a change can be told apart from a change that matters. */
+    private lateinit var lastConfiguration: Configuration
+
+    /** How many times the display's shape made us rebuild the input view; for the dump. */
+    private var inputViewRebuilds = 0
+
     /** Settings: follow the measured bar, or use the user's own room under the keys instead. */
     private var autoBottomPadding by mutableStateOf(true)
     private var manualBottomPaddingDp by mutableIntStateOf(0)
@@ -142,6 +149,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
     override fun onCreate() {
         super.onCreate()
         instance = this
+        lastConfiguration = Configuration(resources.configuration)
         prefs = Prefs(applicationContext)
         controller.systemActions = this
         controller.scope = lifecycleScope
@@ -172,6 +180,26 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
                 }
             }
         }
+    }
+
+    /**
+     * The display changed shape: a fold, a rotation, a resized window. The input view outlives
+     * that, and the window goes on measuring the app's room from it, so the keyboard is laid out
+     * for a screen that is no longer there — the app keeps the old keyboard's space and the keys
+     * sit in the wrong part of the screen. Rebuilding the view is what the framework does for an
+     * activity and does not do for us.
+     */
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        val previous = lastConfiguration
+        lastConfiguration = Configuration(newConfig)
+        if (!rebuildsInputView(previous.diff(newConfig))) return
+        inputViewRebuilds++
+        // onCreateInputView drops the lifecycle back to STARTED; a keyboard that is up right now
+        // is still resumed, and its composition must not be told otherwise.
+        val resumed = lifecycleRegistry.currentState == Lifecycle.State.RESUMED
+        setInputView(onCreateInputView())
+        if (resumed) lifecycleRegistry.currentState = Lifecycle.State.RESUMED
     }
 
     override fun onCreateInputView(): View {
@@ -219,7 +247,9 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
     private fun measureBottomBarOverlap() {
         val view = inputView ?: return
         val decor = window?.window?.decorView ?: return
-        if (decor.height == 0) return // not laid out yet; the next pass has real numbers
+        // Neither laid out yet; the next pass has real numbers. A view measured at zero would
+        // read as leaving the whole decor free below it, and the keys would lose their padding.
+        if (decor.height == 0 || view.height == 0) return
         val insets = ViewCompat.getRootWindowInsets(decor) ?: return
         // The bar as the framework sizes its own nav-bar frame. Unlike the framework, which
         // uses the visible inset, this also counts a bar reported hidden: a skin that hides
@@ -268,6 +298,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
     /** Every inset type the decor reports, its padding, and the last measurement, one line each. */
     private fun insetReport(): String {
         val lines = mutableListOf("measurement: $lastMeasurement auto=$autoBottomPadding manualPaddingDp=$manualBottomPaddingDp")
+        lines += "configuration: ${resources.configuration.screenWidthDp}x${resources.configuration.screenHeightDp}dp density=${resources.configuration.densityDpi} rebuilds=$inputViewRebuilds"
         lines += "device: ${android.os.Build.MANUFACTURER} ${android.os.Build.MODEL}, Android ${android.os.Build.VERSION.RELEASE} (API ${android.os.Build.VERSION.SDK_INT}), navigation_mode=${runCatching { android.provider.Settings.Secure.getInt(contentResolver, "navigation_mode", -1) }.getOrDefault(-1)}, locales=${resources.configuration.locales.toLanguageTags()}"
         val decor = window?.window?.decorView ?: return (lines + "window: none").joinToString("\n")
         lines += "decor: padding=[${decor.paddingLeft},${decor.paddingTop},${decor.paddingRight},${decor.paddingBottom}] size=${decor.width}x${decor.height}"
