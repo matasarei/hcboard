@@ -193,7 +193,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
         val bar = if (navigationBar > 0) navigationBar else insets.getInsets(WindowInsetsCompat.Type.mandatorySystemGestures()).bottom
         val location = IntArray(2).also { view.getLocationInWindow(it) }
         val spaceBelowView = decor.height - (location[1] + view.height)
-        val overlap = (bar - spaceBelowView).coerceAtLeast(0)
+        val overlap = bottomBarOverlap(bar, spaceBelowView)
         if (overlap != bottomBarOverlapPx) bottomBarOverlapPx = overlap
     }
 
