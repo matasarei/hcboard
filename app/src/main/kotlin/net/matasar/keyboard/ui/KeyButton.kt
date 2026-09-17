@@ -196,7 +196,7 @@ fun KeyButton(
                     text = topLegend,
                     color = colors.subtle,
                     fontSize = Dimens.topLegendSize,
-                    modifier = Modifier.align(Alignment.TopStart).padding(top = 3.dp, start = 7.dp),
+                    modifier = Modifier.align(Alignment.TopStart).padding(top = 2.dp, start = 7.dp),
                 )
             }
             Text(
@@ -217,8 +217,8 @@ fun KeyButton(
                 // space bar's language) stay centred, and so do compact keys, whose legend line
                 // is empty at rest and whose glyph is already small.
                 modifier = when {
-                    topLegend != null -> Modifier.align(Alignment.BottomCenter).padding(bottom = 4.dp)
-                    legendBand && !small && !compact -> Modifier.align(Alignment.BottomCenter).padding(bottom = 4.dp)
+                    topLegend != null -> Modifier.align(Alignment.BottomCenter).padding(bottom = 3.dp)
+                    legendBand && !small && !compact -> Modifier.align(Alignment.BottomCenter).padding(bottom = 2.dp)
                     else -> Modifier
                 },
             )
@@ -230,7 +230,7 @@ fun KeyButton(
                 fontSize = Dimens.legendSize,
                 fontWeight = FontWeight.Medium,
                 maxLines = 1,
-                modifier = Modifier.align(Alignment.TopEnd).padding(top = 3.dp, end = 5.dp),
+                modifier = Modifier.align(Alignment.TopEnd).padding(top = 2.dp, end = 5.dp),
             )
         }
     }

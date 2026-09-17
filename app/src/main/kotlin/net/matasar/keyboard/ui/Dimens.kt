@@ -17,7 +17,7 @@ object Dimens {
     val compactLetterSize = 17.sp
     val compactKeyHeight = 40.dp
     /** Letters on the 60% board, whose keys keep their top line for legends; small enough to clear it on a 40 dp key. */
-    val wideLetterSize = 19.sp
+    val wideLetterSize = 18.sp
     val labelSize = 12.sp
     val legendSize = 9.sp
     val topLegendSize = 10.sp
