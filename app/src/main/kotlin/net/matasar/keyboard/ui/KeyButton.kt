@@ -231,7 +231,7 @@ fun KeyButton(
                 } else {
                     val word = key.style != KeyStyle.LETTER || label.length > 1
                     val size = when {
-                        word -> Dimens.wordSize(height, labelSize)
+                        word -> Dimens.wordSize(height, labelSize, hasLegendLine)
                         hasLegendLine -> Dimens.glyphSize(height)
                         else -> Dimens.plainGlyphSize(height)
                     }

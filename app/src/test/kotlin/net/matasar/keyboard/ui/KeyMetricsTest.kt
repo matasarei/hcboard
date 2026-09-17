@@ -49,6 +49,9 @@ class KeyMetricsTest {
     fun `a word label never outgrows the glyph beside it`() {
         for (height in listOf(26.dp, 36.8.dp, 42.dp, 46.dp, 56.dp)) {
             assertTrue(Dimens.wordSize(height).value <= Dimens.glyphSize(height).value, "word label at $height")
+            val plain = Dimens.wordSize(height, hasLegendLine = false)
+            assertTrue(plain.value <= Dimens.plainGlyphSize(height).value, "word label with no legend line at $height")
+            assertTrue(plain.value >= Dimens.wordSize(height).value, "a key with no legend line has more room, not less")
             assertTrue(Dimens.wordSize(height).value <= Dimens.labelSize.value, "word label at $height")
         }
         assertEquals(Dimens.labelSize.value, Dimens.wordSize(46.dp).value)

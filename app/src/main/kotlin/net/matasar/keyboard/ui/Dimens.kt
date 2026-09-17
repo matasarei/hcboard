@@ -58,8 +58,8 @@ object Dimens {
         minOf(22.dp, (if (hasLegendLine) glyphSize(keyHeight) else plainGlyphSize(keyHeight)).value.dp * 1.15f)
 
     /** A word label (Esc, Del, the space bar's language); never larger than the glyph beside it. */
-    fun wordSize(keyHeight: Dp, base: TextUnit = labelSize): TextUnit =
-        minOf(base.value, glyphSize(keyHeight).value).sp
+    fun wordSize(keyHeight: Dp, base: TextUnit = labelSize, hasLegendLine: Boolean = true): TextUnit =
+        minOf(base.value, (if (hasLegendLine) glyphSize(keyHeight) else plainGlyphSize(keyHeight)).value).sp
 
     /** From here up the window gets the 60% board. */
     val wideBreakpoint = 600.dp
