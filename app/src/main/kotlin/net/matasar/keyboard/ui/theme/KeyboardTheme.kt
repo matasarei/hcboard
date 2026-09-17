@@ -13,6 +13,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.platform.LocalContext
 
 /**
@@ -123,6 +124,33 @@ private fun ColorScheme.toKeyboardColors(dark: Boolean): KeyboardColors = Keyboa
 )
 
 /**
+ * The dark theme's neutrals, stepped up from the system's own dark [surface] — the colour behind
+ * every app — by laying its text colour over it at fixed strengths. The dynamic scheme's container
+ * roles are not used here: One UI fills them out of Material's order (its board came out lighter
+ * than both its keys and the system's background), so only the surface and its text colour are
+ * trusted, and the steps between board, function keys, letter keys and a press are our own.
+ */
+internal fun KeyboardColors.darkSurfaces(surface: Color, onSurface: Color): KeyboardColors {
+    fun step(strength: Float) = onSurface.copy(alpha = strength).compositeOver(surface)
+    return copy(
+        background = surface,
+        toolbar = surface,
+        functionKey = step(DarkSteps.FUNCTION_KEY),
+        key = step(DarkSteps.LETTER_KEY),
+        popup = step(DarkSteps.POPUP),
+        pressedKey = step(DarkSteps.PRESSED),
+    )
+}
+
+/** How much of the text colour each dark surface carries over the system's background. */
+internal object DarkSteps {
+    const val FUNCTION_KEY = 0.07f
+    const val LETTER_KEY = 0.14f
+    const val POPUP = 0.20f
+    const val PRESSED = 0.26f
+}
+
+/**
  * The Black theme's neutrals, measured from a screenshot of Samsung's keyboard in its dark mode: a
  * black board, letter keys a mid grey, and the function keys (Enter included) and the toolbar
  * band one step up from black. The accents — an armed modifier, a chip — stay the dark scheme's.
@@ -176,7 +204,13 @@ fun KeyboardTheme(
         else -> FallbackLight
     }
     MaterialTheme(colorScheme = scheme) {
-        val colors = scheme.toKeyboardColors(dark).let { if (black) it.black() else it }
+        val colors = scheme.toKeyboardColors(dark).let {
+            when {
+                black -> it.black()
+                dark -> it.darkSurfaces(scheme.surface, scheme.onSurface)
+                else -> it
+            }
+        }
         CompositionLocalProvider(LocalKeyboardColors provides colors) {
             content()
         }
