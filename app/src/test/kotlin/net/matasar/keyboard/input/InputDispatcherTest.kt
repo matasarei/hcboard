@@ -3,6 +3,7 @@ package net.matasar.keyboard.input
 import android.view.KeyEvent
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 class InputDispatcherTest {
@@ -68,5 +69,17 @@ class InputDispatcherTest {
         assertEquals(listOf(4 to 0), port.deletions)
         assertEquals(listOf("check "), port.committed)
         assertEquals("Spell check ", port.before)
+    }
+
+    @Test
+    fun `a word needs a space in front of it only after something that ends a word`() {
+        for (text in listOf("hello", "hello,", "hello.", "hello!", "hello?", "don't", "(hello)", "7")) {
+            val port = FakeEditorPort(before = text)
+            assertTrue(InputDispatcher(port).needsSpaceBefore(), "after $text")
+        }
+        for (text in listOf("", "hello ", "hello\n", "(", "[", "well-", "path/")) {
+            val port = FakeEditorPort(before = text)
+            assertFalse(InputDispatcher(port).needsSpaceBefore(), "after $text")
+        }
     }
 }

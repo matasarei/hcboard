@@ -37,10 +37,10 @@ class GlideControllerTest {
     private fun path(letters: String): List<GlidePoint> = net.matasar.keyboard.input.glide.QwertyGeometry.path(letters)
 
     @Test
-    fun `a glide commits the best word with a space and keeps the alternatives`() {
+    fun `a glide commits the best word with no trailing space and keeps the alternatives`() {
         controller.onStartInput(EditorInfo().apply { inputType = InputType.TYPE_CLASS_TEXT })
         controller.onGlideEnd(path("helo"), keys)
-        assertEquals(listOf("hello "), port.committed)
+        assertEquals(listOf("hello"), port.committed)
         assertEquals("hello", controller.candidates!!.words.first())
         assertTrue(controller.candidates!!.words.size > 1)
         controller.onSelectionChanged()
@@ -48,13 +48,32 @@ class GlideControllerTest {
     }
 
     @Test
-    fun `tapping an alternative replaces the glided word and its space`() {
+    fun `tapping an alternative replaces the glided word, and adds no space either`() {
         controller.onStartInput(EditorInfo().apply { inputType = InputType.TYPE_CLASS_TEXT })
         controller.onGlideEnd(path("helo"), keys)
         val alternative = controller.candidates!!.words[1]
         controller.pickCandidate(alternative)
-        assertEquals(listOf(6 to 0), port.deletions) // "hello" + the space
-        assertEquals("$alternative ", port.committed.last())
+        assertEquals(listOf(5 to 0), port.deletions) // "hello", which has no space after it
+        assertEquals(alternative, port.committed.last())
+    }
+
+    @Test
+    fun `the next glide puts the space in front, and only where one is missing`() {
+        controller.onStartInput(EditorInfo().apply { inputType = InputType.TYPE_CLASS_TEXT })
+        controller.onGlideEnd(path("helo"), keys)
+        controller.onGlideEnd(path("world"), keys)
+        assertEquals("hello world", port.before)
+        // Punctuation the user typed still ends a word, so the word after it is spaced too.
+        port.before = "hello,"
+        controller.onGlideEnd(path("world"), keys)
+        assertEquals("hello, world", port.before)
+        // A space already there is not doubled, and neither is the start of the field.
+        port.before = "hello "
+        controller.onGlideEnd(path("world"), keys)
+        assertEquals("hello world", port.before)
+        port.before = ""
+        controller.onGlideEnd(path("world"), keys)
+        assertEquals("world", port.before)
     }
 
     @Test
@@ -62,7 +81,7 @@ class GlideControllerTest {
         controller.onStartInput(EditorInfo().apply { inputType = InputType.TYPE_CLASS_TEXT })
         controller.onKey(LettersLayer.rows[2].keys[0]) // shift
         controller.onGlideEnd(path("helo"), keys)
-        assertEquals(listOf("Hello "), port.committed)
+        assertEquals(listOf("Hello"), port.committed)
         assertFalse(controller.shift.active)
     }
 
