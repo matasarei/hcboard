@@ -50,6 +50,8 @@ import kotlinx.coroutines.launch
 import net.matasar.keyboard.input.AndroidEditorPort
 import net.matasar.keyboard.input.InputDispatcher
 import net.matasar.keyboard.input.glide.GlideEngine
+import net.matasar.keyboard.nlp.Candidates
+import net.matasar.keyboard.nlp.WordList
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import net.matasar.keyboard.settings.Prefs
@@ -87,20 +89,30 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
 
     internal val controller = KeyboardController(InputDispatcher(AndroidEditorPort { currentInputConnection }))
 
-    /** One glide engine per language, built on first use and kept; the word lists are small. */
-    private val glideEngines = HashMap<String, GlideEngine>()
+    /** A language's glide engine and candidate engine, over one shared word list. */
+    private class LanguageEngines(val glide: GlideEngine, val candidates: Candidates)
 
-    /** Points the controller at [tag]'s engine, loading the word list off the main thread if needed. */
-    private fun loadGlideEngine(tag: String) {
-        glideEngines[tag]?.let { controller.glideEngine = it; return }
+    /** One pair of engines per language, built on first use and kept; the word lists are small. */
+    private val engines = HashMap<String, LanguageEngines>()
+
+    /** Points the controller at [tag]'s engines, loading the word list off the main thread if needed. */
+    private fun loadLanguage(tag: String) {
+        engines[tag]?.let { use(it); return }
         controller.glideEngine = null
+        controller.candidateEngine = null
         lifecycleScope.launch(Dispatchers.IO) {
-            val engine = GlideEngine.load(applicationContext, tag)
+            val list = WordList.load(applicationContext, tag)
+            val loaded = LanguageEngines(GlideEngine(list), Candidates(list).apply { warmUp() })
             withContext(Dispatchers.Main) {
-                glideEngines[tag] = engine
-                if (controller.language.tag == tag) controller.glideEngine = engine
+                engines[tag] = loaded
+                if (controller.language.tag == tag) use(loaded)
             }
         }
+    }
+
+    private fun use(loaded: LanguageEngines) {
+        controller.glideEngine = loaded.glide
+        controller.candidateEngine = loaded.candidates
     }
     private lateinit var prefs: Prefs
     private val autofillActions by lazy { AndroidAutofillActions(this) }
@@ -136,15 +148,17 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
         savedStateController.performRestore(null)
         controller.onLanguageChanged = { language ->
             lifecycleScope.launch { prefs.setCurrentLanguage(language.tag) }
-            loadGlideEngine(language.tag)
+            loadLanguage(language.tag)
         }
-        loadGlideEngine(controller.language.tag)
+        loadLanguage(controller.language.tag)
         lifecycleRegistry.currentState = Lifecycle.State.CREATED
         lifecycleScope.launch {
             prefs.settings.collect { settings ->
                 controller.editingShortcutsInTextFields = settings.editingShortcuts
                 controller.doubleTapLock = settings.doubleTapLock
                 controller.glideEnabled = settings.glide
+                controller.suggestionsEnabled = settings.suggestions
+                controller.autoCorrect = settings.autoCorrect
                 autoBottomPadding = settings.bottomPaddingAuto
                 manualBottomPaddingDp = settings.bottomPaddingDp
                 controller.enabledLanguages = settings.enabledLanguages
@@ -154,7 +168,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
                     ?: Languages.byTag(settings.enabledLanguages.first())
                 if (wanted != null && wanted != controller.language) {
                     controller.restoreLanguage(wanted)
-                    loadGlideEngine(wanted.tag)
+                    loadLanguage(wanted.tag)
                 }
             }
         }
@@ -328,6 +342,12 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
     override fun onFinishInput() {
         super.onFinishInput()
         controller.onFinishInput()
+    }
+
+    /** The cursor moved, by us or by the user: the word under it decides the candidates. */
+    override fun onUpdateSelection(oldSelStart: Int, oldSelEnd: Int, newSelStart: Int, newSelEnd: Int, candidatesStart: Int, candidatesEnd: Int) {
+        super.onUpdateSelection(oldSelStart, oldSelEnd, newSelStart, newSelEnd, candidatesStart, candidatesEnd)
+        controller.onSelectionChanged()
     }
 
     override fun onDestroy() {

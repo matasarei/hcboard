@@ -26,4 +26,26 @@ class WordListTest {
         assertTrue(list.frequency("hello") > 0)
         assertTrue(list.words.all { word -> word.all { it.isLetter() } })
     }
+
+    @Test
+    fun `completions are the most frequent longer words with the prefix`() {
+        val list = WordList.of("spell" to 100, "spelling" to 90, "spelled" to 120, "spelt" to 20, "spam" to 200, "s" to 255)
+        assertEquals(listOf("spelled", "spell", "spelling"), list.completions("spel", 3))
+        assertEquals(listOf("spelled", "spelling"), list.completions("spell", 3))
+        assertEquals(listOf("spelled"), list.completions("spel", 1))
+        assertEquals(emptyList(), list.completions("", 3))
+        assertEquals(emptyList(), list.completions("xyz", 3))
+        assertEquals(emptyList(), list.completions("spelling", 3))
+        assertTrue(list.contains("spam"))
+        assertTrue(!list.contains("spa"))
+    }
+
+    @Test
+    fun `completions on the bundled english list rank by frequency`() {
+        val list = File("src/main/assets/dictionaries/en_US.txt").bufferedReader().useLines { WordList.parse(it) }
+        val completions = list.completions("spell", 3)
+        assertTrue("spelling" in completions, "$completions")
+        assertTrue(completions.zipWithNext().all { (a, b) -> list.frequency(a) >= list.frequency(b) }, "$completions")
+        assertTrue(completions.none { it == "spell" })
+    }
 }

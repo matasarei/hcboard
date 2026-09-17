@@ -33,6 +33,8 @@ import net.matasar.keyboard.layout.LayerId
 import net.matasar.keyboard.layout.ModifierKey
 import net.matasar.keyboard.layout.PhoneLayout
 import net.matasar.keyboard.layout.wideLayout
+import net.matasar.keyboard.nlp.Candidates
+import net.matasar.keyboard.nlp.WordCandidates
 
 /** The two things a key can ask of the service rather than the editor. */
 interface SystemActions {
@@ -90,7 +92,7 @@ class KeyboardController(
         languageSheetOpen = false
         if (to == language) return
         language = to
-        clearTextSuggestions()
+        clearCandidates()
         onLanguageChanged?.invoke(to)
     }
 
@@ -153,11 +155,39 @@ class KeyboardController(
     val glideAvailable: Boolean
         get() = glideEnabled && glideEngine != null && !passwordField && !terminalField && !modifiers.anyActive && !trackpad
 
-    /** Alternatives for the last glided word, best first, shown in the toolbar. */
-    var textSuggestions: List<String> by mutableStateOf(emptyList())
+    /** The candidate engine for the current language, once the service has loaded its word list. */
+    var candidateEngine: Candidates? by mutableStateOf(null)
+
+    /** Setting: word candidates in the toolbar while typing. */
+    var suggestionsEnabled: Boolean by mutableStateOf(true)
+
+    /** Setting: a separator applies the strip's correction. */
+    var autoCorrect: Boolean by mutableStateOf(true)
+
+    /** Whether the field's input type lets candidates be read and shown. */
+    private var fieldAllowsSuggestions = true
+
+    /** Whether the word before the cursor may be read and candidates shown right now. */
+    val suggestionsAvailable: Boolean
+        get() = suggestionsEnabled && candidateEngine != null && fieldAllowsSuggestions && !modifiers.anyMetaActive && !trackpad
+
+    /** What the strip shows: candidates for the word being typed, or the alternatives of the last glide. */
+    var candidates: WordCandidates? by mutableStateOf(null)
+        private set
+
+    /** The chevron folded the strip away; the next key brings it back. */
+    var candidatesCollapsed: Boolean by mutableStateOf(false)
         private set
 
     private var lastGlideWord: String? = null
+
+    /** The correction the last separator applied, so one backspace right after can take it back. */
+    private var lastAutocorrect: Autocorrect? = null
+
+    private data class Autocorrect(val typed: String, val correction: String, val separator: String)
+
+    /** A word whose correction was undone: it is offered no correction until it changes. */
+    private var uncorrectable: String? = null
 
     /** The password manager's chips for the current field, pinned first. */
     var suggestions: List<net.matasar.keyboard.autofill.SuggestionEntry> by mutableStateOf(emptyList())
@@ -196,10 +226,11 @@ class KeyboardController(
         usedHolds.clear()
         pendingLocks.clear()
         editorActionId = info?.let { editorActionFor(it.imeOptions, it.inputType) }
+        fieldAllowsSuggestions = info?.let { suggestionsAllowed(it.inputType) } ?: true
         suggestions = emptyList()
         managerSheetOpen = false
         languageSheetOpen = false
-        clearTextSuggestions()
+        clearCandidates()
     }
 
     fun onFinishInput() {
@@ -210,7 +241,8 @@ class KeyboardController(
         endTrackpad()
         suggestions = emptyList()
         managerSheetOpen = false
-        clearTextSuggestions()
+        fieldAllowsSuggestions = false
+        clearCandidates()
     }
 
     fun toggleDeveloperMode() {
@@ -228,43 +260,53 @@ class KeyboardController(
     private val doubleTapWindowMs: Long get() = if (doubleTapLock) Latch.DOUBLE_TAP_WINDOW_MS else 0L
 
     fun onKey(key: Key) {
-        clearTextSuggestions()
-        val fnAction = key.fnAction
-        if (modifiers.isActive(ModifierKey.FN) && fnAction != null) {
-            perform(key, fnAction)
+        candidatesCollapsed = false
+        val undo = lastAutocorrect
+        lastAutocorrect = null
+        if (lastGlideWord != null) clearCandidates()
+        if (undo != null && key.action == KeyAction.Backspace && !modifiers.anyActive) {
+            undoAutocorrect(undo)
             return
         }
-        perform(key, key.action)
+        val fnAction = key.fnAction
+        if (modifiers.isActive(ModifierKey.FN) && fnAction != null) perform(key, fnAction) else perform(key, key.action)
+        // A combination modifier or the trackpad takes the strip away; the chip has the toolbar then.
+        if (modifiers.anyMetaActive || trackpad) candidates = null
     }
 
     private fun perform(key: Key, action: KeyAction) {
         when (action) {
             is KeyAction.Letter -> {
                 val text = if (uppercase) action.upper else action.lower
-                if (modifiers.anyMetaActive) sendCombo(text, key) else dispatcher.commitText(text)
+                if (modifiers.anyMetaActive) sendCombo(text, key) else { dispatcher.commitText(text); refreshCandidates() }
                 afterKey()
             }
             is KeyAction.Text -> {
                 val text = if (uppercase && action.shifted != null) action.shifted else action.text
-                if (modifiers.anyMetaActive) sendCombo(text, key) else dispatcher.commitText(text)
+                when {
+                    modifiers.anyMetaActive -> sendCombo(text, key)
+                    text in SEPARATORS -> commitSeparator(text)
+                    else -> { dispatcher.commitText(text); if (text.any { it.isLetter() }) refreshCandidates() else candidates = null }
+                }
                 afterKey()
             }
             KeyAction.CapsLock -> shift = if (shift.state == LatchState.LOCKED) Latch() else shift.longPress()
             KeyAction.Space -> {
-                if (modifiers.anyMetaActive) sendCombo(" ", key) else dispatcher.commitText(" ")
+                if (modifiers.anyMetaActive) sendCombo(" ", key) else commitSeparator(" ")
                 afterKey()
             }
             KeyAction.Backspace -> {
                 when {
                     modifiers.isActive(ModifierKey.FN) -> dispatcher.forwardDelete()
                     modifiers.anyMetaActive -> dispatcher.sendKey(KeyEvent.KEYCODE_DEL, modifiers.metaState())
-                    else -> dispatcher.backspace()
+                    else -> { dispatcher.backspace(); refreshCandidates() }
                 }
                 afterKey()
             }
             KeyAction.Enter -> {
                 if (modifiers.anyMetaActive) dispatcher.sendKey(KeyEvent.KEYCODE_ENTER, modifiers.metaState())
                 else dispatcher.enter(editorActionId)
+                candidates = null
                 afterKey()
             }
             KeyAction.Shift -> shift = shift.tap(clock(), doubleTapWindowMs)
@@ -272,6 +314,7 @@ class KeyboardController(
             is KeyAction.KeyCode -> {
                 val code = if (modifiers.isActive(ModifierKey.FN) && action.fnKeyCode != null) action.fnKeyCode else action.keyCode
                 dispatcher.sendKey(code, modifiers.metaState())
+                candidates = null
                 afterKey()
             }
             is KeyAction.Modifier -> onModifierTap(action.modifier)
@@ -369,21 +412,95 @@ class KeyboardController(
         val cased = words.map { if (capitalize) it.replaceFirstChar(Char::uppercase) else it }
         dispatcher.commitText(cased.first() + " ")
         lastGlideWord = cased.first()
-        textSuggestions = cased
+        lastAutocorrect = null
+        candidates = WordCandidates(cased.first(), cased.take(Candidates.MAX_WORDS))
         shift = shift.consume()
     }
 
-    /** The user tapped an alternative: swap the last glided word for it. */
-    fun pickSuggestion(word: String) {
-        val last = lastGlideWord ?: return
-        if (word == last) return
-        dispatcher.replaceLastWord(last, word)
-        lastGlideWord = word
+    /**
+     * The user tapped a word in the strip: after a glide it swaps the glided word (and the
+     * alternatives stay); while typing it replaces the word being typed, plus a space. The
+     * typed word itself is already in the field, so tapping it does nothing.
+     */
+    fun pickCandidate(word: String) {
+        val current = candidates ?: return
+        val glided = lastGlideWord
+        if (glided != null) {
+            if (word == glided) return
+            dispatcher.replaceLastWord(glided, word)
+            lastGlideWord = word
+            return
+        }
+        if (word == current.typed) return
+        // The field may have changed under the strip; replace only what is still there.
+        if (dispatcher.textEndsWith(current.typed)) dispatcher.replaceWordBeforeCursor(current.typed, "$word ")
+        candidates = null
     }
 
-    private fun clearTextSuggestions() {
-        textSuggestions = emptyList()
+    /** The chevron: fold the strip away so the toolbar's buttons show until the next key. */
+    fun collapseCandidates() {
+        candidatesCollapsed = true
+    }
+
+    /**
+     * Re-derives the candidates from the word before the cursor. Reads nothing from the field
+     * when candidates are unavailable there (a password, a terminal, a modifier armed).
+     */
+    private fun refreshCandidates() {
+        val engine = candidateEngine
+        if (engine == null || !suggestionsAvailable) {
+            candidates = null
+            return
+        }
         lastGlideWord = null
+        val word = dispatcher.wordBeforeCursor()
+        if (word != uncorrectable) uncorrectable = null
+        val found = engine.forWord(word)
+        candidates = if (found != null && word == uncorrectable) found.copy(correction = null) else found
+    }
+
+    /** The cursor moved (the service's onUpdateSelection): the word under it may be another one. */
+    fun onSelectionChanged() {
+        // A glide's own commit moves the cursor too; its alternatives stay until the next key.
+        if (lastGlideWord != null) return
+        refreshCandidates()
+    }
+
+    /** A separator: apply the strip's correction first when there is one, then the separator itself. */
+    private fun commitSeparator(separator: String) {
+        val current = candidates
+        val correction = current?.correction
+        if (autoCorrect && current != null && correction != null && lastGlideWord == null && dispatcher.textEndsWith(current.typed)) {
+            dispatcher.replaceWordBeforeCursor(current.typed, correction)
+            lastAutocorrect = Autocorrect(current.typed, correction, separator)
+        }
+        dispatcher.commitText(separator)
+        candidates = null
+    }
+
+    /**
+     * Backspace right after a correction puts the typed word back, without the separator, and
+     * offers no correction for it again. If the text no longer ends with what was applied (the
+     * cursor was moved), it is an ordinary backspace.
+     */
+    private fun undoAutocorrect(undo: Autocorrect) {
+        val applied = undo.correction + undo.separator
+        if (!dispatcher.textEndsWith(applied)) {
+            dispatcher.backspace()
+            refreshCandidates()
+            return
+        }
+        dispatcher.replaceWordBeforeCursor(applied, undo.typed)
+        uncorrectable = undo.typed
+        refreshCandidates()
+    }
+
+    private fun clearCandidates() {
+        candidates = null
+        candidatesCollapsed = false
+        lastGlideWord = null
+        lastAutocorrect = null
+        uncorrectable = null
     }
 
     /** The accent candidates a long press on [key] offers, in the current case; none in passwords. */
@@ -396,12 +513,16 @@ class KeyboardController(
     /** A chosen accent goes in like a letter: it consumes a one-shot shift. */
     fun commitAccent(text: String) {
         dispatcher.commitText(text)
+        lastAutocorrect = null
+        refreshCandidates()
         afterKey()
     }
 
     fun startTrackpad(stepPx: Float) {
         trackpadGesture = TrackpadGesture(stepPx)
         trackpad = true
+        candidates = null
+        lastAutocorrect = null
     }
 
     /** More horizontal travel while space is held. */
@@ -416,6 +537,9 @@ class KeyboardController(
     }
 
     companion object {
+        /** The characters that end a word and apply its correction. */
+        private val SEPARATORS = setOf(" ", ".", ",", "!", "?")
+
         /**
          * The action Enter should perform for a field: the field's own IME action when it has
          * one and allows it, otherwise null so a real Enter key goes through (newline in

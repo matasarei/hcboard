@@ -31,6 +31,8 @@ data class Settings(
     val doubleTapLock: Boolean = true,
     /** Packages in which developer mode was left on. */
     val developerModePackages: Set<String> = emptySet(),
+    val suggestions: Boolean = true,
+    val autoCorrect: Boolean = true,
     val glide: Boolean = true,
     val glideTrail: Boolean = true,
     /** Tags of the enabled languages; never empty. */
@@ -67,6 +69,8 @@ class Prefs(private val context: Context) {
             editingShortcuts = p[EDITING_SHORTCUTS] ?: true,
             doubleTapLock = p[DOUBLE_TAP_LOCK] ?: true,
             developerModePackages = p[DEV_MODE_PACKAGES] ?: emptySet(),
+            suggestions = p[SUGGESTIONS] ?: true,
+            autoCorrect = p[AUTO_CORRECT] ?: true,
             glide = p[GLIDE] ?: true,
             glideTrail = p[GLIDE_TRAIL] ?: true,
             enabledLanguages = p[ENABLED_LANGUAGES]?.takeIf { it.isNotEmpty() } ?: defaultEnabledLanguages(),
@@ -83,6 +87,8 @@ class Prefs(private val context: Context) {
     suspend fun setTheme(value: ThemeChoice) = context.dataStore.edit { it[THEME] = value.name }
     suspend fun setEditingShortcuts(value: Boolean) = context.dataStore.edit { it[EDITING_SHORTCUTS] = value }
     suspend fun setDoubleTapLock(value: Boolean) = context.dataStore.edit { it[DOUBLE_TAP_LOCK] = value }
+    suspend fun setSuggestions(value: Boolean) = context.dataStore.edit { it[SUGGESTIONS] = value }
+    suspend fun setAutoCorrect(value: Boolean) = context.dataStore.edit { it[AUTO_CORRECT] = value }
     suspend fun setGlide(value: Boolean) = context.dataStore.edit { it[GLIDE] = value }
     suspend fun setGlideTrail(value: Boolean) = context.dataStore.edit { it[GLIDE_TRAIL] = value }
     suspend fun setCurrentLanguage(tag: String) = context.dataStore.edit { it[CURRENT_LANGUAGE] = tag }
@@ -122,6 +128,8 @@ class Prefs(private val context: Context) {
         val EDITING_SHORTCUTS = booleanPreferencesKey("editing_shortcuts")
         val DOUBLE_TAP_LOCK = booleanPreferencesKey("double_tap_lock")
         val DEV_MODE_PACKAGES = stringSetPreferencesKey("developer_mode_packages")
+        val SUGGESTIONS = booleanPreferencesKey("suggestions")
+        val AUTO_CORRECT = booleanPreferencesKey("auto_correct")
         val GLIDE = booleanPreferencesKey("glide")
         val GLIDE_TRAIL = booleanPreferencesKey("glide_trail")
         val ENABLED_LANGUAGES = stringSetPreferencesKey("enabled_languages")

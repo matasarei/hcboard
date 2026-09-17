@@ -5,6 +5,8 @@ import android.view.inputmethod.EditorInfo
 import net.matasar.keyboard.layout.KeyIcon
 import net.matasar.keyboard.layout.LayerId
 import kotlin.test.Test
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 import kotlin.test.assertEquals
 
 class EditorInfoMappingTest {
@@ -40,5 +42,22 @@ class EditorInfoMappingTest {
         assertEquals(KeyIcon.ARROW_RIGHT, enterIconFor(EditorInfo.IME_ACTION_NEXT))
         assertEquals(KeyIcon.CHECK, enterIconFor(EditorInfo.IME_ACTION_DONE))
         assertEquals(KeyIcon.ENTER, enterIconFor(null))
+    }
+
+    @Test
+    fun `candidates are allowed in plain text only`() {
+        assertTrue(suggestionsAllowed(InputType.TYPE_CLASS_TEXT))
+        assertTrue(suggestionsAllowed(InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_MULTI_LINE or InputType.TYPE_TEXT_FLAG_AUTO_CORRECT))
+        assertTrue(suggestionsAllowed(InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_SHORT_MESSAGE))
+        assertFalse(suggestionsAllowed(InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS))
+        assertFalse(suggestionsAllowed(InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_URI))
+        assertFalse(suggestionsAllowed(InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS))
+        assertFalse(suggestionsAllowed(InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_WEB_EMAIL_ADDRESS))
+        assertFalse(suggestionsAllowed(InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD))
+        assertFalse(suggestionsAllowed(InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD))
+        assertFalse(suggestionsAllowed(InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_WEB_PASSWORD))
+        assertFalse(suggestionsAllowed(InputType.TYPE_CLASS_NUMBER))
+        assertFalse(suggestionsAllowed(InputType.TYPE_CLASS_PHONE))
+        assertFalse(suggestionsAllowed(InputType.TYPE_NULL))
     }
 }

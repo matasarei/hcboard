@@ -27,6 +27,7 @@ the way you expect.
   Settings it follows your phone's languages, plus English; a globe key cycles them (hold it to pick).
   Android's keyboard picker lists hcboard once; languages are the keyboard's own business.
 - **Glide typing** on the letters layer of every language, with a word list bundled for each.
+- **Word suggestions** from the same lists while you type: the word as typed, its correction (applied by space, one backspace takes it back) and completions, in the toolbar behind a chevron. Both parts are settings; off in password, terminal, number, address and e-mail fields.
 - **No network permission, ever.** Nothing you type leaves the device or is logged.
 
 ## Install

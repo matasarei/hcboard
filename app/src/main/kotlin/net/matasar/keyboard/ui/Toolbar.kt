@@ -18,6 +18,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import net.matasar.keyboard.R
+import net.matasar.keyboard.nlp.WordCandidates
 import net.matasar.keyboard.ui.theme.LocalKeyboardColors
 
 /** What the toolbar buttons do; the service implements it. */
@@ -31,7 +32,8 @@ interface ToolbarActions {
 
 /**
  * The 44 dp strip above the keys: developer-mode toggle, clipboard, settings on the left, the
- * chip (or, later, autofill suggestions) in the middle, hide on the right.
+ * chip or the autofill suggestions in the middle, hide on the right. While a word is being
+ * typed its [candidates] take the buttons' place behind a chevron that brings them back.
  */
 @Composable
 fun Toolbar(
@@ -43,6 +45,9 @@ fun Toolbar(
     /** The 60% board carries its modifiers itself, so the strip toggle has nothing to do there. */
     showDeveloperToggle: Boolean = true,
     center: (@Composable () -> Unit)? = null,
+    candidates: WordCandidates? = null,
+    onPickCandidate: (String) -> Unit = {},
+    onCollapseCandidates: () -> Unit = {},
 ) {
     Row(
         modifier = modifier
@@ -51,16 +56,21 @@ fun Toolbar(
             .padding(horizontal = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-            ToolbarButton(R.drawable.ic_key, "Password manager", active = sheetOpen) { actions.toggleManagerSheet() }
-            if (showDeveloperToggle) ToolbarButton(R.drawable.ic_code, "Developer mode", active = developerMode) { actions.toggleDeveloperMode() }
-            ToolbarButton(R.drawable.ic_clipboard, "Paste") { actions.pasteClipboard() }
-            ToolbarButton(R.drawable.ic_settings, "Settings") { actions.openSettings() }
-        }
-        Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
-            when {
-                center != null -> center()
-                chipText != null -> ModifierChip(chipText)
+        if (candidates != null) {
+            ToolbarButton(R.drawable.ic_arrow_left, "Show toolbar") { onCollapseCandidates() }
+            CandidateStrip(candidates, onPickCandidate, modifier = Modifier.weight(1f))
+        } else {
+            Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                ToolbarButton(R.drawable.ic_key, "Password manager", active = sheetOpen) { actions.toggleManagerSheet() }
+                if (showDeveloperToggle) ToolbarButton(R.drawable.ic_code, "Developer mode", active = developerMode) { actions.toggleDeveloperMode() }
+                ToolbarButton(R.drawable.ic_clipboard, "Paste") { actions.pasteClipboard() }
+                ToolbarButton(R.drawable.ic_settings, "Settings") { actions.openSettings() }
+            }
+            Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
+                when {
+                    center != null -> center()
+                    chipText != null -> ModifierChip(chipText)
+                }
             }
         }
         ToolbarButton(R.drawable.ic_keyboard_hide, "Hide keyboard") { actions.hideKeyboard() }

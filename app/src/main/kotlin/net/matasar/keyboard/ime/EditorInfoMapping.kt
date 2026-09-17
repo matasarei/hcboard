@@ -28,6 +28,25 @@ fun fieldKindOf(inputType: Int): FieldKind {
 }
 
 /** The layer a field opens on: digits for number and phone fields, letters otherwise. */
+/**
+ * Whether word candidates may be read and shown for a field: plain text only, so no passwords,
+ * numbers, terminals, addresses or e-mail, and not when the app asks for no suggestions.
+ */
+fun suggestionsAllowed(inputType: Int): Boolean {
+    if (inputType and InputType.TYPE_MASK_CLASS != InputType.TYPE_CLASS_TEXT) return false
+    if (inputType and InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS != 0) return false
+    return when (inputType and InputType.TYPE_MASK_VARIATION) {
+        InputType.TYPE_TEXT_VARIATION_URI,
+        InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS,
+        InputType.TYPE_TEXT_VARIATION_WEB_EMAIL_ADDRESS,
+        InputType.TYPE_TEXT_VARIATION_PASSWORD,
+        InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD,
+        InputType.TYPE_TEXT_VARIATION_WEB_PASSWORD,
+        -> false
+        else -> true
+    }
+}
+
 fun FieldKind.initialLayer(): LayerId = if (this == FieldKind.NUMBER) LayerId.SYMBOLS else LayerId.LETTERS
 
 /** The icon the Enter key shows for the field's action. */

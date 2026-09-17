@@ -92,17 +92,18 @@ fun KeyboardScreen(
                     .background(colors.background)
                     .padding(bottom = bottomInset),
             ) {
+                val chipText = if (controller.trackpad) "Move cursor" else controller.modifiers.chipText()
                 Toolbar(
                     developerMode = controller.developerMode,
                     showDeveloperToggle = !wide,
-                    chipText = if (controller.trackpad) "Move cursor" else controller.modifiers.chipText(),
+                    chipText = chipText,
                     actions = actions,
                     sheetOpen = controller.managerSheetOpen,
-                    center = when {
-                        controller.suggestions.isNotEmpty() -> ({ SuggestionStrip(controller.suggestions) })
-                        controller.textSuggestions.isNotEmpty() -> ({ TextSuggestionStrip(controller.textSuggestions, onPick = controller::pickSuggestion) })
-                        else -> null
-                    },
+                    // The password manager's chips win the toolbar; word candidates take it next.
+                    center = if (controller.suggestions.isNotEmpty()) ({ SuggestionStrip(controller.suggestions) }) else null,
+                    candidates = controller.candidates.takeIf { controller.suggestions.isEmpty() && chipText == null && !controller.candidatesCollapsed },
+                    onPickCandidate = controller::pickCandidate,
+                    onCollapseCandidates = controller::collapseCandidates,
                 )
                 LayerGrid(controller, feel, popups)
             }
