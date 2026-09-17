@@ -204,14 +204,11 @@ fun KeyButton(
                 },
                 fontWeight = if (small) FontWeight.Medium else FontWeight.Normal,
                 maxLines = 1,
-                modifier = when {
-                    topLegend != null -> Modifier.align(Alignment.BottomCenter).padding(bottom = 4.dp)
-                    // A single glyph under a word-sized legend (Home, PgUp) moves out from under it;
-                    // a word label (the space bar's language) stays centred.
-                    legend != null && legend.length > 1 && !small -> Modifier.align(Alignment.BottomStart).padding(start = 9.dp, bottom = 5.dp)
-                    legend != null -> Modifier.align(Alignment.BottomCenter).padding(bottom = 5.dp)
-                    else -> Modifier
-                },
+                // A letter keeps the row's baseline whether or not it carries an Fn legend: the
+                // legend is small and top-right, and a glyph moved down or aside to make room
+                // for it read as misaligned next to its neighbours. Only a dual key (shifted
+                // symbol on top) sits at the bottom, under that symbol.
+                modifier = if (topLegend != null) Modifier.align(Alignment.BottomCenter).padding(bottom = 4.dp) else Modifier,
             )
         }
         if (legend != null) {
