@@ -67,10 +67,16 @@ class AndroidAutofillActions(
         }.map { ComponentName(it.serviceInfo.packageName, it.serviceInfo.name) }
     }
 
-    /** The package of the autofill service Android reports: public, unlike the provider setting. */
-    private fun preferredPackage(): String? = runCatching {
-        context.getSystemService(AutofillManager::class.java)?.autofillServiceComponentName?.packageName
-    }.getOrNull()
+    /**
+     * The package of the autofill service Android reports: public, unlike the provider setting.
+     * Android 8 has no such call, and every installed manager is offered there.
+     */
+    private fun preferredPackage(): String? {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) return null
+        return runCatching {
+            context.getSystemService(AutofillManager::class.java)?.autofillServiceComponentName?.packageName
+        }.getOrNull()
+    }
 
     override fun managers(): List<ManagerApp> {
         val services = managerServices()
