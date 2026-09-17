@@ -98,11 +98,11 @@ fun KeyboardScreen(
                     chipText = if (controller.trackpad) "Move cursor" else controller.modifiers.chipText(),
                     actions = actions,
                     sheetOpen = controller.managerSheetOpen,
-                    center = when {
-                        controller.suggestions.isNotEmpty() -> ({ SuggestionStrip(controller.suggestions) })
-                        controller.candidates != null -> ({ TextSuggestionStrip(controller.candidates!!.words, onPick = controller::pickCandidate) })
-                        else -> null
-                    },
+                    // The password manager's chips win the toolbar; word candidates take it next.
+                    center = if (controller.suggestions.isNotEmpty()) ({ SuggestionStrip(controller.suggestions) }) else null,
+                    candidates = controller.candidates.takeIf { controller.suggestions.isEmpty() && !controller.candidatesCollapsed },
+                    onPickCandidate = controller::pickCandidate,
+                    onCollapseCandidates = controller::collapseCandidates,
                 )
                 LayerGrid(controller, feel, popups)
             }
