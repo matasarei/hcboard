@@ -185,9 +185,9 @@ fun KeyButton(
         // is left. A key with nothing to say on that line does without it, and the 60% board keeps
         // it on every key so a row shares one baseline. Nothing is dropped on a short key — both
         // zones are sized from the key's own height, so the 80% setting shrinks them instead.
-        val legendLine = legendBand || topLegend != null || legend != null
+        val hasLegendLine = legendBand || topLegend != null || legend != null
         Column(modifier = Modifier.fillMaxSize()) {
-            if (legendLine) {
+            if (hasLegendLine) {
                 // A minimum, not a cap: the line reserves the same room on every key in the row so
                 // they share a baseline, and grows rather than clipping a legend if the font is
                 // taller than the reserve (a large system font scale).
@@ -227,13 +227,13 @@ fun KeyButton(
                         painter = painterResource(icon.drawable()),
                         contentDescription = key.label,
                         tint = visual.foreground,
-                        modifier = Modifier.height(Dimens.iconSize(height, legendLine)),
+                        modifier = Modifier.height(Dimens.iconSize(height, hasLegendLine)),
                     )
                 } else {
                     val word = key.style != KeyStyle.LETTER || label.length > 1
                     val size = when {
                         word -> Dimens.wordSize(height, labelSize)
-                        legendLine -> Dimens.glyphSize(height)
+                        hasLegendLine -> Dimens.glyphSize(height)
                         else -> Dimens.plainGlyphSize(height)
                     }
                     Text(

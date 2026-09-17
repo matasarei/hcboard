@@ -54,8 +54,8 @@ object Dimens {
     fun plainGlyphSize(keyHeight: Dp): TextUnit = (keyHeight.value * 0.52f).coerceIn(13f, 22f).sp
 
     /** A key's icon: 22 dp where there is room, shrinking with the glyph where there is not. */
-    fun iconSize(keyHeight: Dp, legendLine: Boolean): Dp =
-        minOf(22.dp, (if (legendLine) glyphSize(keyHeight) else plainGlyphSize(keyHeight)).value.dp * 1.15f)
+    fun iconSize(keyHeight: Dp, hasLegendLine: Boolean): Dp =
+        minOf(22.dp, (if (hasLegendLine) glyphSize(keyHeight) else plainGlyphSize(keyHeight)).value.dp * 1.15f)
 
     /** A word label (Esc, Del, the space bar's language); never larger than the glyph beside it. */
     fun wordSize(keyHeight: Dp, base: TextUnit = labelSize): TextUnit =
