@@ -64,7 +64,6 @@ fun Toolbar(
                 ToolbarButton(R.drawable.ic_key, "Password manager", active = sheetOpen) { actions.toggleManagerSheet() }
                 if (showDeveloperToggle) ToolbarButton(R.drawable.ic_code, "Developer mode", active = developerMode) { actions.toggleDeveloperMode() }
                 ToolbarButton(R.drawable.ic_clipboard, "Paste") { actions.pasteClipboard() }
-                ToolbarButton(R.drawable.ic_settings, "Settings") { actions.openSettings() }
             }
             Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
                 when {
@@ -72,6 +71,9 @@ fun Toolbar(
                     chipText != null -> ModifierChip(chipText)
                 }
             }
+            // Settings sits with Hide on the right, as on Samsung's keyboard: the left group is
+            // for what acts on the text, the right for the keyboard itself.
+            ToolbarButton(R.drawable.ic_settings, "Settings") { actions.openSettings() }
         }
         ToolbarButton(R.drawable.ic_keyboard_hide, "Hide keyboard") { actions.hideKeyboard() }
     }
