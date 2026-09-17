@@ -130,7 +130,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
     private var bottomBarOverlapPx by mutableIntStateOf(0)
 
     /** The last configuration seen, so a change can be told apart from a change that matters. */
-    private var lastConfiguration: Configuration? = null
+    private lateinit var lastConfiguration: Configuration
 
     /** How many times the display's shape made us rebuild the input view; for the dump. */
     private var inputViewRebuilds = 0
@@ -193,7 +193,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
         super.onConfigurationChanged(newConfig)
         val previous = lastConfiguration
         lastConfiguration = Configuration(newConfig)
-        if (previous != null && !rebuildsInputView(previous.diff(newConfig))) return
+        if (!rebuildsInputView(previous.diff(newConfig))) return
         inputViewRebuilds++
         // onCreateInputView drops the lifecycle back to STARTED; a keyboard that is up right now
         // is still resumed, and its composition must not be told otherwise.
