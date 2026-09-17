@@ -14,6 +14,7 @@ import net.matasar.keyboard.autofill.InlineSuggestions
 import net.matasar.keyboard.autofill.SuggestionColors
 import net.matasar.keyboard.ui.theme.LocalKeyboardColors
 import androidx.compose.runtime.SideEffect
+import android.annotation.SuppressLint
 import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodSubtype
@@ -74,7 +75,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
     override val viewModelStore: ViewModelStore get() = store
     override val savedStateRegistry: SavedStateRegistry get() = savedStateController.savedStateRegistry
 
-    private val controller = KeyboardController(InputDispatcher(AndroidEditorPort { currentInputConnection }))
+    internal val controller = KeyboardController(InputDispatcher(AndroidEditorPort { currentInputConnection }))
 
     /** One glide engine per language, built on first use and kept; the word lists are small. */
     private val glideEngines = HashMap<String, GlideEngine>()
@@ -93,7 +94,8 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
     }
     private lateinit var prefs: Prefs
     private val autofillActions by lazy { AndroidAutofillActions(this) }
-    private var inputView: View? = null
+    internal var inputView: View? = null
+        private set
 
     /**
      * How far the system's bottom bar (navigation bar or gesture area) reaches into the input
@@ -110,6 +112,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
 
     override fun onCreate() {
         super.onCreate()
+        instance = this
         prefs = Prefs(applicationContext)
         controller.systemActions = this
         controller.scope = lifecycleScope
@@ -247,6 +250,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
     }
 
     override fun onDestroy() {
+        if (instance === this) instance = null
         lifecycleRegistry.currentState = Lifecycle.State.DESTROYED
         store.clear()
         super.onDestroy()
@@ -299,5 +303,15 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
         } else {
             (getSystemService(Context.INPUT_METHOD_SERVICE) as android.view.inputmethod.InputMethodManager).showInputMethodPicker()
         }
+    }
+
+    companion object {
+        /**
+         * The running service, so the connected tests can drive its input view and read its
+         * state; null when none runs. Lint's leak warning is answered by onDestroy clearing it.
+         */
+        @SuppressLint("StaticFieldLeak")
+        internal var instance: KeyboardService? = null
+            private set
     }
 }
