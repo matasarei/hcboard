@@ -18,7 +18,6 @@ import androidx.compose.runtime.SideEffect
 import android.annotation.SuppressLint
 import android.view.View
 import android.view.inputmethod.EditorInfo
-import android.view.inputmethod.InputMethodSubtype
 import net.matasar.keyboard.R
 import net.matasar.keyboard.layout.Languages
 import androidx.compose.runtime.collectAsState
@@ -248,7 +247,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
     /** Every inset type the decor reports, its padding, and the last measurement, one line each. */
     private fun insetReport(): String {
         val lines = mutableListOf("measurement: $lastMeasurement manualPaddingDp=$manualBottomPaddingDp")
-        lines += "device: ${android.os.Build.MANUFACTURER} ${android.os.Build.MODEL}, Android ${android.os.Build.VERSION.RELEASE} (API ${android.os.Build.VERSION.SDK_INT}), navigation_mode=${runCatching { android.provider.Settings.Secure.getInt(contentResolver, "navigation_mode", -1) }.getOrDefault(-1)}"
+        lines += "device: ${android.os.Build.MANUFACTURER} ${android.os.Build.MODEL}, Android ${android.os.Build.VERSION.RELEASE} (API ${android.os.Build.VERSION.SDK_INT}), navigation_mode=${runCatching { android.provider.Settings.Secure.getInt(contentResolver, "navigation_mode", -1) }.getOrDefault(-1)}, locales=${resources.configuration.locales.toLanguageTags()}"
         val decor = window?.window?.decorView ?: return (lines + "window: none").joinToString("\n")
         lines += "decor: padding=[${decor.paddingLeft},${decor.paddingTop},${decor.paddingRight},${decor.paddingBottom}] size=${decor.width}x${decor.height}"
         val insets = ViewCompat.getRootWindowInsets(decor) ?: return (lines + "insets: none on the decor").joinToString("\n")
@@ -322,14 +321,6 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
     override fun onFinishInput() {
         super.onFinishInput()
         controller.onFinishInput()
-    }
-
-    /** Android's own language switcher picked a subtype: follow it. */
-    override fun onCurrentInputMethodSubtypeChanged(newSubtype: InputMethodSubtype) {
-        super.onCurrentInputMethodSubtypeChanged(newSubtype)
-        val language = Languages.byTag(newSubtype.locale.replace('-', '_')) ?: Languages.byTag(newSubtype.languageTag.replace('-', '_')) ?: return
-        if (language.tag !in controller.enabledLanguages) lifecycleScope.launch { prefs.setLanguageEnabled(language.tag, true) }
-        controller.switchLanguage(language)
     }
 
     override fun onDestroy() {

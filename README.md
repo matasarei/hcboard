@@ -23,9 +23,9 @@ the way you expect.
 - **Password managers:** the keyboard hosts Android's inline autofill suggestions from whichever
   manager you chose in system settings, and a key button opens or changes it.
 - **Nine languages:** English, Ukrainian, Russian, French, Spanish, German, Italian, Portuguese
-  and Polish, each with its own layout and long-press accents. Switch on the ones you use in
-  Settings; a globe key then cycles them (hold it to pick), and Android's own language switcher
-  lists them too.
+  and Polish, each with its own layout and long-press accents. Your phone's languages and English
+  start switched on; change the set in Settings, and a globe key cycles them (hold it to pick).
+  Android's keyboard picker lists hcboard once; languages are the keyboard's own business.
 - **Glide typing** on the letters layer of every language, with a word list bundled for each.
 - **No network permission, ever.** Nothing you type leaves the device or is logged.
 

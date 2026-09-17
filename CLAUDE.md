@@ -61,7 +61,10 @@ emulator profile is `medium_phone`; boot it headless with
   mid-gesture and shifts every later pointer position.
 - **Languages** are data in `layout/Languages.kt`: rows, accents, native name. A layer sizes itself to
   its widest row. The globe key exists only with two or more languages enabled; the persisted
-  current language is authoritative and the service follows changes to it. The 60% board is
+  current language is authoritative and the service follows changes to it. The enabled set is the
+  keyboard's own: `method.xml` declares no subtypes on purpose (Android's own per-language list
+  disagreed with ours and its picker never reached the keys), and the first-run default is English
+  plus the phone's languages the keyboard ships (`Languages.defaultEnabled`). The 60% board is
   built from the same data (`layout/SixtyPercentLayout.kt`): letters fill the ANSI slots of
   `AnsiSlots.rows` left to right, a letter on a punctuation slot carries that punctuation on Fn,
   and a nine-letter Shift row shrinks both Shifts to keep `.` and `/`. Every letter key carries

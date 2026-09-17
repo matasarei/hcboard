@@ -10,6 +10,7 @@ import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import net.matasar.keyboard.layout.Languages
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
@@ -65,7 +66,7 @@ class Prefs(private val context: Context) {
             developerModePackages = p[DEV_MODE_PACKAGES] ?: emptySet(),
             glide = p[GLIDE] ?: true,
             glideTrail = p[GLIDE_TRAIL] ?: true,
-            enabledLanguages = p[ENABLED_LANGUAGES]?.takeIf { it.isNotEmpty() } ?: setOf(Settings.DEFAULT_LANGUAGE),
+            enabledLanguages = p[ENABLED_LANGUAGES]?.takeIf { it.isNotEmpty() } ?: defaultEnabledLanguages(),
             currentLanguage = p[CURRENT_LANGUAGE] ?: Settings.DEFAULT_LANGUAGE,
         )
     }
@@ -83,7 +84,7 @@ class Prefs(private val context: Context) {
     suspend fun setCurrentLanguage(tag: String) = context.dataStore.edit { it[CURRENT_LANGUAGE] = tag }
 
     suspend fun setLanguageEnabled(tag: String, enabled: Boolean) = context.dataStore.edit { p ->
-        val current = p[ENABLED_LANGUAGES]?.takeIf { it.isNotEmpty() } ?: setOf(Settings.DEFAULT_LANGUAGE)
+        val current = p[ENABLED_LANGUAGES]?.takeIf { it.isNotEmpty() } ?: defaultEnabledLanguages()
         val next = current.withLanguage(tag, enabled)
         p[ENABLED_LANGUAGES] = next
         if ((p[CURRENT_LANGUAGE] ?: Settings.DEFAULT_LANGUAGE) !in next) p[CURRENT_LANGUAGE] = next.first()
@@ -92,6 +93,14 @@ class Prefs(private val context: Context) {
     suspend fun setDeveloperMode(packageName: String, on: Boolean) = context.dataStore.edit { p ->
         val current = p[DEV_MODE_PACKAGES] ?: emptySet()
         p[DEV_MODE_PACKAGES] = if (on) current + packageName else current - packageName
+    }
+
+    /** Until the user touches the list: English plus the phone's own languages that the keyboard ships. */
+    private fun defaultEnabledLanguages(): Set<String> {
+        // The resource configuration carries per-app languages as well as the system's; the
+        // process-wide default list does not.
+        val locales = context.resources.configuration.locales
+        return Languages.defaultEnabled((0 until locales.size()).map { locales.get(it) })
     }
 
     private companion object {

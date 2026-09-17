@@ -70,6 +70,17 @@ object Languages {
 
     fun byTag(tag: String): Language? = all.firstOrNull { it.tag == tag }
 
+    /** The shipped language for an ISO 639 code (`uk`, `pt`), regardless of region; null when none. */
+    fun byIsoLanguage(code: String): Language? = all.firstOrNull { it.tag.substringBefore('_') == code.lowercase() }
+
+    /**
+     * What to switch on before the user has chosen anything: English, plus every shipped
+     * language among the phone's own languages, so a phone set to Ukrainian and Russian starts
+     * with those and English rather than English alone.
+     */
+    fun defaultEnabled(systemLocales: List<java.util.Locale>): Set<String> =
+        setOf(english.tag) + systemLocales.mapNotNull { byIsoLanguage(it.language)?.tag }
+
     /** The next enabled language after [current], wrapping around; [current] itself when it is the only one. */
     fun next(current: Language, enabledTags: Set<String>): Language {
         val enabled = all.filter { it.tag in enabledTags }.ifEmpty { listOf(english) }
