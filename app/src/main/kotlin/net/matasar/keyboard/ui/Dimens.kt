@@ -15,18 +15,9 @@ object Dimens {
     val bottomPadding = 12.dp
     val keyRadius = 10.dp
     val toolbarHeight = 44.dp
-    val letterSize = 22.sp
-    val compactLetterSize = 17.sp
-    val compactKeyHeight = 40.dp
-    /** Letters on the 60% board, whose keys keep their top line for legends; small enough to clear it on a 40 dp key. */
-    val wideLetterSize = 19.sp
     val labelSize = 12.sp
-    val legendSize = 9.sp
-    val topLegendSize = 10.sp
     /** Labels on the developer strip, whose keys are one unit wide. */
     val stripLabelSize = 10.sp
-    /** The main glyph on a key that also shows its shifted symbol. */
-    val dualMainSize = 17.sp
     val popupRadius = 16.dp
 
     /** The keyboard never takes more than this share of the screen height. */
@@ -46,8 +37,16 @@ object Dimens {
     /** The glyph under the line: what the key types right now, in what the line leaves. */
     fun glyphSize(keyHeight: Dp): TextUnit = ((keyHeight - legendLine(keyHeight)).value * 0.62f).coerceIn(11f, 19f).sp
 
-    /** A word label (Esc, Del, the space bar's language) under the line; never larger than a glyph. */
-    fun wordSize(keyHeight: Dp): TextUnit = minOf(labelSize.value, glyphSize(keyHeight).value).sp
+    /** The glyph on a key with no legend line (the phone's letters): the whole key is its own. */
+    fun plainGlyphSize(keyHeight: Dp): TextUnit = (keyHeight.value * 0.52f).coerceIn(13f, 22f).sp
+
+    /** A key's icon: 22 dp where there is room, shrinking with the glyph where there is not. */
+    fun iconSize(keyHeight: Dp, legendLine: Boolean): Dp =
+        minOf(22.dp, (if (legendLine) glyphSize(keyHeight) else plainGlyphSize(keyHeight)).value.dp * 1.15f)
+
+    /** A word label (Esc, Del, the space bar's language); never larger than the glyph beside it. */
+    fun wordSize(keyHeight: Dp, base: TextUnit = labelSize): TextUnit =
+        minOf(base.value, glyphSize(keyHeight).value).sp
 
     /** From here up the window gets the 60% board. */
     val wideBreakpoint = 600.dp

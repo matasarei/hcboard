@@ -23,6 +23,9 @@ class KeyMetricsTest {
             val used = Dimens.legendLine(key).value + lineHeight(Dimens.glyphSize(key).value)
             assertTrue(used <= height, "a ${height}dp key needs ${used}dp for its legend line and glyph")
             assertTrue(Dimens.legendTextSize(key).value <= Dimens.legendLine(key).value, "legend over its line at ${height}dp")
+            val withIcon = Dimens.legendLine(key).value + Dimens.iconSize(key, legendLine = true).value
+            assertTrue(withIcon <= height, "a ${height}dp key needs ${withIcon}dp for its legend line and icon")
+            assertTrue(Dimens.iconSize(key, legendLine = false).value <= height, "icon over a ${height}dp key")
             height += 0.4f
         }
     }
