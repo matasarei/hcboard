@@ -17,9 +17,11 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -58,15 +60,14 @@ fun SuggestionStrip(entries: List<SuggestionEntry>, modifier: Modifier = Modifie
 }
 
 /**
- * The sheet the key button opens: which manager is set, open it, or change it in settings.
- * Drawn over the keys inside the keyboard window, like the mock.
+ * The sheet the key button opens: fill a password through the fill screen, open a manager, or
+ * change it in settings. Drawn over the keys inside the keyboard window, like the mock.
  */
 @Composable
 fun ManagerSheet(actions: AutofillActions, onDismiss: () -> Unit) {
     val colors = LocalKeyboardColors.current
-    val first = actions.managers().firstOrNull()
-    val manager = first?.label
-    val opensItself = first?.opensItself == true
+    // Asked once per opening: the package manager is not something to query on every frame.
+    val managers = remember(actions) { actions.managers() }
     Box(modifier = Modifier.fillMaxSize()) {
         Box(
             modifier = Modifier
@@ -81,7 +82,8 @@ fun ManagerSheet(actions: AutofillActions, onDismiss: () -> Unit) {
                 .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
                 .background(colors.popup)
                 .navigationBarsPadding()
-                .padding(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 16.dp),
+                .padding(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 16.dp)
+                .verticalScroll(rememberScrollState()),
         ) {
             Box(
                 modifier = Modifier
@@ -98,21 +100,29 @@ fun ManagerSheet(actions: AutofillActions, onDismiss: () -> Unit) {
                 fontWeight = FontWeight.Medium,
                 modifier = Modifier.padding(top = 12.dp, bottom = 4.dp, start = 4.dp),
             )
-            SheetRow(
-                icon = R.drawable.ic_vault,
-                title = manager ?: "No password manager set",
-                subtitle = if (manager != null) "Preferred autofill service" else "Choose one in Android settings",
-                trailing = if (manager != null) R.drawable.ic_check else null,
-                onClick = onDismiss,
-            )
-            if (manager != null) {
+            if (managers.isEmpty()) {
+                SheetRow(
+                    icon = R.drawable.ic_vault,
+                    title = "No password manager set",
+                    subtitle = "Choose one in Android settings",
+                    onClick = { actions.changeManager(); onDismiss() },
+                )
+            } else {
+                SheetRow(
+                    icon = R.drawable.ic_key,
+                    title = "Fill a password",
+                    subtitle = "Pick a login from your password manager; it is typed here",
+                    onClick = { actions.fillPassword(); onDismiss() },
+                )
+            }
+            for (manager in managers) {
                 SheetRow(
                     icon = R.drawable.ic_open,
-                    title = "Open $manager",
+                    title = "Open ${manager.label}",
                     // Google's manager lives in Play services, which has no screen a keyboard may
                     // open: say where the tap really goes rather than promise the vault.
-                    subtitle = if (opensItself) "Search the vault, then paste" else "No app of its own · opens Android's password settings",
-                    onClick = { first?.let(actions::openManager); onDismiss() },
+                    subtitle = if (manager.opensItself) "Search the vault, then paste" else "No app of its own · opens Android's password settings",
+                    onClick = { actions.openManager(manager); onDismiss() },
                 )
             }
             SheetRow(
@@ -126,7 +136,7 @@ fun ManagerSheet(actions: AutofillActions, onDismiss: () -> Unit) {
 }
 
 @Composable
-private fun SheetRow(icon: Int, title: String, subtitle: String, trailing: Int? = null, onClick: () -> Unit) {
+private fun SheetRow(icon: Int, title: String, subtitle: String, onClick: () -> Unit) {
     val colors = LocalKeyboardColors.current
     Row(
         modifier = Modifier
@@ -146,9 +156,6 @@ private fun SheetRow(icon: Int, title: String, subtitle: String, trailing: Int? 
         Column(modifier = Modifier.weight(1f)) {
             Text(title, color = colors.onPopup, fontSize = 15.sp)
             Text(subtitle, color = colors.subtle, fontSize = 12.sp)
-        }
-        if (trailing != null) {
-            Icon(painterResource(trailing), contentDescription = null, tint = colors.armedRing, modifier = Modifier.size(20.dp))
         }
     }
 }
