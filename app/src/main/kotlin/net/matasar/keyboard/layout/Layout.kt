@@ -60,6 +60,12 @@ data class Key(
     val repeats: Boolean = false,
     /** What the key does while Fn is active, when that is not a plain key code (60% board). */
     val fnAction: KeyAction? = null,
+    /**
+     * The US character of the physical slot a letter sits in: what a modifier combination sends
+     * and what the key shows while a combination modifier is active, so Ctrl+С on a Cyrillic
+     * board is Ctrl+C as on a PC. Only letter keys carry one.
+     */
+    val slot: Char? = null,
 ) {
     /** A stable identity for pressed-state tracking and tests. */
     val id: String get() = "$label:$action"
@@ -82,6 +88,14 @@ data class Layer(val id: LayerId, val rows: List<Row>, val units: Float = 10f)
 
 data class KeyboardLayout(val layers: Map<LayerId, Layer>, val units: Float = 10f) {
     fun layer(id: LayerId): Layer = layers.getValue(id)
+}
+
+/**
+ * The three letter rows of a US ANSI board as slot characters. A language's row fills them left
+ * to right; the slot is what a letter sends in a modifier combination on any board.
+ */
+internal object AnsiSlots {
+    val rows: List<String> = listOf("qwertyuiop[]", "asdfghjkl;'", "zxcvbnm,./")
 }
 
 // ---- small builders so the layer files read like the mocks ----

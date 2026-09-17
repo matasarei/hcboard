@@ -32,6 +32,7 @@ import net.matasar.keyboard.layout.phoneLayout
 import net.matasar.keyboard.layout.LayerId
 import net.matasar.keyboard.layout.ModifierKey
 import net.matasar.keyboard.layout.PhoneLayout
+import net.matasar.keyboard.layout.wideLayout
 
 /** The two things a key can ask of the service rather than the editor. */
 interface SystemActions {
@@ -71,10 +72,15 @@ class KeyboardController(
     val withGlobe: Boolean get() = enabledLanguages.size > 1
 
     private val layoutCache = HashMap<Pair<String, Boolean>, KeyboardLayout>()
+    private val wideLayoutCache = HashMap<Pair<String, Boolean>, KeyboardLayout>()
 
     /** The phone layout for the current language, built once per language and globe state. */
     val phoneLayout: KeyboardLayout
         get() = layoutCache.getOrPut(language.tag to withGlobe) { phoneLayout(language, withGlobe) }
+
+    /** The 60% board for the current language, built the same way. */
+    val wideLayout: KeyboardLayout
+        get() = wideLayoutCache.getOrPut(language.tag to withGlobe) { wideLayout(language, withGlobe) }
 
     /** The enabled languages in cycling order. */
     val enabledLanguageList: List<Language>
@@ -167,9 +173,18 @@ class KeyboardController(
 
     private val uppercase: Boolean get() = shift.active || modifiers.isActive(ModifierKey.SHIFT)
 
-    /** What a letter key shows and commits right now. */
+    /**
+     * What a letter key shows right now. While a combination modifier is active (Ctrl, Alt, Meta,
+     * or the strip's Shift, which all send a key event) a letter shows the US letter of its slot,
+     * so a Cyrillic board reads Q W E R T Y and Ctrl+С is visibly Ctrl+C. The Shift latch alone
+     * keeps the language: it only changes case.
+     */
     fun displayLabel(key: Key): String = when (val action = key.action) {
-        is KeyAction.Letter -> if (uppercase) action.upper else action.lower
+        is KeyAction.Letter -> when {
+            modifiers.anyMetaActive && key.slot != null -> key.slot.uppercase()
+            uppercase -> action.upper
+            else -> action.lower
+        }
         else -> key.label
     }
 
@@ -274,14 +289,19 @@ class KeyboardController(
      * through the editor's own actions; everything else is a key event with meta state.
      */
     private fun sendCombo(text: String, key: Key) {
+        // A letter sends the key of the slot it sits in: Ctrl+С on a Cyrillic board is Ctrl+C.
+        val physical = key.slot?.let { if (uppercase) it.uppercase() else it.toString() } ?: text
         val onlyCtrl = modifiers.active.filter { it != ModifierKey.FN } == listOf(ModifierKey.CTRL)
         if (onlyCtrl && editingShortcutsInTextFields && !terminalField) {
-            EditingAction.forLetter(text)?.let { action ->
+            EditingAction.forLetter(physical)?.let { action ->
                 if (dispatcher.sendEditingAction(action)) return
             }
         }
-        val stroke: KeyStroke = keyStrokeFor(text) ?: keyStrokeFor(key.label) ?: return
-        dispatcher.sendCombo(stroke, modifiers.metaState())
+        val stroke: KeyStroke = keyStrokeFor(physical) ?: keyStrokeFor(text) ?: keyStrokeFor(key.label) ?: return
+        // A letter on a punctuation slot (ї on `]`) has no shifted twin to look up; Shift+Ctrl+ї is still Shift+Ctrl+].
+        val shiftedSlot = uppercase && key.slot?.isLetter() == false
+        val meta = if (shiftedSlot) modifiers.metaState() or KeyEvent.META_SHIFT_ON or KeyEvent.META_SHIFT_LEFT_ON else modifiers.metaState()
+        dispatcher.sendCombo(stroke, meta)
     }
 
     /** A key went out: one-shot shift and modifiers release; held ones remember they were used. */

@@ -54,6 +54,35 @@ class DeveloperModeTest {
     }
 
     @Test
+    fun `ctrl on a cyrillic letter sends the key of its slot`() {
+        val cyrillicC = Key("с", KeyAction.Letter("с", "С"), slot = 'c')
+        val cyrillicF = Key("ф", KeyAction.Letter("ф", "Ф"), slot = 'a')
+        controller.onStartInput(android.view.inputmethod.EditorInfo().apply { inputType = InputType.TYPE_CLASS_TEXT })
+        controller.onKey(ctrl)
+        controller.onKey(cyrillicC)
+        controller.onKey(ctrl)
+        controller.onKey(cyrillicF)
+        assertEquals(listOf(android.R.id.copy, android.R.id.selectAll), port.contextActions)
+        controller.onKey(cyrillicC)
+        assertEquals(listOf("с"), port.committed)
+        terminal()
+        controller.onKey(ctrl)
+        controller.onKey(cyrillicC)
+        assertEquals(listOf(KeyEvent.KEYCODE_C to ctrlMeta), port.keys)
+    }
+
+    @Test
+    fun `shift and ctrl on a letter that sits on a punctuation slot carry shift meta`() {
+        val yi = Key("ї", KeyAction.Letter("ї", "Ї"), slot = ']')
+        terminal()
+        controller.onKey(Key("shift", KeyAction.Shift))
+        controller.onKey(ctrl)
+        controller.onKey(yi)
+        val shiftMeta = KeyEvent.META_SHIFT_ON or KeyEvent.META_SHIFT_LEFT_ON
+        assertEquals(listOf(KeyEvent.KEYCODE_RIGHT_BRACKET to (ctrlMeta or shiftMeta)), port.keys)
+    }
+
+    @Test
     fun `ctrl survives a layer switch so ctrl bracket works from the code page`() {
         terminal()
         controller.onKey(ctrl)
