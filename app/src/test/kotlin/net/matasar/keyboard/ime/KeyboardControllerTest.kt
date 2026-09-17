@@ -7,6 +7,7 @@ import net.matasar.keyboard.input.InputDispatcher
 import net.matasar.keyboard.input.LatchState
 import net.matasar.keyboard.layout.Key
 import net.matasar.keyboard.layout.KeyAction
+import net.matasar.keyboard.layout.Languages
 import net.matasar.keyboard.layout.LayerId
 import net.matasar.keyboard.layout.LettersLayer
 import kotlin.test.Test
@@ -22,6 +23,7 @@ class KeyboardControllerTest {
     private val shiftKey = LettersLayer.rows[2].keys[0]
     private val q = LettersLayer.rows[0].keys[0]
     private val symbolsKey = LettersLayer.rows[3].keys[0]
+    private val globeKey = Key("globe", KeyAction.SwitchLanguage)
 
     @Test
     fun `letters follow shift and one-shot shift releases after a letter`() {
@@ -57,6 +59,23 @@ class KeyboardControllerTest {
         controller.onStartInput(null)
         assertEquals(LayerId.LETTERS, controller.layer)
         assertEquals(LatchState.IDLE, controller.shift.state)
+    }
+
+    @Test
+    fun `picking a language on the symbols page comes back to its letters`() {
+        controller.enabledLanguages = setOf(Languages.english.tag, Languages.ukrainian.tag)
+        controller.onKey(symbolsKey)
+        assertEquals(LayerId.SYMBOLS, controller.layer)
+        controller.onKey(globeKey)
+        assertEquals(Languages.ukrainian, controller.language)
+        assertEquals(LayerId.LETTERS, controller.layer)
+
+        // A number field opens on the symbols page: its letters are not what the field wants.
+        controller.onStartInput(EditorInfo().apply { inputType = InputType.TYPE_CLASS_NUMBER })
+        assertEquals(LayerId.SYMBOLS, controller.layer)
+        controller.onKey(globeKey)
+        assertEquals(Languages.english, controller.language)
+        assertEquals(LayerId.SYMBOLS, controller.layer)
     }
 
     @Test
