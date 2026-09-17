@@ -580,8 +580,9 @@ class KeyboardController(
      */
     fun longPressText(key: Key): String? {
         if (fnActive) return null
-        val shifted = (key.action as? KeyAction.Text)?.shifted ?: return null
-        return if (shift.state == LatchState.LOCKED) (key.action as KeyAction.Text).text else shifted
+        val action = key.action as? KeyAction.Text ?: return null
+        val shifted = action.shifted ?: return null
+        return if (shift.state == LatchState.LOCKED) action.text else shifted
     }
 
     /**
