@@ -40,7 +40,6 @@ import net.matasar.keyboard.layout.KeyAction
 import net.matasar.keyboard.layout.KeyIcon
 import net.matasar.keyboard.layout.KeyStyle
 import net.matasar.keyboard.layout.LayerId
-import net.matasar.keyboard.layout.ModifierKey
 import net.matasar.keyboard.ui.theme.KeyboardColors
 import net.matasar.keyboard.ui.theme.LocalKeyboardColors
 
