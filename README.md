@@ -1,41 +1,97 @@
+<div align="center">
+
+<img src="docs/assets/logo.svg" alt="" width="96" height="96">
+
 # hcboard
 
-An Android keyboard for people who type code on a phone: the look of a Material 3 keyboard, the
-feel of the iPhone's, and a developer mode with real Ctrl, Alt, Shift, Fn and Meta keys that latch
-the way you expect.
+**A keyboard for everyday typing that is ready when you want to tinker — and keeps to itself.**
 
-## What it does
+[![Build](https://github.com/matasarei/hcboard/actions/workflows/build.yml/badge.svg?branch=main)](https://github.com/matasarei/hcboard/actions/workflows/build.yml)
+[![Download the dev build](https://img.shields.io/badge/download-dev%20build-blue)](https://github.com/matasarei/hcboard/releases/tag/dev)
+[![Licence: Apache-2.0](https://img.shields.io/badge/licence-Apache--2.0-green)](LICENSE)
+![Android 8.0+](https://img.shields.io/badge/Android-8.0%2B-3DDC84)
+[![No network access](https://img.shields.io/badge/network-none-6f42c1)](#privacy)
 
-- **Material 3 look, dynamic colour** on Android 12 and later, light and dark.
-- **iPhone-style feel:** key preview on press, a spring on every key, a light haptic tick,
-  long-press accents, and a cursor trackpad when you hold the space bar.
-- **Developer mode:** one tap on `</>` adds a strip with Esc, Tab, Ctrl, Alt, Shift, arrows and Fn
-  above any layer. Tap a modifier to arm it for the next key, double-tap or long-press to lock it,
-  or hold it and tap another key with a second finger. Modifiers survive layer switches, and the
-  toolbar always says what is armed. Ctrl+C in a terminal is a real Ctrl+C; in a text field,
-  Ctrl+A/C/V/X are select, copy, paste and cut.
-- **A 60% board on wide screens:** foldables and tablets get every key of a standard 60% layout,
-  shifted symbols printed on the keys and F1–F12 behind Fn. The board follows the current
-  language: its letters sit on the ANSI slots, punctuation a long alphabet displaces stays
-  reachable through Fn, and a globe key appears when more than one language is enabled.
-- **Positional shortcuts:** Ctrl+С on a Cyrillic board is Ctrl+C, as on a PC, and while a
-  combination modifier is armed the keys show the Latin letters they will send.
-- **Password managers:** the keyboard hosts Android's inline autofill suggestions from whichever
-  manager you chose in system settings, and a key button opens or changes it.
+</div>
+
+## What it is
+
+hcboard is an on-screen keyboard for Android you can use all day: chats, messages, search boxes,
+forms. Type or glide across the letters, pick a word from the strip above the keys, and let a tap
+of space fix the typo you just made — in any of nine languages, with the phone's own colours,
+light or dark.
+
+When you need more than letters, it is already there. Unfold the phone or pick up a tablet and you
+get a full 60% layout: Esc, Tab, Caps, Ctrl, Alt, Meta, the symbols printed on the keys and F1–F12
+behind Fn. On a phone, one tap on `</>` adds the same keys as a strip above any layer. Ctrl+C in a
+terminal is a real Ctrl+C, so an SSH session or Termux behaves like a computer.
+
+And it stays private. The app has no network permission at all, so nothing you type can leave the
+phone — there is no analytics, no sync, no account, and nothing is written to a log. Passwords come
+from the password manager you already use, and the keyboard never shows or keeps them.
+
+## What it looks like
+
+| Terminal on a foldable | Fn and Shift armed | Phone, with the developer strip |
+|---|---|---|
+| <img src="docs/screenshots/fold-terminal.jpg" alt="The 60% board under a terminal session on a foldable" width="380"> | <img src="docs/screenshots/fold-fn.jpg" alt="The same board with Fn and Shift held: the number row shows F1 to F12 and the letters show arrows, Home, End and brackets" width="380"> | <img src="docs/screenshots/phone-dev-strip.jpg" alt="The phone board in dark mode with a strip of Esc, Tab, Ctrl, Alt, Shift, arrows and Fn above the letters" width="180"> |
+| The whole 60% board, with the keys' symbols printed where a PC keyboard has them. | Hold Fn and the keys show what they will type, so nothing has to be remembered. | The same modifiers on a phone, one tap away, over any layer. |
+
+## Everyday typing
+
+- **Glide typing** across the letters of every language, each with its own bundled word list.
+- **Word suggestions** while you type: the word as typed, its correction and completions, in the
+  toolbar behind a chevron. Space applies the highlighted correction and one backspace takes it
+  back. Both parts can be turned off, and neither runs in password, terminal, number, address or
+  e-mail fields.
 - **Nine languages:** English, Ukrainian, Russian, French, Spanish, German, Italian, Portuguese
-  and Polish, each with its own layout and long-press accents. Until you change the set in
-  Settings it follows your phone's languages, plus English; a globe key cycles them (hold it to pick).
-  Android's keyboard picker lists hcboard once; languages are the keyboard's own business.
-- **Glide typing** on the letters layer of every language, with a word list bundled for each.
-- **Word suggestions** from the same lists while you type: the word as typed, its correction (applied by space, one backspace takes it back) and completions, in the toolbar behind a chevron. Both parts are settings; off in password, terminal, number, address and e-mail fields.
-- **No network permission, ever.** Nothing you type leaves the device or is logged.
+  (Brazil) and Polish, each with its own layout and long-press accents. Until you change the set
+  it follows your phone's languages, plus English; a globe key switches them, and holding it opens
+  the list.
+- **The feel of a phone keyboard:** a preview above the key you press, a spring under your finger,
+  a light haptic tick, accents on a long press, and a cursor trackpad when you hold the space bar.
+- **Your phone's look:** Material 3, with dynamic colour on Android 12 and later. Four themes —
+  System, Light, Dark and Black — and the dark board is built on the same background your apps use.
+- **Fits your hands:** set the keyboard's height, the space under the keys (or let it follow the
+  system bar), key borders, the haptic tick and the key preview in Settings.
+
+## When you want to tinker
+
+- **A 60% board on wide screens.** Foldables and tablets get every key of a standard 60% layout:
+  the letters sit on the ANSI slots of the current language, punctuation that a long alphabet
+  displaces stays reachable through Fn, and both Cyrillic layouts fill the top row (ї, ъ).
+- **A developer strip on phones.** One tap on `</>` puts Esc, Tab, Ctrl, Alt, Shift, arrows and Fn
+  above any layer, and the keyboard remembers which apps you use it in.
+- **Modifiers that latch the way you expect.** Tap one to arm it for the next key, double-tap or
+  long-press to lock it, or hold it and tap another key with a second finger. They survive layer
+  switches, and the toolbar says what is armed. Every key shows what it will type as Shift or Fn
+  changes it.
+- **Terminals get real key events.** Ctrl+C is a signal, not a copy; in ordinary text fields
+  Ctrl+A/C/V/X are select, copy, paste and cut.
+- **Positional shortcuts.** Ctrl+С on a Cyrillic board is Ctrl+C, as on a PC, and while a modifier
+  is armed the keys show the Latin letters they will send.
+
+## Privacy
+
+- **No `INTERNET` permission.** It is not in the manifest, so the app cannot reach the network even
+  if it tried. No analytics, no crash reporting, no account, no sync.
+- **Nothing you type is logged or stored.** Word lists ship inside the app; suggestions look only
+  at the word before the cursor, on the phone, and not at all in a password or terminal field.
+- **Autofill suggestions belong to your manager.** When it offers a login above the keys, those
+  chips are views your manager draws; the keyboard places them and never reads them.
+- **A password the keyboard types for you is held for one moment only.** "Fill a password" opens a
+  small screen that your password manager fills. That screen blocks screenshots, shows nothing, and
+  hands the password to one field in one app, within 30 seconds, once — then overwrites it in
+  memory. It is never written down, logged, or put into an Android message between apps.
+- **Everything is on the phone**, which is also why there is nothing to sign in to.
 
 ## Install
 
 Every push to `main` produces a debug build in the
 [dev pre-release](https://github.com/matasarei/hcboard/releases/tag/dev). Download
-`hcboard-dev.apk`, open it on the phone, then enable and choose **Keyboard** under
-Settings › System › Keyboard › On-screen keyboard. With a phone attached:
+`hcboard-dev.apk`, open it on the phone, then turn on **hcboard** and choose it under
+Settings › System › Keyboard › On-screen keyboard. The app's own screen walks you through both
+steps and gives you a field to try it in. With a phone attached:
 
 ```
 adb install -r hcboard-dev.apk
