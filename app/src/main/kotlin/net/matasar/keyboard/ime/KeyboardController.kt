@@ -214,26 +214,38 @@ class KeyboardController(
      * letter shows the US letter of its slot, so a Cyrillic board reads Q W E R T Y and Ctrl+С is
      * visibly Ctrl+C.
      */
-    fun displayLabel(key: Key): String {
+    fun displayLabel(key: Key): String = labelFor(key, shiftActive, fnActive)
+
+    /**
+     * Whether Shift is what makes this key's glyph what it is, so its legend is the live one.
+     * Shift is armed but changes nothing on a digit under Fn — the key types F1 either way — and
+     * a legend tinted there says the opposite of the truth.
+     */
+    fun shiftLive(key: Key): Boolean = shiftActive && labelFor(key, shift = false, fn = fnActive) != displayLabel(key)
+
+    /** The same question for Fn. */
+    fun fnLive(key: Key): Boolean = fnActive && labelFor(key, shift = shiftActive, fn = false) != displayLabel(key)
+
+    private fun labelFor(key: Key, shift: Boolean, fn: Boolean): String {
         if (modifiers.anyMetaActive && key.action is KeyAction.Letter && key.slot != null) return key.slot.uppercase()
-        fnLabel(key)?.let { return it }
+        fnLabel(key, shift, fn)?.let { return it }
         return when (val action = key.action) {
-            is KeyAction.Letter -> if (shiftActive) action.upper else action.lower
-            is KeyAction.Text -> if (shiftActive && action.shifted != null) action.shifted else key.label
+            is KeyAction.Letter -> if (shift) action.upper else action.lower
+            is KeyAction.Text -> if (shift && action.shifted != null) action.shifted else key.label
             else -> key.label
         }
     }
 
     /** What Fn makes of a key, or null when Fn leaves it alone. */
-    private fun fnLabel(key: Key): String? {
-        if (!fnActive) return null
+    private fun fnLabel(key: Key, shift: Boolean, fn: Boolean): String? {
+        if (!fn) return null
         val action = key.fnAction
-        if (action is KeyAction.Text) return if (shiftActive && action.shifted != null) action.shifted else action.text
+        if (action is KeyAction.Text) return if (shift && action.shifted != null) action.shifted else action.text
         return key.fnLegend
     }
 
     /** An icon steps aside while Fn is active and the key's Fn meaning has a name of its own. */
-    fun showsIcon(key: Key): Boolean = fnLabel(key) == null
+    fun showsIcon(key: Key): Boolean = fnLabel(key, shiftActive, fnActive) == null
 
     fun onStartInput(info: EditorInfo?) {
         fieldKind = info?.let { fieldKindOf(it.inputType) } ?: FieldKind.TEXT
@@ -423,11 +435,22 @@ class KeyboardController(
         }
     }
 
-    /** Commits the best word with a trailing space and keeps the rest as alternatives. */
+    /**
+     * Commits the best word and keeps the rest as alternatives. No trailing space: what follows a
+     * word is the user's to choose, and a comma after one should not arrive as ` ,`. The space
+     * goes in front instead, and only when the text already there ends a word, so two glides in a
+     * row still read as two words. A word glided in front of another one still gets a space after
+     * it, or the two would join.
+     */
     internal fun commitGlide(words: List<String>, capitalize: Boolean) {
         if (words.isEmpty()) return
+        // Classification is asynchronous, so the field can have become another one since the
+        // gesture: a word must not land in a password field, nor its text be read there.
+        if (passwordField || terminalField) return
         val cased = words.map { if (capitalize) it.replaceFirstChar(Char::uppercase) else it }
-        dispatcher.commitText(cased.first() + " ")
+        val before = if (dispatcher.needsSpaceBefore()) " " else ""
+        val after = if (dispatcher.needsSpaceAfter()) " " else ""
+        dispatcher.commitText(before + cased.first() + after)
         lastGlideWord = cased.first()
         lastAutocorrect = null
         candidates = WordCandidates(cased.first(), cased.take(Candidates.MAX_WORDS))
@@ -436,21 +459,22 @@ class KeyboardController(
 
     /**
      * The user tapped a word in the strip: after a glide it swaps the glided word (and the
-     * alternatives stay); while typing it replaces the word being typed, plus a space. The
-     * typed word itself is already in the field, so tapping it does nothing.
+     * alternatives stay); while typing it replaces the word being typed. Neither adds a space —
+     * the user decides what comes after a word. The typed word itself is already in the field, so
+     * tapping it does nothing.
      */
     fun pickCandidate(word: String) {
         val current = candidates ?: return
         val glided = lastGlideWord
         if (glided != null) {
             if (word == glided) return
-            dispatcher.replaceLastWord(glided, word)
+            dispatcher.replaceWordBeforeCursor(glided, word)
             lastGlideWord = word
             return
         }
         if (word == current.typed) return
         // The field may have changed under the strip; replace only what is still there.
-        if (dispatcher.textEndsWith(current.typed)) dispatcher.replaceWordBeforeCursor(current.typed, "$word ")
+        if (dispatcher.textEndsWith(current.typed)) dispatcher.replaceWordBeforeCursor(current.typed, word)
         candidates = null
     }
 

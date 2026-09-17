@@ -27,11 +27,23 @@ class InputDispatcher(private val port: EditorPort) {
         port.deleteSurroundingText(length, 0)
     }
 
-    /** Replaces the word just committed by a glide (plus its trailing space) with another. */
-    fun replaceLastWord(old: String, new: String) {
-        port.deleteSurroundingText(old.length + 1, 0)
-        port.commitText("$new ")
+    /**
+     * Whether a word committed at the cursor needs a space put in front of it: true when the
+     * character before it ends a word — a letter or a digit, or the punctuation that closes one —
+     * and false at the start of the field, after a space or a newline, and after a character a
+     * space should not follow (an opening bracket, a hyphen, a slash).
+     */
+    fun needsSpaceBefore(): Boolean {
+        val previous = port.textBeforeCursor(1)?.lastOrNull() ?: return false
+        return previous.isLetterOrDigit() || previous in WORD_ENDING_PUNCTUATION
     }
+
+    /**
+     * The same question on the other side: a word committed at the cursor needs a space after it
+     * when a letter follows, or it joins the word already there. The cursor sits at the end of
+     * the text far more often than in front of a word, so this is the rarer half of the pair.
+     */
+    fun needsSpaceAfter(): Boolean = port.textAfterCursor(1)?.firstOrNull()?.isLetter() == true
 
     /**
      * The letters immediately before the cursor, the word being typed; empty when the text ends
@@ -91,6 +103,12 @@ class InputDispatcher(private val port: EditorPort) {
 
 /** How much text the word before the cursor may span; longer runs are cut, not suggested. */
 const val MAX_WORD_LENGTH = 32
+
+/**
+ * What a word can end with, after which the next word needs a space of its own. The curly quotes
+ * and the guillemets are here too: a keyboard that offers them has to space what follows them.
+ */
+private const val WORD_ENDING_PUNCTUATION = ",.!?;:)]}\"'\u201d\u2019\u00bb"
 
 /** The four editing shortcuts that have a context-menu equivalent. */
 enum class EditingAction(val id: Int) {
