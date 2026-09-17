@@ -194,9 +194,9 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
         val previous = lastConfiguration
         lastConfiguration = Configuration(newConfig)
         if (previous != null && !rebuildsInputView(previous.diff(newConfig))) return
+        inputViewRebuilds++
         // onCreateInputView drops the lifecycle back to STARTED; a keyboard that is up right now
         // is still resumed, and its composition must not be told otherwise.
-        inputViewRebuilds++
         val resumed = lifecycleRegistry.currentState == Lifecycle.State.RESUMED
         setInputView(onCreateInputView())
         if (resumed) lifecycleRegistry.currentState = Lifecycle.State.RESUMED
