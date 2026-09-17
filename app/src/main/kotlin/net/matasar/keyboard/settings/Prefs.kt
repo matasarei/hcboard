@@ -6,6 +6,7 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.floatPreferencesKey
+import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
@@ -17,6 +18,8 @@ enum class ThemeChoice { SYSTEM, LIGHT, DARK }
 /** Everything the settings screen edits and the keyboard reads. */
 data class Settings(
     val heightScale: Float = 1f,
+    /** Extra room under the keys, in dp, for a system bar the device does not report. */
+    val bottomPaddingDp: Int = 0,
     val haptics: Boolean = true,
     val keyBorders: Boolean = true,
     val previews: Boolean = true,
@@ -33,6 +36,7 @@ data class Settings(
 ) {
     companion object {
         const val DEFAULT_LANGUAGE = "en_US"
+        const val MAX_BOTTOM_PADDING_DP = 48
     }
 }
 
@@ -51,6 +55,7 @@ class Prefs(private val context: Context) {
     val settings: Flow<Settings> = context.dataStore.data.map { p ->
         Settings(
             heightScale = p[HEIGHT_SCALE] ?: 1f,
+            bottomPaddingDp = (p[BOTTOM_PADDING_DP] ?: 0).coerceIn(0, Settings.MAX_BOTTOM_PADDING_DP),
             haptics = p[HAPTICS] ?: true,
             keyBorders = p[KEY_BORDERS] ?: true,
             previews = p[PREVIEWS] ?: true,
@@ -66,6 +71,7 @@ class Prefs(private val context: Context) {
     }
 
     suspend fun setHeightScale(value: Float) = context.dataStore.edit { it[HEIGHT_SCALE] = value }
+    suspend fun setBottomPaddingDp(value: Int) = context.dataStore.edit { it[BOTTOM_PADDING_DP] = value.coerceIn(0, Settings.MAX_BOTTOM_PADDING_DP) }
     suspend fun setHaptics(value: Boolean) = context.dataStore.edit { it[HAPTICS] = value }
     suspend fun setKeyBorders(value: Boolean) = context.dataStore.edit { it[KEY_BORDERS] = value }
     suspend fun setPreviews(value: Boolean) = context.dataStore.edit { it[PREVIEWS] = value }
@@ -90,6 +96,7 @@ class Prefs(private val context: Context) {
 
     private companion object {
         val HEIGHT_SCALE = floatPreferencesKey("height_scale")
+        val BOTTOM_PADDING_DP = intPreferencesKey("bottom_padding_dp")
         val HAPTICS = booleanPreferencesKey("haptics")
         val KEY_BORDERS = booleanPreferencesKey("key_borders")
         val PREVIEWS = booleanPreferencesKey("previews")
