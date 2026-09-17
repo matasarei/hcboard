@@ -107,7 +107,7 @@ fun ManagerSheet(actions: AutofillActions, onDismiss: () -> Unit) {
                     subtitle = "Choose one in Android settings",
                     onClick = { actions.changeManager(); onDismiss() },
                 )
-            } else {
+            } else if (actions.canFillHere()) {
                 SheetRow(
                     icon = R.drawable.ic_key,
                     title = "Fill a password",

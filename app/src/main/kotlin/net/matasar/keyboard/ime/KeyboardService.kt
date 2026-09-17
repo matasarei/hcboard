@@ -120,7 +120,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
         controller.candidateEngine = loaded.candidates
     }
     private lateinit var prefs: Prefs
-    private val autofillActions by lazy { AndroidAutofillActions(this, onFillPassword = ::fillPassword) }
+    private val autofillActions by lazy { AndroidAutofillActions(this, canFill = ::canFillHere, onFillPassword = ::fillPassword) }
     internal var inputView: View? = null
         private set
 
@@ -438,8 +438,12 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
         currentInputConnection?.commitText(text, 1)
     }
 
+    /** The fill screen's own form never asks for another fill screen. */
+    private fun canFillHere(): Boolean = currentInputEditorInfo?.privateImeOptions != FILL_SCREEN_IME_OPTION
+
     /** Opens the fill screen for the field that has the keyboard now. */
     private fun fillPassword() {
+        if (!canFillHere()) return
         val target = FillTarget(currentPackage ?: return, currentFieldId)
         runCatching { startActivity(FillActivity.intent(this, target)) }
     }

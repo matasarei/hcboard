@@ -25,6 +25,8 @@ interface AutofillActions {
     /** The password managers to offer, preferred first; empty when none is installed. */
     fun managers(): List<ManagerApp>
     fun openManager(manager: ManagerApp)
+    /** Whether this field can take a filled password; the fill screen's own form cannot. */
+    fun canFillHere(): Boolean
     /** Opens the fill screen; the password the manager fills there is typed into this field. */
     fun fillPassword()
     fun changeManager()
@@ -49,9 +51,11 @@ fun changeManagerIntent(packageName: String, sdkInt: Int = Build.VERSION.SDK_INT
 
 class AndroidAutofillActions(
     private val context: Context,
+    private val canFill: () -> Boolean,
     private val onFillPassword: () -> Unit,
 ) : AutofillActions {
 
+    override fun canFillHere() = canFill()
     override fun fillPassword() = onFillPassword()
 
     /**
