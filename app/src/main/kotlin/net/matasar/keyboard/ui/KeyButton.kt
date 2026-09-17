@@ -78,6 +78,8 @@ fun KeyButton(
     haptics: Boolean = true,
     keyBorders: Boolean = true,
     showLabel: Boolean = true,
+    /** A key too narrow for a word-sized Fn legend beside a full-size letter (a Fold's 60% board). */
+    narrow: Boolean = false,
     legend: String? = key.fnLegend,
     legendColor: Color? = null,
     topLegend: String? = key.shiftedLabel,
@@ -173,7 +175,10 @@ fun KeyButton(
         // only while Fn is active, drop the shifted symbol, and shrink the glyph.
         val compact = height < Dimens.compactKeyHeight
         val topLegend = if (compact) null else topLegend
-        val legend = if (compact && legendColor == null) null else legend
+        // A word legend (Home, PgUp) on a narrow key would touch the letter's ascender: it shows
+        // only while Fn is armed, and the letter shrinks to make room then. Arrows stay.
+        val wordLegend = legend != null && legend.length > 1
+        val legend = if ((compact || (narrow && wordLegend)) && legendColor == null) null else legend
         if (icon != null) {
             Icon(
                 painter = painterResource(icon.drawable()),
@@ -200,6 +205,7 @@ fun KeyButton(
                     small -> labelSize
                     topLegend != null -> Dimens.dualMainSize
                     compact -> Dimens.compactLetterSize
+                    narrow && legend != null && wordLegend -> Dimens.compactLetterSize
                     else -> Dimens.letterSize
                 },
                 fontWeight = if (small) FontWeight.Medium else FontWeight.Normal,
