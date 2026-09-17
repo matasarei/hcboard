@@ -32,6 +32,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.autofill.ContentType
+import androidx.compose.ui.semantics.contentType
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import kotlinx.coroutines.launch
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.ui.text.font.FontFamily
@@ -74,6 +80,8 @@ fun ThemeChoice.asDarkTheme(): Boolean? = when (this) {
 private fun SettingsScreen(settings: Settings, prefs: Prefs) {
     val scope = rememberCoroutineScope()
     var tryText by remember { mutableStateOf("") }
+    // Never rememberSaveable: a test password must not outlive the screen.
+    var tryPassword by remember { mutableStateOf("") }
 
     Column(
         modifier = Modifier
@@ -151,6 +159,18 @@ private fun SettingsScreen(settings: Settings, prefs: Prefs) {
             onValueChange = { tryText = it },
             label = { Text(stringResource(R.string.enable_try_label)) },
             modifier = Modifier.fillMaxWidth(),
+        )
+        // A password field to try the keyboard's password behaviour on (no suggestions, no glide,
+        // no key previews) and to see what the password manager offers. Masked, and tagged as a
+        // password so autofill treats it as one.
+        OutlinedTextField(
+            value = tryPassword,
+            onValueChange = { tryPassword = it },
+            label = { Text(stringResource(R.string.settings_try_password_label)) },
+            singleLine = true,
+            visualTransformation = PasswordVisualTransformation(),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+            modifier = Modifier.fillMaxWidth().semantics { contentType = ContentType.Password },
         )
 
         Section(stringResource(R.string.settings_section_diagnostics))
