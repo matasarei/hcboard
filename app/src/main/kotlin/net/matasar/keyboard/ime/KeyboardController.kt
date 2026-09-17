@@ -237,7 +237,7 @@ class KeyboardController(
     }
 
     /** What Fn makes of a key, or null when Fn leaves it alone. */
-    private fun fnLabel(key: Key, shift: Boolean = shiftActive, fn: Boolean = fnActive): String? {
+    private fun fnLabel(key: Key, shift: Boolean, fn: Boolean): String? {
         if (!fn) return null
         val action = key.fnAction
         if (action is KeyAction.Text) return if (shift && action.shifted != null) action.shifted else action.text
@@ -245,7 +245,7 @@ class KeyboardController(
     }
 
     /** An icon steps aside while Fn is active and the key's Fn meaning has a name of its own. */
-    fun showsIcon(key: Key): Boolean = fnLabel(key) == null
+    fun showsIcon(key: Key): Boolean = fnLabel(key, shiftActive, fnActive) == null
 
     fun onStartInput(info: EditorInfo?) {
         fieldKind = info?.let { fieldKindOf(it.inputType) } ?: FieldKind.TEXT
