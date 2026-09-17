@@ -23,7 +23,11 @@ class LanguagesTest {
     fun `the layouts carry the letters that make them what they are`() {
         fun letters(language: Language) = language.lettersLayer(false).rows.flatMap { it.keys }.map { it.label }.toSet()
         assertTrue(letters(Languages.ukrainian).containsAll(listOf("ї", "є", "і")))
-        assertTrue(letters(Languages.russian).containsAll(listOf("ы", "э")))
+        assertTrue(letters(Languages.russian).containsAll(listOf("ы", "э", "ъ")))
+        // ъ sits where Ukrainian has ї, so the two Cyrillic boards are the same shape; the shift
+        // row already made the board 12 units wide, so no key changes size for it.
+        assertEquals(12, Languages.russian.rows[0].length)
+        assertEquals(12f, Languages.russian.units)
         assertEquals("a", Languages.french.rows[0].first().toString())
         assertTrue(letters(Languages.spanish).contains("ñ"))
         assertTrue(letters(Languages.german).containsAll(listOf("ü", "ö", "ä")))
