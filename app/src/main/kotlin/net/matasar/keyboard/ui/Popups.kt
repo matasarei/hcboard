@@ -124,7 +124,13 @@ fun PopupLayer(state: PopupState) {
                         .background(if (selected) colors.action else colors.popup),
                     contentAlignment = Alignment.Center,
                 ) {
-                    Text(glyph, color = if (selected) colors.onAction else colors.onPopup, fontSize = 24.sp)
+                    // The same size the letter on the key has: an accent cell is a key's height,
+                    // and a row of accents that read smaller than the key under them looks wrong.
+                    Text(
+                        glyph,
+                        color = if (selected) colors.onAction else colors.onPopup,
+                        fontSize = Dimens.plainGlyphSize(PopupMetrics.accentHeight),
+                    )
                 }
             }
         }

@@ -46,6 +46,17 @@ class KeyMetricsTest {
     }
 
     @Test
+    fun `a full-height key spends the room it has on its glyph`() {
+        // The complaint the sizes came from: a 46 dp key had most of a line of slack under its
+        // glyph. The fit test above is the ceiling; these are the floor.
+        val full = 46.dp
+        assertTrue(Dimens.glyphSize(full).value >= 22f, "glyph on a full key: ${Dimens.glyphSize(full).value}")
+        assertTrue(Dimens.plainGlyphSize(full).value >= 25f, "plain glyph on a full key: ${Dimens.plainGlyphSize(full).value}")
+        val slack = full.value - Dimens.legendLine(full).value - Dimens.glyphSize(full).value * Dimens.glyphLineHeightRatio
+        assertTrue(slack < Dimens.legendTextSize(full).value, "a full key still has ${slack}dp going spare")
+    }
+
+    @Test
     fun `a word label never outgrows the glyph beside it`() {
         for (height in listOf(26.dp, 36.8.dp, 42.dp, 46.dp, 56.dp)) {
             assertTrue(Dimens.wordSize(height).value <= Dimens.glyphSize(height).value, "word label at $height")
