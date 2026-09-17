@@ -36,6 +36,19 @@
             android:exported="true"
             android:label="@string/settings_title" />
 
+        <!-- The fill screen: a login form for the password manager, opened only by the keyboard.
+             Its own task, so closing it lands back in the app the password is for; kept out of
+             recents and history, so it is never a way back to a filled form. -->
+        <activity
+            android:name=".autofill.FillActivity"
+            android:exported="false"
+            android:excludeFromRecents="true"
+            android:noHistory="true"
+            android:taskAffinity="net.matasar.keyboard.fill"
+            android:label="@string/fill_title"
+            android:theme="@style/Theme.Hcboard.Fill"
+            android:windowSoftInputMode="stateAlwaysVisible|adjustResize" />
+
         <service
             android:name=".ime.KeyboardService"
             android:exported="true"

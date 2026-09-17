@@ -10,4 +10,7 @@
     <style name="Theme.Hcboard.Ime" parent="@android:style/Theme.DeviceDefault.InputMethod">
         <item name="android:windowOptOutEdgeToEdgeEnforcement" tools:targetApi="35">true</item>
     </style>
+
+    <!-- The fill screen floats over the app the password is for, as a dialog. -->
+    <style name="Theme.Hcboard.Fill" parent="@android:style/Theme.DeviceDefault.Light.Dialog.NoActionBar" />
 </resources>
