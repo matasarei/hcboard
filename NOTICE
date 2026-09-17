@@ -16,6 +16,11 @@ This product includes software and data from other Apache-2.0 projects:
   (packages/inputmethods/LatinIME/dictionaries), Copyright (C) The Android Open Source Project,
   Apache License 2.0.
 
+- The globe and hide-keyboard icons (app/src/main/res/drawable/ic_globe.xml and
+  ic_keyboard_hide.xml) are derived from ic_ime_switcher_new.xml and ic_ime_switcher.xml in the
+  Android Open Source Project (frameworks/base/core/res), Copyright (C)
+  The Android Open Source Project, Apache License 2.0. Changes are described in each file's header.
+
 This product also includes data under the Creative Commons Attribution 4.0 licence:
 
 - The Ukrainian word list (app/src/main/assets/dictionaries/uk.txt) is derived from

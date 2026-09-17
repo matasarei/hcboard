@@ -93,6 +93,7 @@ fun KeyboardScreen(
             ) {
                 val chipText = if (controller.trackpad) "Move cursor" else controller.modifiers.chipText()
                 Toolbar(
+                    modifier = Modifier.background(colors.toolbar),
                     developerMode = controller.developerMode,
                     showDeveloperToggle = !wide,
                     chipText = chipText,
@@ -169,7 +170,9 @@ private fun LayerGrid(controller: KeyboardController, feel: KeyboardFeel, popups
         }
         val layer = layout.layers[controller.layer] ?: layout.layers.values.first()
         val sidePadding = if (wide) Dimens.wideSidePadding else Dimens.sidePadding
-        val rowGap = if (wide) Dimens.wideRowGap else Dimens.rowGap
+        // The gaps follow the height setting too: keys shrunk to 80% under full-size gaps read as
+        // small keys floating in space.
+        val rowGap = (if (wide) Dimens.wideRowGap else Dimens.rowGap) * feel.heightScale
         // Short windows (a phone in landscape) get shorter keys so the whole board stays on screen.
         val rows = layer.rows.size + (if (controller.developerMode && !wide) 1 else 0)
         val budget = LocalConfiguration.current.screenHeightDp.dp * Dimens.maxHeightFraction -

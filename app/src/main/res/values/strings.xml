@@ -24,6 +24,7 @@
     <string name="settings_theme_system">System</string>
     <string name="settings_theme_light">Light</string>
     <string name="settings_theme_dark">Dark</string>
+    <string name="settings_theme_black">Black</string>
     <string name="settings_height">Keyboard height: %1$d%%</string>
     <string name="settings_key_borders">Key borders</string>
     <string name="settings_bottom_padding_auto">Automatic space under the keys</string>

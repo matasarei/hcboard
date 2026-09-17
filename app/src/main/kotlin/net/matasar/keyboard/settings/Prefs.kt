@@ -14,7 +14,7 @@ import net.matasar.keyboard.layout.Languages
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
-enum class ThemeChoice { SYSTEM, LIGHT, DARK }
+enum class ThemeChoice { SYSTEM, LIGHT, DARK, BLACK }
 
 /** Everything the settings screen edits and the keyboard reads. */
 data class Settings(
