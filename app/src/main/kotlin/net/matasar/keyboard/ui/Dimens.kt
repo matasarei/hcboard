@@ -52,11 +52,15 @@ object Dimens {
      */
     fun legendTextSize(keyHeight: Dp): TextUnit = (keyHeight.value * 0.22f).coerceIn(7.5f, 10f).sp
 
-    /** The glyph under the line: what the key types right now, in what the line leaves. */
-    fun glyphSize(keyHeight: Dp): TextUnit = ((keyHeight - legendLine(keyHeight)).value * 0.62f).coerceIn(10f, 19f).sp
+    /**
+     * The glyph under the line: what the key types right now, in what the line leaves. It takes
+     * three quarters of that room, which with [glyphLineHeightRatio] is what fits: the old share
+     * left a full-height key with most of a line of slack under its glyph.
+     */
+    fun glyphSize(keyHeight: Dp): TextUnit = ((keyHeight - legendLine(keyHeight)).value * 0.75f).coerceIn(10f, 24f).sp
 
     /** The glyph on a key with no legend line (the phone's letters): the whole key is its own. */
-    fun plainGlyphSize(keyHeight: Dp): TextUnit = (keyHeight.value * 0.52f).coerceIn(13f, 22f).sp
+    fun plainGlyphSize(keyHeight: Dp): TextUnit = (keyHeight.value * 0.62f).coerceIn(13f, 26f).sp
 
     /** A key's icon: 22 dp where there is room, shrinking with the glyph where there is not. */
     fun iconSize(keyHeight: Dp, hasLegendLine: Boolean): Dp =
