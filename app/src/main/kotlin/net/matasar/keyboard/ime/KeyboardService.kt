@@ -36,6 +36,9 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import net.matasar.keyboard.input.AndroidEditorPort
 import net.matasar.keyboard.input.InputDispatcher
+import net.matasar.keyboard.input.glide.GlideEngine
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import net.matasar.keyboard.settings.Prefs
 import net.matasar.keyboard.settings.Settings
 import net.matasar.keyboard.settings.SettingsActivity
@@ -77,12 +80,19 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
         super.onCreate()
         prefs = Prefs(applicationContext)
         controller.systemActions = this
+        controller.scope = lifecycleScope
         savedStateController.performRestore(null)
+        // The word list is a few hundred kilobytes; load it off the main thread once.
+        lifecycleScope.launch(Dispatchers.IO) {
+            val engine = GlideEngine.load(applicationContext)
+            withContext(Dispatchers.Main) { controller.glideEngine = engine }
+        }
         lifecycleRegistry.currentState = Lifecycle.State.CREATED
         lifecycleScope.launch {
             prefs.settings.collect { settings ->
                 controller.editingShortcutsInTextFields = settings.editingShortcuts
                 controller.doubleTapLock = settings.doubleTapLock
+                controller.glideEnabled = settings.glide
             }
         }
     }
@@ -117,6 +127,8 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
                             previews = settings.previews,
                             keyBorders = settings.keyBorders,
                             heightScale = settings.heightScale,
+                            glide = settings.glide,
+                            glideTrail = settings.glideTrail,
                         ),
                     )
                 }

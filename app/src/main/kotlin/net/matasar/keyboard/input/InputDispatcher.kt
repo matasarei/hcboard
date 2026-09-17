@@ -27,6 +27,12 @@ class InputDispatcher(private val port: EditorPort) {
         port.deleteSurroundingText(length, 0)
     }
 
+    /** Replaces the word just committed by a glide (plus its trailing space) with another. */
+    fun replaceLastWord(old: String, new: String) {
+        port.deleteSurroundingText(old.length + 1, 0)
+        port.commitText("$new ")
+    }
+
     /** Forward delete of one character after the cursor. */
     fun forwardDelete() = port.deleteSurroundingText(0, 1)
 

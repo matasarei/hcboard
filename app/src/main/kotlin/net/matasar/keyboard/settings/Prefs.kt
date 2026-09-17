@@ -25,6 +25,8 @@ data class Settings(
     val doubleTapLock: Boolean = true,
     /** Packages in which developer mode was left on. */
     val developerModePackages: Set<String> = emptySet(),
+    val glide: Boolean = true,
+    val glideTrail: Boolean = true,
 )
 
 private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
@@ -42,6 +44,8 @@ class Prefs(private val context: Context) {
             editingShortcuts = p[EDITING_SHORTCUTS] ?: true,
             doubleTapLock = p[DOUBLE_TAP_LOCK] ?: true,
             developerModePackages = p[DEV_MODE_PACKAGES] ?: emptySet(),
+            glide = p[GLIDE] ?: true,
+            glideTrail = p[GLIDE_TRAIL] ?: true,
         )
     }
 
@@ -52,6 +56,8 @@ class Prefs(private val context: Context) {
     suspend fun setTheme(value: ThemeChoice) = context.dataStore.edit { it[THEME] = value.name }
     suspend fun setEditingShortcuts(value: Boolean) = context.dataStore.edit { it[EDITING_SHORTCUTS] = value }
     suspend fun setDoubleTapLock(value: Boolean) = context.dataStore.edit { it[DOUBLE_TAP_LOCK] = value }
+    suspend fun setGlide(value: Boolean) = context.dataStore.edit { it[GLIDE] = value }
+    suspend fun setGlideTrail(value: Boolean) = context.dataStore.edit { it[GLIDE_TRAIL] = value }
 
     suspend fun setDeveloperMode(packageName: String, on: Boolean) = context.dataStore.edit { p ->
         val current = p[DEV_MODE_PACKAGES] ?: emptySet()
@@ -67,5 +73,7 @@ class Prefs(private val context: Context) {
         val EDITING_SHORTCUTS = booleanPreferencesKey("editing_shortcuts")
         val DOUBLE_TAP_LOCK = booleanPreferencesKey("double_tap_lock")
         val DEV_MODE_PACKAGES = stringSetPreferencesKey("developer_mode_packages")
+        val GLIDE = booleanPreferencesKey("glide")
+        val GLIDE_TRAIL = booleanPreferencesKey("glide_trail")
     }
 }

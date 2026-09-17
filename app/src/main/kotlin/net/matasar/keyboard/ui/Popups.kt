@@ -18,6 +18,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.IntOffset
@@ -49,9 +50,13 @@ class PopupState {
     var rootWidthPx: Float by mutableStateOf(0f)
     var density: Float = 1f
 
+    /** The glide trail in root coordinates; empty when no finger is gliding. */
+    var trail: List<Offset> by mutableStateOf(emptyList())
+
     fun clear() {
         preview = null
         accents = null
+        trail = emptyList()
     }
 }
 

@@ -29,4 +29,7 @@
     <string name="settings_previews">Show key preview on press</string>
     <string name="settings_editing_shortcuts">Ctrl+A/C/V/X as select, copy, paste, cut in text fields</string>
     <string name="settings_double_tap_lock">Double-tap a modifier to lock it</string>
+    <string name="settings_section_glide">Glide typing</string>
+    <string name="settings_glide">Glide typing: slide across the letters to type a word</string>
+    <string name="settings_glide_trail">Show the trail while gliding</string>
 </resources>
