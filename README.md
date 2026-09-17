@@ -18,7 +18,11 @@ the way you expect.
   shifted symbols printed on the keys and F1–F12 behind Fn.
 - **Password managers:** the keyboard hosts Android's inline autofill suggestions from whichever
   manager you chose in system settings, and a key button opens or changes it.
-- **Glide typing** on the letters layer, with an English word list bundled.
+- **Nine languages:** English, Ukrainian, Russian, French, Spanish, German, Italian, Portuguese
+  and Polish, each with its own layout and long-press accents. Switch on the ones you use in
+  Settings; a globe key then cycles them (hold it to pick), and Android's own language switcher
+  lists them too.
+- **Glide typing** on the letters layer of every language, with a word list bundled for each.
 - **No network permission, ever.** Nothing you type leaves the device or is logged.
 
 ## Install
@@ -45,13 +49,15 @@ The instrumented smoke test needs an emulator or device: `./gradlew :app:connect
 
 ## Third-party code and data
 
-hcboard is licensed under the [Apache License 2.0](LICENSE). It includes work from other projects,
-all under Apache-2.0; the exact attributions are in [NOTICE](NOTICE).
+hcboard is licensed under the [Apache License 2.0](LICENSE). It includes code and data from other
+projects, under Apache-2.0 and, for the Ukrainian word list, CC BY 4.0; the exact attributions are
+in [NOTICE](NOTICE).
 
 | What | From | Licence |
 |---|---|---|
 | Glide-typing classifier (`input/glide/GlideClassifier.kt`) | [FlorisBoard](https://github.com/florisboard/florisboard), `StatisticalGlideTypingClassifier.kt` by The FlorisBoard Contributors, after Étienne Desticourt's analysis for AnySoftKeyboard | Apache-2.0 |
-| English word list (`assets/dictionaries/en_US.txt`) | [Android Open Source Project](https://android.googlesource.com/platform/packages/inputmethods/LatinIME/), `en_US_wordlist.combined`, filtered by `scripts/build-wordlist.py` | Apache-2.0 |
+| Word lists for English, Russian, French, Spanish, German, Italian, Portuguese (Brazil) and Polish (`assets/dictionaries/`) | [Android Open Source Project](https://android.googlesource.com/platform/packages/inputmethods/LatinIME/), the `*_wordlist.combined` files, filtered by `scripts/build-wordlist.py` | Apache-2.0 |
+| Ukrainian word list (`assets/dictionaries/uk.txt`) | [Helium314/aosp-dictionaries](https://codeberg.org/Helium314/aosp-dictionaries), `wordlists_experimental/main_uk.combined`, built from the [Leipzig Corpora Collection](https://wortschatz.uni-leipzig.de/en/download/) word lists | CC BY 4.0 |
 | UI toolkit and libraries | [AndroidX](https://developer.android.com/jetpack/androidx) and Jetpack Compose, Material 3 | Apache-2.0 |
 | Language | [Kotlin](https://kotlinlang.org/) | Apache-2.0 |
 

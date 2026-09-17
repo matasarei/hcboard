@@ -27,7 +27,21 @@ data class Settings(
     val developerModePackages: Set<String> = emptySet(),
     val glide: Boolean = true,
     val glideTrail: Boolean = true,
-)
+    /** Tags of the enabled languages; never empty. */
+    val enabledLanguages: Set<String> = setOf(DEFAULT_LANGUAGE),
+    val currentLanguage: String = DEFAULT_LANGUAGE,
+) {
+    companion object {
+        const val DEFAULT_LANGUAGE = "en_US"
+    }
+}
+
+/** The enabled set after switching [tag] on or off; the last language can never be switched off. */
+fun Set<String>.withLanguage(tag: String, enabled: Boolean): Set<String> = when {
+    enabled -> this + tag
+    size <= 1 -> this
+    else -> this - tag
+}
 
 private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
 
@@ -46,6 +60,8 @@ class Prefs(private val context: Context) {
             developerModePackages = p[DEV_MODE_PACKAGES] ?: emptySet(),
             glide = p[GLIDE] ?: true,
             glideTrail = p[GLIDE_TRAIL] ?: true,
+            enabledLanguages = p[ENABLED_LANGUAGES]?.takeIf { it.isNotEmpty() } ?: setOf(Settings.DEFAULT_LANGUAGE),
+            currentLanguage = p[CURRENT_LANGUAGE] ?: Settings.DEFAULT_LANGUAGE,
         )
     }
 
@@ -58,6 +74,14 @@ class Prefs(private val context: Context) {
     suspend fun setDoubleTapLock(value: Boolean) = context.dataStore.edit { it[DOUBLE_TAP_LOCK] = value }
     suspend fun setGlide(value: Boolean) = context.dataStore.edit { it[GLIDE] = value }
     suspend fun setGlideTrail(value: Boolean) = context.dataStore.edit { it[GLIDE_TRAIL] = value }
+    suspend fun setCurrentLanguage(tag: String) = context.dataStore.edit { it[CURRENT_LANGUAGE] = tag }
+
+    suspend fun setLanguageEnabled(tag: String, enabled: Boolean) = context.dataStore.edit { p ->
+        val current = p[ENABLED_LANGUAGES]?.takeIf { it.isNotEmpty() } ?: setOf(Settings.DEFAULT_LANGUAGE)
+        val next = current.withLanguage(tag, enabled)
+        p[ENABLED_LANGUAGES] = next
+        if ((p[CURRENT_LANGUAGE] ?: Settings.DEFAULT_LANGUAGE) !in next) p[CURRENT_LANGUAGE] = next.first()
+    }
 
     suspend fun setDeveloperMode(packageName: String, on: Boolean) = context.dataStore.edit { p ->
         val current = p[DEV_MODE_PACKAGES] ?: emptySet()
@@ -75,5 +99,7 @@ class Prefs(private val context: Context) {
         val DEV_MODE_PACKAGES = stringSetPreferencesKey("developer_mode_packages")
         val GLIDE = booleanPreferencesKey("glide")
         val GLIDE_TRAIL = booleanPreferencesKey("glide_trail")
+        val ENABLED_LANGUAGES = stringSetPreferencesKey("enabled_languages")
+        val CURRENT_LANGUAGE = stringPreferencesKey("current_language")
     }
 }

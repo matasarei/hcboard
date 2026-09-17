@@ -34,6 +34,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import net.matasar.keyboard.R
+import net.matasar.keyboard.layout.Languages
 import net.matasar.keyboard.ui.theme.KeyboardTheme
 import kotlin.math.roundToInt
 
@@ -102,6 +103,13 @@ private fun SettingsScreen(settings: Settings, prefs: Prefs) {
         Section(stringResource(R.string.settings_section_feel))
         SwitchRow(stringResource(R.string.settings_haptics), settings.haptics) { scope.launch { prefs.setHaptics(it) } }
         SwitchRow(stringResource(R.string.settings_previews), settings.previews) { scope.launch { prefs.setPreviews(it) } }
+
+        Section(stringResource(R.string.settings_section_languages))
+        Text(stringResource(R.string.settings_languages_hint), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        for (language in Languages.all) {
+            val enabled = language.tag in settings.enabledLanguages
+            SwitchRow("${language.nativeName} · ${language.englishName}", enabled) { scope.launch { prefs.setLanguageEnabled(language.tag, it) } }
+        }
 
         Section(stringResource(R.string.settings_section_glide))
         SwitchRow(stringResource(R.string.settings_glide), settings.glide) { scope.launch { prefs.setGlide(it) } }

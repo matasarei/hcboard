@@ -9,4 +9,52 @@
         android:imeSubtypeMode="keyboard"
         android:label="@string/subtype_en_us"
         android:languageTag="en-US" />
+    <subtype
+        android:imeSubtypeExtraValue="KeyboardLayoutSet=uk"
+        android:imeSubtypeLocale="uk"
+        android:imeSubtypeMode="keyboard"
+        android:label="@string/subtype_uk"
+        android:languageTag="uk" />
+    <subtype
+        android:imeSubtypeExtraValue="KeyboardLayoutSet=ru"
+        android:imeSubtypeLocale="ru"
+        android:imeSubtypeMode="keyboard"
+        android:label="@string/subtype_ru"
+        android:languageTag="ru" />
+    <subtype
+        android:imeSubtypeExtraValue="KeyboardLayoutSet=fr"
+        android:imeSubtypeLocale="fr"
+        android:imeSubtypeMode="keyboard"
+        android:label="@string/subtype_fr"
+        android:languageTag="fr" />
+    <subtype
+        android:imeSubtypeExtraValue="KeyboardLayoutSet=es"
+        android:imeSubtypeLocale="es"
+        android:imeSubtypeMode="keyboard"
+        android:label="@string/subtype_es"
+        android:languageTag="es" />
+    <subtype
+        android:imeSubtypeExtraValue="KeyboardLayoutSet=de"
+        android:imeSubtypeLocale="de"
+        android:imeSubtypeMode="keyboard"
+        android:label="@string/subtype_de"
+        android:languageTag="de" />
+    <subtype
+        android:imeSubtypeExtraValue="KeyboardLayoutSet=it"
+        android:imeSubtypeLocale="it"
+        android:imeSubtypeMode="keyboard"
+        android:label="@string/subtype_it"
+        android:languageTag="it" />
+    <subtype
+        android:imeSubtypeExtraValue="KeyboardLayoutSet=pt_BR"
+        android:imeSubtypeLocale="pt_BR"
+        android:imeSubtypeMode="keyboard"
+        android:label="@string/subtype_pt_br"
+        android:languageTag="pt-BR" />
+    <subtype
+        android:imeSubtypeExtraValue="KeyboardLayoutSet=pl"
+        android:imeSubtypeLocale="pl"
+        android:imeSubtypeMode="keyboard"
+        android:label="@string/subtype_pl"
+        android:languageTag="pl" />
 </input-method>
