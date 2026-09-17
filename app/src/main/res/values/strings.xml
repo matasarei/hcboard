@@ -26,8 +26,9 @@
     <string name="settings_theme_dark">Dark</string>
     <string name="settings_height">Keyboard height: %1$d%%</string>
     <string name="settings_key_borders">Key borders</string>
+    <string name="settings_bottom_padding_auto">Automatic space under the keys</string>
     <string name="settings_bottom_padding">Space under the keys: %1$d dp</string>
-    <string name="settings_bottom_padding_hint">Raise the keys if the system\'s navigation bar or gesture pill covers the bottom row.</string>
+    <string name="settings_bottom_padding_hint">Automatic keeps the keys clear of the system\'s bar and its buttons. Turn it off to set the space yourself, smaller or larger.</string>
     <string name="settings_haptics">Haptic tick on key press</string>
     <string name="settings_previews">Show key preview on press</string>
     <string name="settings_editing_shortcuts">Ctrl+A/C/V/X as select, copy, paste, cut in text fields</string>

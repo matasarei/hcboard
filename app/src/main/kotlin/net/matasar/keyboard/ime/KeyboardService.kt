@@ -23,6 +23,7 @@ import net.matasar.keyboard.layout.Languages
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
@@ -115,7 +116,8 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
      */
     private var bottomBarOverlapPx by mutableIntStateOf(0)
 
-    /** The user's own extra room under the keys (settings), for a bar the device never reports. */
+    /** Settings: follow the measured bar, or use the user's own room under the keys instead. */
+    private var autoBottomPadding by mutableStateOf(true)
     private var manualBottomPaddingDp by mutableIntStateOf(0)
 
     /** The last measurement, kept for `dumpsys activity service`. */
@@ -143,6 +145,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
                 controller.editingShortcutsInTextFields = settings.editingShortcuts
                 controller.doubleTapLock = settings.doubleTapLock
                 controller.glideEnabled = settings.glide
+                autoBottomPadding = settings.bottomPaddingAuto
                 manualBottomPaddingDp = settings.bottomPaddingDp
                 controller.enabledLanguages = settings.enabledLanguages
                 // The persisted choice is authoritative: follow it when it changes under us, and
@@ -184,7 +187,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
                         controller = controller,
                         actions = this@KeyboardService,
                         autofill = autofillActions,
-                        bottomInset = with(LocalDensity.current) { bottomBarOverlapPx.toDp() } + manualBottomPaddingDp.dp,
+                        bottomInset = if (autoBottomPadding) with(LocalDensity.current) { bottomBarOverlapPx.toDp() } else manualBottomPaddingDp.dp,
                         feel = KeyboardFeel(
                             haptics = settings.haptics,
                             previews = settings.previews,
@@ -250,7 +253,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
 
     /** Every inset type the decor reports, its padding, and the last measurement, one line each. */
     private fun insetReport(): String {
-        val lines = mutableListOf("measurement: $lastMeasurement manualPaddingDp=$manualBottomPaddingDp")
+        val lines = mutableListOf("measurement: $lastMeasurement auto=$autoBottomPadding manualPaddingDp=$manualBottomPaddingDp")
         lines += "device: ${android.os.Build.MANUFACTURER} ${android.os.Build.MODEL}, Android ${android.os.Build.VERSION.RELEASE} (API ${android.os.Build.VERSION.SDK_INT}), navigation_mode=${runCatching { android.provider.Settings.Secure.getInt(contentResolver, "navigation_mode", -1) }.getOrDefault(-1)}, locales=${resources.configuration.locales.toLanguageTags()}"
         val decor = window?.window?.decorView ?: return (lines + "window: none").joinToString("\n")
         lines += "decor: padding=[${decor.paddingLeft},${decor.paddingTop},${decor.paddingRight},${decor.paddingBottom}] size=${decor.width}x${decor.height}"
