@@ -173,6 +173,14 @@ class SuggestionControllerTest {
     }
 
     @Test
+    fun `enter leaves no stale candidates behind`() {
+        textField()
+        type("chek")
+        controller.onKey(keys.first { it.action == KeyAction.Enter })
+        assertNull(controller.candidates)
+    }
+
+    @Test
     fun `a moved cursor re-derives the word and a language switch clears the strip`() {
         textField()
         port.before = "hello spel"

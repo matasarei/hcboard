@@ -306,6 +306,7 @@ class KeyboardController(
             KeyAction.Enter -> {
                 if (modifiers.anyMetaActive) dispatcher.sendKey(KeyEvent.KEYCODE_ENTER, modifiers.metaState())
                 else dispatcher.enter(editorActionId)
+                candidates = null
                 afterKey()
             }
             KeyAction.Shift -> shift = shift.tap(clock(), doubleTapWindowMs)
@@ -313,6 +314,7 @@ class KeyboardController(
             is KeyAction.KeyCode -> {
                 val code = if (modifiers.isActive(ModifierKey.FN) && action.fnKeyCode != null) action.fnKeyCode else action.keyCode
                 dispatcher.sendKey(code, modifiers.metaState())
+                candidates = null
                 afterKey()
             }
             is KeyAction.Modifier -> onModifierTap(action.modifier)
