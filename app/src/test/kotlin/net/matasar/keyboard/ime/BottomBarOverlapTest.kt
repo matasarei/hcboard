@@ -20,4 +20,12 @@ class BottomBarOverlapTest {
         assertEquals(0, bottomBarOverlap(barPx = 64, spaceBelowViewPx = 96))
         assertEquals(0, bottomBarOverlap(barPx = 0, spaceBelowViewPx = 0))
     }
+
+    @Test
+    fun `a reported inset wins, gesture navigation falls back to the system height, buttons never do`() {
+        assertEquals(64, bottomBarHeight(reportedPx = 64, gestureNavigation = true, systemBarHeightPx = 96))
+        assertEquals(96, bottomBarHeight(reportedPx = 0, gestureNavigation = true, systemBarHeightPx = 96))
+        assertEquals(0, bottomBarHeight(reportedPx = 0, gestureNavigation = false, systemBarHeightPx = 96))
+        assertEquals(0, bottomBarHeight(reportedPx = 0, gestureNavigation = true, systemBarHeightPx = -1))
+    }
 }

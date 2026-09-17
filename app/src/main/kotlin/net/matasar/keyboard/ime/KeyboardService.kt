@@ -14,6 +14,7 @@ import net.matasar.keyboard.autofill.InlineSuggestions
 import net.matasar.keyboard.autofill.SuggestionColors
 import net.matasar.keyboard.ui.theme.LocalKeyboardColors
 import androidx.compose.runtime.SideEffect
+import android.annotation.SuppressLint
 import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodSubtype
@@ -23,8 +24,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.dp
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import java.io.FileDescriptor
+import java.io.PrintWriter
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.lifecycle.Lifecycle
@@ -103,6 +107,12 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
      * exactly what is still uncovered and never twice.
      */
     private var bottomBarOverlapPx by mutableIntStateOf(0)
+
+    /** The user's own extra room under the keys (settings), for a bar the device never reports. */
+    private var manualBottomPaddingDp by mutableIntStateOf(0)
+
+    /** The last measurement, kept for `dumpsys activity service`. */
+    private var lastMeasurement: String = "not measured yet"
     private var currentPackage: String? = null
 
     /** The chip colours, captured from the theme so the inline request can style the chips. */
@@ -125,6 +135,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
                 controller.editingShortcutsInTextFields = settings.editingShortcuts
                 controller.doubleTapLock = settings.doubleTapLock
                 controller.glideEnabled = settings.glide
+                manualBottomPaddingDp = settings.bottomPaddingDp
                 controller.enabledLanguages = settings.enabledLanguages
                 // The persisted choice is authoritative: follow it when it changes under us, and
                 // fall back to the first enabled language when the current one was switched off.
@@ -164,7 +175,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
                         controller = controller,
                         actions = this@KeyboardService,
                         autofill = autofillActions,
-                        bottomInset = with(LocalDensity.current) { bottomBarOverlapPx.toDp() },
+                        bottomInset = with(LocalDensity.current) { bottomBarOverlapPx.toDp() } + manualBottomPaddingDp.dp,
                         feel = KeyboardFeel(
                             haptics = settings.haptics,
                             previews = settings.previews,
@@ -194,11 +205,47 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
             insets.getInsets(WindowInsetsCompat.Type.navigationBars()).bottom,
             insets.getInsetsIgnoringVisibility(WindowInsetsCompat.Type.navigationBars()).bottom,
         )
-        val bar = if (navigationBar > 0) navigationBar else insets.getInsets(WindowInsetsCompat.Type.mandatorySystemGestures()).bottom
+        val reported = if (navigationBar > 0) navigationBar else insets.getInsets(WindowInsetsCompat.Type.mandatorySystemGestures()).bottom
+        val bar = bottomBarHeight(reported, gestureNavigation(), systemNavigationBarHeightPx())
         val location = IntArray(2).also { view.getLocationInWindow(it) }
         val spaceBelowView = decor.height - (location[1] + view.height)
         val overlap = bottomBarOverlap(bar, spaceBelowView)
+        lastMeasurement = "reported=$reported bar=$bar decorHeight=${decor.height} viewTop=${location[1]} viewHeight=${view.height} " +
+            "spaceBelow=$spaceBelowView overlap=$overlap gestureNav=${gestureNavigation()} systemBarHeight=${systemNavigationBarHeightPx()}"
         if (overlap != bottomBarOverlapPx) bottomBarOverlapPx = overlap
+    }
+
+    /** Whether the device is on gesture navigation (`navigation_mode` 2), the mode that draws a pill over the IME. */
+    private fun gestureNavigation(): Boolean =
+        runCatching { android.provider.Settings.Secure.getInt(contentResolver, "navigation_mode", 0) }.getOrDefault(0) == 2
+
+    /**
+     * The system's own navigation-bar height, the value it uses for the bar it draws; 0 when the
+     * resource is missing. Lint discourages the internal resource, rightly: it is a last resort,
+     * read only when the window reports no inset at all under gesture navigation.
+     */
+    @SuppressLint("InternalInsetResource", "DiscouragedApi")
+    private fun systemNavigationBarHeightPx(): Int {
+        val id = resources.getIdentifier("navigation_bar_height", "dimen", "android")
+        return if (id != 0) resources.getDimensionPixelSize(id) else 0
+    }
+
+    /** `adb shell dumpsys activity service net.matasar.keyboard/.ime.KeyboardService`: the inset picture on this device. */
+    override fun dump(fd: FileDescriptor, fout: PrintWriter, args: Array<String>) {
+        super.dump(fd, fout, args)
+        fout.println("hcboard bottom bar: $lastMeasurement manualPaddingDp=$manualBottomPaddingDp")
+        val decor = window?.window?.decorView ?: return
+        val insets = ViewCompat.getRootWindowInsets(decor) ?: run { fout.println("hcboard insets: none on the decor"); return }
+        val types = listOf(
+            "navigationBars" to WindowInsetsCompat.Type.navigationBars(), "statusBars" to WindowInsetsCompat.Type.statusBars(),
+            "systemBars" to WindowInsetsCompat.Type.systemBars(), "mandatorySystemGestures" to WindowInsetsCompat.Type.mandatorySystemGestures(),
+            "systemGestures" to WindowInsetsCompat.Type.systemGestures(), "tappableElement" to WindowInsetsCompat.Type.tappableElement(),
+            "displayCutout" to WindowInsetsCompat.Type.displayCutout(), "captionBar" to WindowInsetsCompat.Type.captionBar(),
+        )
+        for ((name, type) in types) {
+            fout.println("hcboard insets $name: visible=${insets.getInsets(type)} ignoringVisibility=${runCatching { insets.getInsetsIgnoringVisibility(type) }.getOrNull()} isVisible=${insets.isVisible(type)}")
+        }
+        fout.println("hcboard window: decorPadding=[${decor.paddingLeft},${decor.paddingTop},${decor.paddingRight},${decor.paddingBottom}] decorSize=${decor.width}x${decor.height} attrs=${window?.window?.attributes}")
     }
 
     override fun onStartInputView(editorInfo: EditorInfo?, restarting: Boolean) {
