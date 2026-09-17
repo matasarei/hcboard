@@ -68,6 +68,13 @@ object PopupMetrics {
     val gap = 4.dp
     val accentCell = 40.dp
     val accentHeight = 46.dp
+
+    /**
+     * What both popups draw their glyph at: the size a key's own letter has, so a cell reads as
+     * the key it came from. One value, because the bubble and the accent row agreeing by
+     * accident is how they drifted apart before.
+     */
+    val glyphSize = Dimens.plainGlyphSize(accentHeight)
     val accentPadding = 4.dp
     /** How far the keyboard extends above the toolbar so popups have room; transparent to the app. */
     val overhang = 68.dp
@@ -100,7 +107,7 @@ fun PopupLayer(state: PopupState) {
             Text(
                 preview.label,
                 color = colors.onPopup,
-                fontSize = Dimens.plainGlyphSize(PopupMetrics.accentHeight),
+                fontSize = PopupMetrics.glyphSize,
                 fontWeight = FontWeight.Medium,
             )
         }
@@ -136,7 +143,7 @@ fun PopupLayer(state: PopupState) {
                     Text(
                         glyph,
                         color = if (selected) colors.onAction else colors.onPopup,
-                        fontSize = Dimens.plainGlyphSize(PopupMetrics.accentHeight),
+                        fontSize = PopupMetrics.glyphSize,
                     )
                 }
             }
