@@ -3,6 +3,7 @@ package net.matasar.keyboard.layout
 import android.view.KeyEvent
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
@@ -102,6 +103,14 @@ class SixtyPercentLayoutTest {
         assertEquals(5f, with[4].width)
         assertEquals(6.25f, SixtyPercentLayer.rows[4].keys.first { it.action == KeyAction.Space }.width)
         assertEquals(KeyAction.SwitchLanguage, with[4].fnAction)
+    }
+
+    @Test
+    fun `a row longer than its slots or a shift row over nine letters is refused`() {
+        val thirteenOnTop = Languages.english.copy(rows = listOf("qwertyuiopasd", "asdfghjkl", "zxcvbnm"))
+        assertFailsWith<IllegalArgumentException> { sixtyPercentLayer(thirteenOnTop, withGlobe = false) }
+        val tenOnShiftRow = Languages.english.copy(rows = listOf("qwertyuiop", "asdfghjkl", "zxcvbnmqwe"))
+        assertFailsWith<IllegalArgumentException> { sixtyPercentLayer(tenOnShiftRow, withGlobe = false) }
     }
 
     @Test
