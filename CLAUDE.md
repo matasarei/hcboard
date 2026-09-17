@@ -55,7 +55,10 @@ emulator profile is `medium_phone`; boot it headless with
   CC BY 4.0 list plus the curated overlay `scripts/wordlists/uk-everyday.tsv` (the corpus is news
   text and under-rates chat words); regenerate, never hand-edit: the builder reads a shipped asset
   as its source, so `scripts/build-wordlist.py <uk.txt> <uk.txt> --boost <the tsv>` rebuilds it
-  and `UkrainianOverlayTest` fails when the asset drifts below the overlay. The grid's letter-bounds registry is rebuilt per
+  and `UkrainianOverlayTest` fails when the asset drifts below the overlay. The same lists feed
+  `nlp/Candidates.kt` (prefix completions and one-edit corrections for the word before the cursor,
+  read through `InputDispatcher.wordBeforeCursor`): there is no composing region on purpose, words
+  are replaced with delete-and-commit, and nothing is read in a field where `suggestionsAllowed` says no. The grid's letter-bounds registry is rebuilt per
   layout and the glide listener is keyed on it, or a language switch classifies against the old
   alphabet. The trail is drawn from the root's draw pass: a sized canvas grows the IME window
   mid-gesture and shifts every later pointer position.
