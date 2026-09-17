@@ -25,6 +25,7 @@
     <string name="settings_theme_light">Light</string>
     <string name="settings_theme_dark">Dark</string>
     <string name="settings_theme_black">Black</string>
+    <string name="settings_try_password_label">Try a password field</string>
     <string name="settings_height">Keyboard height: %1$d%%</string>
     <string name="settings_key_borders">Key borders</string>
     <string name="settings_bottom_padding_auto">Automatic space under the keys</string>
@@ -42,4 +43,13 @@
     <string name="settings_section_glide">Glide typing</string>
     <string name="settings_glide">Glide typing: slide across the letters to type a word</string>
     <string name="settings_glide_trail">Show the trail while gliding</string>
+
+    <string name="fill_title">Fill a password</string>
+    <string name="fill_hint">Pick a login from your password manager. hcboard types the password into the field you came from and never shows it.</string>
+    <string name="fill_no_service">No password manager is set to fill passwords. Choose one, then open this again.</string>
+    <string name="fill_login_label">Login</string>
+    <string name="fill_password_label">Password</string>
+    <string name="fill_cancel">Cancel</string>
+    <string name="fill_show_logins">Show logins</string>
+    <string name="fill_choose_manager">Choose manager</string>
 </resources>

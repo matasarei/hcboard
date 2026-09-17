@@ -12,7 +12,11 @@ import android.view.inputmethod.InlineSuggestionsResponse
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.toArgb
 import net.matasar.keyboard.autofill.AndroidAutofillActions
+import net.matasar.keyboard.autofill.FILL_SCREEN_IME_OPTION
+import net.matasar.keyboard.autofill.FillActivity
+import net.matasar.keyboard.autofill.FillTarget
 import net.matasar.keyboard.autofill.InlineSuggestions
+import net.matasar.keyboard.autofill.PendingFill
 import net.matasar.keyboard.autofill.SuggestionColors
 import net.matasar.keyboard.ui.theme.LocalKeyboardColors
 import androidx.compose.runtime.SideEffect
@@ -32,6 +36,7 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import java.io.FileDescriptor
 import java.io.PrintWriter
+import java.nio.CharBuffer
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.lifecycle.Lifecycle
@@ -115,7 +120,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
         controller.candidateEngine = loaded.candidates
     }
     private lateinit var prefs: Prefs
-    private val autofillActions by lazy { AndroidAutofillActions(this) }
+    private val autofillActions by lazy { AndroidAutofillActions(this, canFill = ::canFillHere, onFillPassword = ::fillPassword) }
     internal var inputView: View? = null
         private set
 
@@ -141,6 +146,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
     /** The last measurement, kept for `dumpsys activity service`. */
     private var lastMeasurement: String = "not measured yet"
     private var currentPackage: String? = null
+    private var currentFieldId = View.NO_ID
 
     /** The chip colours, captured from the theme so the inline request can style the chips. */
     private var suggestionColors = SuggestionColors(0xFFFFFFFF.toInt(), 0xFF1B1C1F.toInt(), 0xFF5C5F66.toInt())
@@ -337,10 +343,24 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
         for (line in insetReport().lines()) fout.println("hcboard $line")
     }
 
+    /**
+     * A field got the keyboard's connection, shown or not: if it belongs to the app a password was
+     * filled for, the password is typed now, once. The fill screen's own form never takes it.
+     */
+    override fun onStartInput(attribute: EditorInfo?, restarting: Boolean) {
+        super.onStartInput(attribute, restarting)
+        if (attribute == null || attribute.privateImeOptions == FILL_SCREEN_IME_OPTION) return
+        val field = attribute.packageName?.let { FillTarget(it, attribute.fieldId) }
+        PendingFill.shared.takeFor(field) { password ->
+            controller.typeFilledPassword(CharBuffer.wrap(password))
+        }
+    }
+
     override fun onStartInputView(editorInfo: EditorInfo?, restarting: Boolean) {
         super.onStartInputView(editorInfo, restarting)
         if (!restarting) controller.onStartInput(editorInfo)
         currentPackage = editorInfo?.packageName
+        currentFieldId = editorInfo?.fieldId ?: View.NO_ID
         lifecycleScope.launch {
             val remembered = prefs.settings.first().developerModePackages
             controller.restoreDeveloperMode(currentPackage in remembered)
@@ -416,6 +436,16 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
         val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
         val text = clipboard.primaryClip?.getItemAt(0)?.coerceToText(this)?.toString() ?: return
         currentInputConnection?.commitText(text, 1)
+    }
+
+    /** The fill screen's own form never asks for another fill screen. */
+    private fun canFillHere(): Boolean = currentInputEditorInfo?.privateImeOptions != FILL_SCREEN_IME_OPTION
+
+    /** Opens the fill screen for the field that has the keyboard now. */
+    private fun fillPassword() {
+        if (!canFillHere()) return
+        val target = FillTarget(currentPackage ?: return, currentFieldId)
+        runCatching { startActivity(FillActivity.intent(this, target)) }
     }
 
     override fun openSettings() {
