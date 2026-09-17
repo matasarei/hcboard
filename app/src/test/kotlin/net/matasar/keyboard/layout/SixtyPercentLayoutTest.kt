@@ -111,9 +111,11 @@ class SixtyPercentLayoutTest {
     }
 
     @Test
-    fun `a row longer than its slots or a shift row over nine letters is refused`() {
+    fun `a top row outside ten to twelve letters or a shift row over nine letters is refused`() {
         val thirteenOnTop = Languages.english.copy(rows = listOf("qwertyuiopasd", "asdfghjkl", "zxcvbnm"))
         assertFailsWith<IllegalArgumentException> { sixtyPercentLayer(thirteenOnTop, withGlobe = false) }
+        val nineOnTop = Languages.english.copy(rows = listOf("qwertyuio", "asdfghjkl", "zxcvbnm"))
+        assertFailsWith<IllegalArgumentException> { sixtyPercentLayer(nineOnTop, withGlobe = false) }
         val tenOnShiftRow = Languages.english.copy(rows = listOf("qwertyuiop", "asdfghjkl", "zxcvbnmqwe"))
         assertFailsWith<IllegalArgumentException> { sixtyPercentLayer(tenOnShiftRow, withGlobe = false) }
     }
