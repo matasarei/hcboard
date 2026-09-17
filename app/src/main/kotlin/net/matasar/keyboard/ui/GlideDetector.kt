@@ -15,6 +15,9 @@ interface GlideListener {
     fun onGlideStart()
     fun onGlideMove(path: List<GlidePoint>)
     fun onGlideEnd(path: List<GlidePoint>)
+
+    /** The system took the pointer mid-glide: drop the trail, commit nothing. */
+    fun onGlideCancel()
 }
 
 /**
@@ -29,11 +32,18 @@ fun Modifier.glideDetector(
     keyWidthPx: () -> Float,
     longPressMs: Long,
     listener: GlideListener,
+    /**
+     * Read when a finger lands. The modifier stays attached whether or not gliding is possible:
+     * attaching and detaching it detaches every gesture under it, so a long press on Space that
+     * turned glide off would cancel itself.
+     */
+    enabled: () -> Boolean,
 ): Modifier = pointerInput(listener) {
     fun keyAt(root: Offset): Char? = letterBounds().entries.firstOrNull { it.value.contains(root) }?.key
 
     awaitEachGesture {
         val down = awaitFirstDown(requireUnconsumed = false, pass = PointerEventPass.Initial)
+        if (!enabled()) return@awaitEachGesture
         val origin = gridOriginInRoot()
         val start = down.position + origin
         val startKey = keyAt(start) ?: return@awaitEachGesture
@@ -43,6 +53,12 @@ fun Modifier.glideDetector(
         while (true) {
             val event = awaitPointerEvent(PointerEventPass.Initial)
             val change = event.changes.firstOrNull { it.id == down.id } ?: continue
+            // Nothing runs before this detector on the Initial pass, so a change that arrives
+            // already consumed is a cancellation: the pointer went to the system.
+            if (change.isConsumed) {
+                if (gliding) listener.onGlideCancel()
+                return@awaitEachGesture
+            }
             val position = change.position + origin
             if (gliding) {
                 gesture.add(position.x, position.y, change.uptimeMillis, keyAt(position))
