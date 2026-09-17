@@ -72,6 +72,17 @@ class DeveloperModeTest {
     }
 
     @Test
+    fun `shift and ctrl on a letter that sits on a punctuation slot carry shift meta`() {
+        val yi = Key("ї", KeyAction.Letter("ї", "Ї"), slot = ']')
+        terminal()
+        controller.onKey(Key("shift", KeyAction.Shift))
+        controller.onKey(ctrl)
+        controller.onKey(yi)
+        val shiftMeta = KeyEvent.META_SHIFT_ON or KeyEvent.META_SHIFT_LEFT_ON
+        assertEquals(listOf(KeyEvent.KEYCODE_RIGHT_BRACKET to (ctrlMeta or shiftMeta)), port.keys)
+    }
+
+    @Test
     fun `ctrl survives a layer switch so ctrl bracket works from the code page`() {
         terminal()
         controller.onKey(ctrl)

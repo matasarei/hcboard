@@ -298,7 +298,10 @@ class KeyboardController(
             }
         }
         val stroke: KeyStroke = keyStrokeFor(physical) ?: keyStrokeFor(text) ?: keyStrokeFor(key.label) ?: return
-        dispatcher.sendCombo(stroke, modifiers.metaState())
+        // A letter on a punctuation slot (ї on `]`) has no shifted twin to look up; Shift+Ctrl+ї is still Shift+Ctrl+].
+        val shiftedSlot = uppercase && key.slot?.isLetter() == false
+        val meta = if (shiftedSlot) modifiers.metaState() or KeyEvent.META_SHIFT_ON or KeyEvent.META_SHIFT_LEFT_ON else modifiers.metaState()
+        dispatcher.sendCombo(stroke, meta)
     }
 
     /** A key went out: one-shot shift and modifiers release; held ones remember they were used. */
