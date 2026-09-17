@@ -129,6 +129,12 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
      */
     private var bottomBarOverlapPx by mutableIntStateOf(0)
 
+    /** The last configuration seen, so a change can be told apart from a change that matters. */
+    private var lastConfiguration: Configuration? = null
+
+    /** How many times the display's shape made us rebuild the input view; for the dump. */
+    private var inputViewRebuilds = 0
+
     /** Settings: follow the measured bar, or use the user's own room under the keys instead. */
     private var autoBottomPadding by mutableStateOf(true)
     private var manualBottomPaddingDp by mutableIntStateOf(0)
@@ -175,12 +181,6 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
             }
         }
     }
-
-    /** The last configuration seen, so a change can be told apart from a change that matters. */
-    private var lastConfiguration: Configuration? = null
-
-    /** How many times the display's shape made us rebuild the input view; for the dump. */
-    private var inputViewRebuilds = 0
 
     /**
      * The display changed shape: a fold, a rotation, a resized window. The input view outlives
