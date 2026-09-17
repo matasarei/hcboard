@@ -218,10 +218,14 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
         val location = IntArray(2).also { view.getLocationInWindow(it) }
         val spaceBelowView = decor.height - (location[1] + view.height)
         val overlap = bottomBarOverlap(bar, spaceBelowView)
-        lastMeasurement = "reported=$reported bar=$bar decorHeight=${decor.height} viewTop=${location[1]} viewHeight=${view.height} " +
+        val measurement = "reported=$reported bar=$bar decorHeight=${decor.height} viewTop=${location[1]} viewHeight=${view.height} " +
             "spaceBelow=$spaceBelowView overlap=$overlap gestureNav=${gestureNavigation()} systemBarHeight=${systemNavigationBarHeightPx()}"
         if (overlap != bottomBarOverlapPx) bottomBarOverlapPx = overlap
-        BottomBarDiagnostics.report = insetReport()
+        // Layout passes are frequent; the report is only worth rebuilding when the numbers moved.
+        if (measurement != lastMeasurement) {
+            lastMeasurement = measurement
+            BottomBarDiagnostics.report = insetReport()
+        }
     }
 
     /**
