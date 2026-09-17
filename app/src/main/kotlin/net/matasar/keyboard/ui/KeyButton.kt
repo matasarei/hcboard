@@ -178,7 +178,6 @@ fun KeyButton(
             .background(if (pressed) colors.pressedKey else visual.background)
             .then(if (visual.ring != null) Modifier.border(2.dp, visual.ring, shape) else Modifier)
             .keyGestures(key.id, longPressMs, listener),
-        contentAlignment = Alignment.Center,
     ) {
         if (!showLabel) return@Box
         // A key is two zones, never a stack of paddings: the legend line on top, the glyph in what
