@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
@@ -139,6 +140,9 @@ private fun LayerGrid(controller: KeyboardController, feel: KeyboardFeel, popups
     BoxWithConstraints(modifier = Modifier.fillMaxWidth().onGloballyPositioned { gridOrigin = it.positionInRoot() }) {
         // 600 dp and wider (a Fold's inner display, a tablet) gets the 60% board.
         val wide = maxWidth >= Dimens.wideBreakpoint
+        // Told, not passed: re-creating the callbacks would re-key every key's pointerInput and
+        // drop the finger already on one.
+        SideEffect { callbacks.wideBoard = wide }
         val layout = if (wide) controller.wideLayout else controller.phoneLayout
         // Letter-key bounds in root coordinates, kept for the glide detector and the classifier.
         // Rebuilt per layout: a language switch, or unfolding onto the 60% board, must not leave
@@ -238,6 +242,9 @@ private class KeyScreenCallbacks(
 ) : KeyCallbacks {
     private var lastX = 0f
 
+    /** Whether the 60% board is showing: only there is a key's shifted symbol printed on it. */
+    var wideBoard = false
+
     override fun onPressStart(key: Key, bounds: Rect) {
         (key.action as? KeyAction.Modifier)?.let { controller.onModifierPressStart(it.modifier) }
         if (feel.previews && !controller.passwordField && key.showsPreview()) {
@@ -269,6 +276,9 @@ private class KeyScreenCallbacks(
                 controller.onKeyLongPress(key)
                 LongPressResult.HANDLED
             }
+            // A key with no accents types its shifted symbol instead, which the 60% board prints
+            // on the key. HANDLED, so the release does not type the plain one as well.
+            wideBoard && controller.onKeyLongPressShift(key) -> LongPressResult.HANDLED
             else -> LongPressResult.NONE
         }
     }
