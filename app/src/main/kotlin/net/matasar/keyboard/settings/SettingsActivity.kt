@@ -50,7 +50,7 @@ class SettingsActivity : ComponentActivity() {
         val prefs = Prefs(applicationContext)
         setContent {
             val settings by prefs.settings.collectAsState(initial = Settings())
-            KeyboardTheme(darkTheme = settings.theme.asDarkTheme(), black = settings.theme == ThemeChoice.BLACK) {
+            KeyboardThemeFor(settings.theme) {
                 Surface(modifier = Modifier.fillMaxSize()) {
                     SettingsScreen(settings, prefs)
                 }
@@ -58,6 +58,11 @@ class SettingsActivity : ComponentActivity() {
         }
     }
 }
+
+/** The keyboard's theme for the user's [ThemeChoice]: the one place the choice becomes colours. */
+@Composable
+fun KeyboardThemeFor(theme: ThemeChoice, content: @Composable () -> Unit) =
+    KeyboardTheme(darkTheme = theme.asDarkTheme(), black = theme == ThemeChoice.BLACK, content = content)
 
 fun ThemeChoice.asDarkTheme(): Boolean? = when (this) {
     ThemeChoice.SYSTEM -> null
