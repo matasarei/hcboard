@@ -93,6 +93,7 @@ fun KeyboardScreen(
             ) {
                 val chipText = if (controller.trackpad) "Move cursor" else controller.modifiers.chipText()
                 Toolbar(
+                    modifier = Modifier.background(colors.toolbar),
                     developerMode = controller.developerMode,
                     showDeveloperToggle = !wide,
                     chipText = chipText,

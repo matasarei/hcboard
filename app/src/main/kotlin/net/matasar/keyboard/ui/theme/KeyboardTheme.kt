@@ -23,6 +23,8 @@ import androidx.compose.ui.platform.LocalContext
 data class KeyboardColors(
     /** Keyboard background behind the keys. */
     val background: Color,
+    /** The toolbar's band; the background itself, except where a theme sets the toolbar apart. */
+    val toolbar: Color,
     /** Letter keys. */
     val key: Color,
     val onKey: Color,
@@ -97,6 +99,7 @@ private val FallbackDark = darkColorScheme(
 
 private fun ColorScheme.toKeyboardColors(dark: Boolean): KeyboardColors = KeyboardColors(
     background = surfaceContainer,
+    toolbar = surfaceContainer,
     key = if (dark) surfaceBright else surfaceBright,
     onKey = onSurface,
     functionKey = surfaceContainerHigh,
@@ -120,17 +123,51 @@ private fun ColorScheme.toKeyboardColors(dark: Boolean): KeyboardColors = Keyboa
 )
 
 /**
+ * The Black theme's neutrals, measured from a screenshot of Samsung's keyboard in its dark mode: a
+ * black board, letter keys a mid grey, and the function keys (Enter included) and the toolbar
+ * band one step up from black. The accents — an armed modifier, a chip — stay the dark scheme's.
+ */
+internal object BlackPalette {
+    val board = Color(0xFF000000)
+    val band = Color(0xFF171719)
+    val letterKey = Color(0xFF39393B)
+    val pressedKey = Color(0xFF55555A)
+    val popup = Color(0xFF48484B)
+    val label = Color(0xFFFDFCFF)
+    val icon = Color(0xFFE3E3E6)
+}
+
+/** These colours on Samsung's black board: surfaces from [BlackPalette], accents kept. */
+internal fun KeyboardColors.black(): KeyboardColors = copy(
+    background = BlackPalette.board,
+    toolbar = BlackPalette.band,
+    key = BlackPalette.letterKey,
+    onKey = BlackPalette.label,
+    functionKey = BlackPalette.band,
+    onFunctionKey = BlackPalette.label,
+    pressedKey = BlackPalette.pressedKey,
+    action = BlackPalette.band,
+    onAction = BlackPalette.label,
+    popup = BlackPalette.popup,
+    onPopup = BlackPalette.label,
+    icon = BlackPalette.icon,
+    keyShadow = Color.Transparent,
+)
+
+/**
  * Applies the Material 3 scheme (dynamic on Android 12+, fixed below) and exposes
  * [LocalKeyboardColors] for the keyboard composables.
  *
  * @param darkTheme null follows the system; true or false forces it (the theme setting).
+ * @param black the Black theme: the dark scheme's accents on [BlackPalette]'s surfaces.
  */
 @Composable
 fun KeyboardTheme(
     darkTheme: Boolean? = null,
+    black: Boolean = false,
     content: @Composable () -> Unit,
 ) {
-    val dark = darkTheme ?: isSystemInDarkTheme()
+    val dark = black || (darkTheme ?: isSystemInDarkTheme())
     val context = LocalContext.current
     val scheme = when {
         Build.VERSION.SDK_INT >= Build.VERSION_CODES.S ->
@@ -139,7 +176,8 @@ fun KeyboardTheme(
         else -> FallbackLight
     }
     MaterialTheme(colorScheme = scheme) {
-        CompositionLocalProvider(LocalKeyboardColors provides scheme.toKeyboardColors(dark)) {
+        val colors = scheme.toKeyboardColors(dark).let { if (black) it.black() else it }
+        CompositionLocalProvider(LocalKeyboardColors provides colors) {
             content()
         }
     }

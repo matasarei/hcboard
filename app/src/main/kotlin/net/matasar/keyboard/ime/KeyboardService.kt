@@ -58,6 +58,7 @@ import kotlinx.coroutines.withContext
 import net.matasar.keyboard.settings.Prefs
 import net.matasar.keyboard.settings.Settings
 import net.matasar.keyboard.settings.SettingsActivity
+import net.matasar.keyboard.settings.ThemeChoice
 import net.matasar.keyboard.settings.asDarkTheme
 import net.matasar.keyboard.ui.KeyboardFeel
 import net.matasar.keyboard.ui.KeyboardScreen
@@ -219,7 +220,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
             setContent {
                 val settings by prefs.settings.collectAsState(initial = Settings())
-                KeyboardTheme(darkTheme = settings.theme.asDarkTheme()) {
+                KeyboardTheme(darkTheme = settings.theme.asDarkTheme(), black = settings.theme == ThemeChoice.BLACK) {
                     val colors = LocalKeyboardColors.current
                     SideEffect {
                         suggestionColors = SuggestionColors(colors.key.toArgb(), colors.onKey.toArgb(), colors.subtle.toArgb())
