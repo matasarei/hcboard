@@ -214,21 +214,33 @@ class KeyboardController(
      * letter shows the US letter of its slot, so a Cyrillic board reads Q W E R T Y and Ctrl+С is
      * visibly Ctrl+C.
      */
-    fun displayLabel(key: Key): String {
+    fun displayLabel(key: Key): String = labelFor(key, shiftActive, fnActive)
+
+    /**
+     * Whether Shift is what makes this key's glyph what it is, so its legend is the live one.
+     * Shift is armed but changes nothing on a digit under Fn — the key types F1 either way — and
+     * a legend tinted there says the opposite of the truth.
+     */
+    fun shiftLive(key: Key): Boolean = shiftActive && labelFor(key, shift = false, fn = fnActive) != displayLabel(key)
+
+    /** The same question for Fn. */
+    fun fnLive(key: Key): Boolean = fnActive && labelFor(key, shift = shiftActive, fn = false) != displayLabel(key)
+
+    private fun labelFor(key: Key, shift: Boolean, fn: Boolean): String {
         if (modifiers.anyMetaActive && key.action is KeyAction.Letter && key.slot != null) return key.slot.uppercase()
-        fnLabel(key)?.let { return it }
+        fnLabel(key, shift, fn)?.let { return it }
         return when (val action = key.action) {
-            is KeyAction.Letter -> if (shiftActive) action.upper else action.lower
-            is KeyAction.Text -> if (shiftActive && action.shifted != null) action.shifted else key.label
+            is KeyAction.Letter -> if (shift) action.upper else action.lower
+            is KeyAction.Text -> if (shift && action.shifted != null) action.shifted else key.label
             else -> key.label
         }
     }
 
     /** What Fn makes of a key, or null when Fn leaves it alone. */
-    private fun fnLabel(key: Key): String? {
-        if (!fnActive) return null
+    private fun fnLabel(key: Key, shift: Boolean = shiftActive, fn: Boolean = fnActive): String? {
+        if (!fn) return null
         val action = key.fnAction
-        if (action is KeyAction.Text) return if (shiftActive && action.shifted != null) action.shifted else action.text
+        if (action is KeyAction.Text) return if (shift && action.shifted != null) action.shifted else action.text
         return key.fnLegend
     }
 

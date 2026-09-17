@@ -177,7 +177,6 @@ private fun LayerGrid(controller: KeyboardController, feel: KeyboardFeel, popups
             Dimens.toolbarHeight - Dimens.topPadding - Dimens.bottomPadding - rowGap * (rows - 1)
         val keyHeight = minOf((if (wide) Dimens.wideKeyHeight else Dimens.keyHeight) * feel.heightScale, budget / rows)
         val unitWidth = (maxWidth - sidePadding * 2 - Dimens.keyGap * (layer.units.toInt() - 1)) / layer.units
-        val fnActive = controller.modifiers.isActive(ModifierKey.FN)
         // Glide lives on the letters layer of either board; the symbols and code pages tap only.
         // The detector is always attached and asks this at each touch: swapping the modifier in
         // and out would cancel the gestures under it, which is how a trackpad started by a long
@@ -215,9 +214,11 @@ private fun LayerGrid(controller: KeyboardController, feel: KeyboardFeel, popups
                         showLabel = !controller.trackpad,
                         legendBand = wide,
                         // The legends stay where they are; the one that is live tints, and the
-                        // glyph below already says what the key would type.
-                        legendColor = if (fnActive) colors.armedRing else null,
-                        topLegendColor = if (controller.shiftActive) colors.armedRing else null,
+                        // glyph below already says what the key would type. Live means this
+                        // modifier is what makes the glyph what it is: Shift with Fn does nothing
+                        // to a digit, so `!` stays subtle while `F1` lights up.
+                        legendColor = if (controller.fnLive(key)) colors.armedRing else null,
+                        topLegendColor = if (controller.shiftLive(key)) colors.armedRing else null,
                         onBounds = if (key.action is KeyAction.Letter) ({ k, rect -> letterBounds[(k.action as KeyAction.Letter).lower[0]] = rect }) else null,
                     )
                 }
