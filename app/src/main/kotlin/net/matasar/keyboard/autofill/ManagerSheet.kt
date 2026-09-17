@@ -13,6 +13,8 @@ import org.xmlpull.v1.XmlPullParser
 interface AutofillActions {
     /** The user-facing name of the preferred autofill service, or null if none or unreadable. */
     fun currentManagerLabel(): String?
+    /** Whether [openManager] reaches the manager itself, rather than Android's settings for it. */
+    fun canOpenManager(): Boolean
     fun openManager()
     fun changeManager()
 }
@@ -71,6 +73,8 @@ class AndroidAutofillActions(private val context: Context) : AutofillActions {
      * way to fill a terminal: Android never offers autofill there. It never does nothing — a
      * manager with no screen of its own to open lands the user on Android's password settings.
      */
+    override fun canOpenManager(): Boolean = labelledManagerComponents().any { openIntentFor(it) != null }
+
     override fun openManager() {
         // A screen that resolves can still refuse a keyboard (a permission, a disabled component),
         // which only the attempt reveals; the manager's next component gets its turn then.
@@ -104,7 +108,10 @@ class AndroidAutofillActions(private val context: Context) : AutofillActions {
                         .firstOrNull { parser.getAttributeNameResource(it) == android.R.attr.settingsActivity }
                         ?.let(parser::getAttributeValue)
                         ?: break
-                    return ComponentName(component.packageName, qualifiedClassName(component.packageName, activity))
+                    val settings = ComponentName(component.packageName, qualifiedClassName(component.packageName, activity))
+                    // Only the system may start a private one (Google's), so it is not a way in.
+                    if (runCatching { pm.getActivityInfo(settings, 0).exported }.getOrDefault(false)) return settings
+                    break
                 }
             } catch (_: Exception) {
                 // A manager's malformed meta-data is not ours to fix; fall through to the next.
