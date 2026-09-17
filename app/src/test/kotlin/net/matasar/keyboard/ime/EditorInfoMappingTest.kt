@@ -77,6 +77,15 @@ class EditorInfoMappingTest {
         assertTrue(suggestionsAllowed(InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_MULTI_LINE or InputType.TYPE_TEXT_FLAG_AUTO_CORRECT))
         assertTrue(suggestionsAllowed(InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_SHORT_MESSAGE))
         assertFalse(suggestionsAllowed(InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS))
+        // A field asking for no suggestions and for autocorrect at once contradicts itself; the
+        // flag that asks for correction wins, because correcting needs candidates. 0xac001 is
+        // what the Google app's prompt (Gemini) reported on a Fold: text, sentence caps,
+        // autocorrect, multi-line, no suggestions.
+        assertTrue(suggestionsAllowed(InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS or InputType.TYPE_TEXT_FLAG_AUTO_CORRECT))
+        assertTrue(suggestionsAllowed(0xac001))
+        // Both flags do not rescue a field that is off for another reason.
+        assertFalse(suggestionsAllowed(InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD or InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS or InputType.TYPE_TEXT_FLAG_AUTO_CORRECT))
+        assertFalse(suggestionsAllowed(InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS or InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS or InputType.TYPE_TEXT_FLAG_AUTO_CORRECT))
         assertFalse(suggestionsAllowed(InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_URI))
         assertFalse(suggestionsAllowed(InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS))
         assertFalse(suggestionsAllowed(InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_WEB_EMAIL_ADDRESS))
