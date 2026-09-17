@@ -21,9 +21,9 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import net.matasar.keyboard.ui.theme.LocalKeyboardColors
 import kotlin.math.roundToInt
 
@@ -61,8 +61,10 @@ class PopupState {
 }
 
 object PopupMetrics {
-    val previewWidth = 50.dp
-    val previewHeight = 58.dp
+    // The press bubble is the accent row's sibling: one cell's shape, a little wider so a broad
+    // glyph is not cramped, and the same glyph size, so the two popups never drift apart.
+    val previewWidth = 48.dp
+    val previewHeight = 50.dp
     val gap = 4.dp
     val accentCell = 40.dp
     val accentHeight = 46.dp
@@ -95,7 +97,12 @@ fun PopupLayer(state: PopupState) {
                 .height(PopupMetrics.previewHeight),
             contentAlignment = Alignment.Center,
         ) {
-            Text(preview.label, color = colors.onPopup, fontSize = 30.sp)
+            Text(
+                preview.label,
+                color = colors.onPopup,
+                fontSize = Dimens.plainGlyphSize(PopupMetrics.accentHeight),
+                fontWeight = FontWeight.Medium,
+            )
         }
     }
 
