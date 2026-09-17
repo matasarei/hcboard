@@ -32,14 +32,14 @@ import net.matasar.keyboard.R
 class FillActivity : Activity() {
 
     private lateinit var password: FillField
-    private var targetPackage: String? = null
+    private var target: FillTarget? = null
     private var asked = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
-        targetPackage = intent.getStringExtra(EXTRA_TARGET_PACKAGE)
-        if (targetPackage == null) {
+        target = intent.getStringExtra(EXTRA_TARGET_PACKAGE)?.let { FillTarget(it, intent.getIntExtra(EXTRA_TARGET_FIELD, View.NO_ID)) }
+        if (target == null) {
             finish()
             return
         }
@@ -103,7 +103,7 @@ class FillActivity : Activity() {
 
     /** The manager filled the password: hand it to the keyboard and get out of the way. */
     private fun handOver(value: CharSequence) {
-        val target = targetPackage ?: return
+        val target = this.target ?: return
         PendingFill.shared.offer(target, CharArray(value.length) { value[it] })
         finish()
     }
@@ -124,11 +124,13 @@ class FillActivity : Activity() {
 
     companion object {
         private const val EXTRA_TARGET_PACKAGE = "net.matasar.keyboard.autofill.TARGET_PACKAGE"
+        private const val EXTRA_TARGET_FIELD = "net.matasar.keyboard.autofill.TARGET_FIELD"
 
-        /** Opens the fill screen for a password to be typed into [targetPackage]'s field. */
-        fun intent(context: Context, targetPackage: String): Intent =
+        /** Opens the fill screen for a password to be typed into [target]. */
+        fun intent(context: Context, target: FillTarget): Intent =
             Intent(context, FillActivity::class.java)
-                .putExtra(EXTRA_TARGET_PACKAGE, targetPackage)
+                .putExtra(EXTRA_TARGET_PACKAGE, target.packageName)
+                .putExtra(EXTRA_TARGET_FIELD, target.fieldId)
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
     }
 }

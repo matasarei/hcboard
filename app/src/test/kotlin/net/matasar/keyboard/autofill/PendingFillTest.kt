@@ -18,7 +18,7 @@ class PendingFillTest {
         scheduled.filter { it.first <= time }.forEach { it.second() }
         scheduled.removeAll { it.first <= time }
     }
-    private val termux = "com.termux"
+    private val termux = FillTarget("com.termux", 7)
 
     private fun secret() = "s3cret".toCharArray()
     private fun CharArray.wiped() = all { it == PendingFill.WIPED }
@@ -35,7 +35,7 @@ class PendingFillTest {
     @Test
     fun `another package gets nothing, and the password is gone for the right one too`() {
         fill.offer(termux, secret())
-        assertNull(fill.takeFor("com.evil.app") { String(it) })
+        assertNull(fill.takeFor(FillTarget("com.evil.app", 7)) { String(it) })
         assertNull(fill.takeFor(termux) { String(it) })
     }
 
@@ -59,7 +59,14 @@ class PendingFillTest {
     }
 
     @Test
-    fun `an unknown package gets nothing`() {
+    fun `another field of the same app gets nothing`() {
+        fill.offer(termux, secret())
+        assertNull(fill.takeFor(termux.copy(fieldId = 8)) { String(it) })
+        assertFalse(fill.waiting)
+    }
+
+    @Test
+    fun `an unknown field gets nothing`() {
         fill.offer(termux, secret())
         assertNull(fill.takeFor(null) { String(it) })
         assertFalse(fill.waiting)
@@ -84,7 +91,7 @@ class PendingFillTest {
 
         val refused = secret()
         fill.offer(termux, refused)
-        fill.takeFor("com.other") { }
+        fill.takeFor(FillTarget("com.other", 7)) { }
         assertTrue(refused.wiped())
     }
 

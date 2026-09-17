@@ -14,6 +14,7 @@ import androidx.compose.ui.graphics.toArgb
 import net.matasar.keyboard.autofill.AndroidAutofillActions
 import net.matasar.keyboard.autofill.FILL_SCREEN_IME_OPTION
 import net.matasar.keyboard.autofill.FillActivity
+import net.matasar.keyboard.autofill.FillTarget
 import net.matasar.keyboard.autofill.PendingFill
 import net.matasar.keyboard.autofill.InlineSuggestions
 import net.matasar.keyboard.autofill.SuggestionColors
@@ -145,6 +146,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
     /** The last measurement, kept for `dumpsys activity service`. */
     private var lastMeasurement: String = "not measured yet"
     private var currentPackage: String? = null
+    private var currentFieldId = View.NO_ID
 
     /** The chip colours, captured from the theme so the inline request can style the chips. */
     private var suggestionColors = SuggestionColors(0xFFFFFFFF.toInt(), 0xFF1B1C1F.toInt(), 0xFF5C5F66.toInt())
@@ -348,7 +350,8 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
     override fun onStartInput(attribute: EditorInfo?, restarting: Boolean) {
         super.onStartInput(attribute, restarting)
         if (attribute == null || attribute.privateImeOptions == FILL_SCREEN_IME_OPTION) return
-        PendingFill.shared.takeFor(attribute.packageName) { password ->
+        val field = attribute.packageName?.let { FillTarget(it, attribute.fieldId) }
+        PendingFill.shared.takeFor(field) { password ->
             controller.typeFilledPassword(CharBuffer.wrap(password))
         }
     }
@@ -357,6 +360,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
         super.onStartInputView(editorInfo, restarting)
         if (!restarting) controller.onStartInput(editorInfo)
         currentPackage = editorInfo?.packageName
+        currentFieldId = editorInfo?.fieldId ?: View.NO_ID
         lifecycleScope.launch {
             val remembered = prefs.settings.first().developerModePackages
             controller.restoreDeveloperMode(currentPackage in remembered)
@@ -434,9 +438,9 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
         currentInputConnection?.commitText(text, 1)
     }
 
-    /** Opens the fill screen for the app whose field has the keyboard now. */
+    /** Opens the fill screen for the field that has the keyboard now. */
     private fun fillPassword() {
-        val target = currentPackage ?: return
+        val target = FillTarget(currentPackage ?: return, currentFieldId)
         runCatching { startActivity(FillActivity.intent(this, target)) }
     }
 
