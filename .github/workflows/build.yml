@@ -10,7 +10,10 @@ permissions:
 
 concurrency:
   group: build-${{ github.ref }}
-  cancel-in-progress: true
+  # A pull request's older run is worthless once the branch is pushed again. A run on main is
+  # not: its last job deletes and re-creates the dev release, and cancelling it between the two
+  # would leave no release at all, so runs on main wait their turn instead.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   build:
