@@ -126,6 +126,26 @@ class SuggestionControllerTest {
     }
 
     @Test
+    fun `a filled password is typed and never read back for the strip until a key`() {
+        textField()
+        val reads = port.textReads
+        controller.typeFilledPassword("chec")
+        assertEquals(listOf("chec"), port.committed)
+        controller.onSelectionChanged()
+        assertNull(controller.candidates)
+        assertEquals(reads, port.textReads)
+        type("k")
+        assertEquals("check", controller.candidates?.typed) // a key of the user's own lifts it
+
+        controller.typeFilledPassword("chek")
+        controller.onFinishInput()
+        textField()
+        port.before = "spel"
+        controller.onSelectionChanged()
+        assertEquals("spel", controller.candidates?.typed) // and so does another field
+    }
+
+    @Test
     fun `a combination modifier hides the strip and settings switch the parts off`() {
         textField()
         type("che")

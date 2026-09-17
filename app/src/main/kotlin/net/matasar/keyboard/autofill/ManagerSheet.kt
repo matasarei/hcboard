@@ -25,6 +25,8 @@ interface AutofillActions {
     /** The password managers to offer, preferred first; empty when none is installed. */
     fun managers(): List<ManagerApp>
     fun openManager(manager: ManagerApp)
+    /** Opens the fill screen; the password the manager fills there is typed into this field. */
+    fun fillPassword()
     fun changeManager()
 }
 
@@ -45,7 +47,12 @@ fun changeManagerIntent(packageName: String, sdkInt: Int = Build.VERSION.SDK_INT
         .setData("package:$packageName".toUri())
         .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
 
-class AndroidAutofillActions(private val context: Context) : AutofillActions {
+class AndroidAutofillActions(
+    private val context: Context,
+    private val onFillPassword: () -> Unit,
+) : AutofillActions {
+
+    override fun fillPassword() = onFillPassword()
 
     /**
      * Every installed autofill and credential-provider service. Android 14+ keeps the user's

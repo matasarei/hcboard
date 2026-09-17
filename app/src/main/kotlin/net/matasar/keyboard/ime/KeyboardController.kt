@@ -169,7 +169,13 @@ class KeyboardController(
 
     /** Whether the word before the cursor may be read and candidates shown right now. */
     val suggestionsAvailable: Boolean
-        get() = suggestionsEnabled && candidateEngine != null && fieldAllowsSuggestions && !modifiers.anyMetaActive && !trackpad
+        get() = suggestionsEnabled && candidateEngine != null && fieldAllowsSuggestions && !modifiers.anyMetaActive && !trackpad && !passwordTyped
+
+    /**
+     * A filled password was just typed into this field: nothing is read back from it for the strip
+     * until the user presses a key or leaves the field, whatever kind of field it is.
+     */
+    private var passwordTyped = false
 
     /** What the strip shows: candidates for the word being typed, or the alternatives of the last glide. */
     var candidates: WordCandidates? by mutableStateOf(null)
@@ -263,6 +269,7 @@ class KeyboardController(
     }
 
     fun onFinishInput() {
+        passwordTyped = false
         shift = Latch()
         modifiers = Modifiers()
         usedHolds.clear()
@@ -289,6 +296,7 @@ class KeyboardController(
     private val doubleTapWindowMs: Long get() = if (doubleTapLock) Latch.DOUBLE_TAP_WINDOW_MS else 0L
 
     fun onKey(key: Key) {
+        passwordTyped = false
         candidatesCollapsed = false
         val undo = lastAutocorrect
         lastAutocorrect = null
@@ -476,6 +484,16 @@ class KeyboardController(
         // The field may have changed under the strip; replace only what is still there.
         if (dispatcher.textEndsWith(current.typed)) dispatcher.replaceWordBeforeCursor(current.typed, word)
         candidates = null
+    }
+
+    /**
+     * Types a password the fill screen got from the manager. It is committed as it is, and the
+     * strip never shows a word of it: the field decides whether the password is visible, not us.
+     */
+    fun typeFilledPassword(password: CharSequence) {
+        dispatcher.commitText(password)
+        passwordTyped = true
+        clearCandidates()
     }
 
     /** The chevron: fold the strip away so the toolbar's buttons show until the next key. */

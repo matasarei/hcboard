@@ -12,6 +12,9 @@ import android.view.inputmethod.InlineSuggestionsResponse
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.toArgb
 import net.matasar.keyboard.autofill.AndroidAutofillActions
+import net.matasar.keyboard.autofill.FILL_SCREEN_IME_OPTION
+import net.matasar.keyboard.autofill.FillActivity
+import net.matasar.keyboard.autofill.PendingFill
 import net.matasar.keyboard.autofill.InlineSuggestions
 import net.matasar.keyboard.autofill.SuggestionColors
 import net.matasar.keyboard.ui.theme.LocalKeyboardColors
@@ -31,6 +34,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import java.io.FileDescriptor
+import java.nio.CharBuffer
 import java.io.PrintWriter
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
@@ -115,7 +119,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
         controller.candidateEngine = loaded.candidates
     }
     private lateinit var prefs: Prefs
-    private val autofillActions by lazy { AndroidAutofillActions(this) }
+    private val autofillActions by lazy { AndroidAutofillActions(this, onFillPassword = ::fillPassword) }
     internal var inputView: View? = null
         private set
 
@@ -337,6 +341,18 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
         for (line in insetReport().lines()) fout.println("hcboard $line")
     }
 
+    /**
+     * A field got the keyboard's connection, shown or not: if it belongs to the app a password was
+     * filled for, the password is typed now, once. The fill screen's own form never takes it.
+     */
+    override fun onStartInput(attribute: EditorInfo?, restarting: Boolean) {
+        super.onStartInput(attribute, restarting)
+        if (attribute == null || attribute.privateImeOptions == FILL_SCREEN_IME_OPTION) return
+        PendingFill.shared.takeFor(attribute.packageName) { password ->
+            controller.typeFilledPassword(CharBuffer.wrap(password))
+        }
+    }
+
     override fun onStartInputView(editorInfo: EditorInfo?, restarting: Boolean) {
         super.onStartInputView(editorInfo, restarting)
         if (!restarting) controller.onStartInput(editorInfo)
@@ -416,6 +432,12 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
         val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
         val text = clipboard.primaryClip?.getItemAt(0)?.coerceToText(this)?.toString() ?: return
         currentInputConnection?.commitText(text, 1)
+    }
+
+    /** Opens the fill screen for the app whose field has the keyboard now. */
+    private fun fillPassword() {
+        val target = currentPackage ?: return
+        runCatching { startActivity(FillActivity.intent(this, target)) }
     }
 
     override fun openSettings() {
