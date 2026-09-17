@@ -276,10 +276,20 @@ private class KeyScreenCallbacks(
                 controller.onKeyLongPress(key)
                 LongPressResult.HANDLED
             }
-            // A key with no accents types its shifted symbol instead, which the 60% board prints
-            // on the key. HANDLED, so the release does not type the plain one as well.
-            wideBoard && controller.onKeyLongPressShift(key) -> LongPressResult.HANDLED
-            else -> LongPressResult.NONE
+            else -> {
+                // A key with no accents types its shifted symbol instead, which the 60% board
+                // prints on the key. The bubble was raised on the tap meaning, so it says what
+                // the hold produces for as long as the finger is down, and HANDLED stops the
+                // release from typing the plain character as well.
+                val shifted = if (wideBoard) controller.longPressText(key) else null
+                if (shifted == null) {
+                    LongPressResult.NONE
+                } else {
+                    if (popups.preview != null) popups.preview = PressPreview(bounds, shifted)
+                    controller.onKeyLongPressShift(key)
+                    LongPressResult.HANDLED
+                }
+            }
         }
     }
 

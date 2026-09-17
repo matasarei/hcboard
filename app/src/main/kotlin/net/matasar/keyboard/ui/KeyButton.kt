@@ -181,12 +181,17 @@ fun KeyButton(
     ) {
         if (!showLabel) return@Box
         // A key is two zones, never a stack of paddings: the legend line on top, the glyph in what
-        // is left. A key with nothing to say on that line does without it, and the 60% board keeps
-        // it on every key so a row shares one baseline. Nothing is dropped on a short key — both
-        // zones are sized from the key's own height, so the 80% setting shrinks them instead.
-        val hasLegendLine = legendBand || topLegend != null || legend != null
+        // is left. Nothing is dropped on a short key — both zones are sized from the key's own
+        // height, so the 80% setting shrinks them instead.
+        //
+        // Drawing the line and sizing for it are two different questions. A key with nothing to
+        // say on that line draws no line and centres its glyph in the whole key, which is how a
+        // keyboard's plain keys read; but on the 60% board it is still *sized* as though the line
+        // were there, so every letter in a row is the same size whether or not it carries one.
+        val drawsLegendLine = topLegend != null || legend != null
+        val sizedForLegendLine = legendBand || drawsLegendLine
         Column(modifier = Modifier.fillMaxSize()) {
-            if (hasLegendLine) {
+            if (drawsLegendLine) {
                 // A minimum, not a cap: the line reserves the same room on every key in the row so
                 // they share a baseline, and grows rather than clipping a legend if the font is
                 // taller than the reserve (a large system font scale).
@@ -226,13 +231,13 @@ fun KeyButton(
                         painter = painterResource(icon.drawable()),
                         contentDescription = key.label,
                         tint = visual.foreground,
-                        modifier = Modifier.height(Dimens.iconSize(height, hasLegendLine)),
+                        modifier = Modifier.height(Dimens.iconSize(height, sizedForLegendLine)),
                     )
                 } else {
                     val word = key.style != KeyStyle.LETTER || label.length > 1
                     val size = when {
-                        word -> Dimens.wordSize(height, labelSize, hasLegendLine)
-                        hasLegendLine -> Dimens.glyphSize(height)
+                        word -> Dimens.wordSize(height, labelSize, sizedForLegendLine)
+                        sizedForLegendLine -> Dimens.glyphSize(height)
                         else -> Dimens.plainGlyphSize(height)
                     }
                     Text(
