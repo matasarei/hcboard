@@ -83,7 +83,10 @@ emulator profile is `medium_phone`; boot it headless with
   `armedRing`, and an icon steps aside for an Fn meaning that has a name (backspace reads `Del`).
 - **Privacy rules:** no `INTERNET` permission, ever; never log typed text or anything from a
   password field; never read or cache the content of inline autofill suggestions, only host the
-  views the manager draws.
+  views the manager draws. The one exception is the fill screen (`autofill/FillActivity.kt`): a
+  password the user picked there goes through `PendingFill` to the package it was requested for,
+  once and within 30 s, and is wiped after; it is never shown by the keyboard (not even in the
+  strip), logged, stored, or put in an `Intent` or `Bundle`.
 - **Emulator quirks:** it reports a hardware keyboard, so set
   `adb shell settings put secure show_ime_with_hard_keyboard 1` or the keyboard never shows;
   `am force-stop` on the package while it is the current IME makes Android fall back to Gboard;
