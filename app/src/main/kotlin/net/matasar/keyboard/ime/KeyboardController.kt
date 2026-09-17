@@ -201,22 +201,39 @@ class KeyboardController(
     /** Held modifiers whose long press wants to lock them; decided when the finger lifts. */
     private val pendingLocks = mutableSetOf<ModifierKey>()
 
-    private val uppercase: Boolean get() = shift.active || modifiers.isActive(ModifierKey.SHIFT)
+    /** Shift is on, by the latch or the strip's modifier: the key would type its shifted symbol. */
+    val shiftActive: Boolean get() = shift.active || modifiers.isActive(ModifierKey.SHIFT)
+
+    private val fnActive: Boolean get() = modifiers.isActive(ModifierKey.FN)
 
     /**
-     * What a letter key shows right now. While a combination modifier is active (Ctrl, Alt, Meta,
-     * or the strip's Shift, which all send a key event) a letter shows the US letter of its slot,
-     * so a Cyrillic board reads Q W E R T Y and Ctrl+С is visibly Ctrl+C. The Shift latch alone
-     * keeps the language: it only changes case.
+     * What a key shows right now, which is always what it would type if it were tapped. Shift
+     * shows the shifted symbol (`1` reads `!`), Fn the key's Fn meaning (`1` reads `F1`, `х` reads
+     * `[`, backspace reads `Del`) and Fn+Shift the shifted one of those (`{`). While a combination
+     * modifier is active (Ctrl, Alt, Meta, or the strip's Shift, which all send a key event) a
+     * letter shows the US letter of its slot, so a Cyrillic board reads Q W E R T Y and Ctrl+С is
+     * visibly Ctrl+C.
      */
-    fun displayLabel(key: Key): String = when (val action = key.action) {
-        is KeyAction.Letter -> when {
-            modifiers.anyMetaActive && key.slot != null -> key.slot.uppercase()
-            uppercase -> action.upper
-            else -> action.lower
+    fun displayLabel(key: Key): String {
+        if (modifiers.anyMetaActive && key.action is KeyAction.Letter && key.slot != null) return key.slot.uppercase()
+        fnLabel(key)?.let { return it }
+        return when (val action = key.action) {
+            is KeyAction.Letter -> if (shiftActive) action.upper else action.lower
+            is KeyAction.Text -> if (shiftActive && action.shifted != null) action.shifted else key.label
+            else -> key.label
         }
-        else -> key.label
     }
+
+    /** What Fn makes of a key, or null when Fn leaves it alone. */
+    private fun fnLabel(key: Key): String? {
+        if (!fnActive) return null
+        val action = key.fnAction
+        if (action is KeyAction.Text) return if (shiftActive && action.shifted != null) action.shifted else action.text
+        return key.fnLegend
+    }
+
+    /** An icon steps aside while Fn is active and the key's Fn meaning has a name of its own. */
+    fun showsIcon(key: Key): Boolean = fnLabel(key) == null
 
     fun onStartInput(info: EditorInfo?) {
         fieldKind = info?.let { fieldKindOf(it.inputType) } ?: FieldKind.TEXT
@@ -277,12 +294,12 @@ class KeyboardController(
     private fun perform(key: Key, action: KeyAction) {
         when (action) {
             is KeyAction.Letter -> {
-                val text = if (uppercase) action.upper else action.lower
+                val text = if (shiftActive) action.upper else action.lower
                 if (modifiers.anyMetaActive) sendCombo(text, key) else { dispatcher.commitText(text); refreshCandidates() }
                 afterKey()
             }
             is KeyAction.Text -> {
-                val text = if (uppercase && action.shifted != null) action.shifted else action.text
+                val text = if (shiftActive && action.shifted != null) action.shifted else action.text
                 when {
                     modifiers.anyMetaActive -> sendCombo(text, key)
                     text in SEPARATORS -> commitSeparator(text)
@@ -333,7 +350,7 @@ class KeyboardController(
      */
     private fun sendCombo(text: String, key: Key) {
         // A letter sends the key of the slot it sits in: Ctrl+С on a Cyrillic board is Ctrl+C.
-        val physical = key.slot?.let { if (uppercase) it.uppercase() else it.toString() } ?: text
+        val physical = key.slot?.let { if (shiftActive) it.uppercase() else it.toString() } ?: text
         val onlyCtrl = modifiers.active.filter { it != ModifierKey.FN } == listOf(ModifierKey.CTRL)
         if (onlyCtrl && editingShortcutsInTextFields && !terminalField) {
             EditingAction.forLetter(physical)?.let { action ->
@@ -342,7 +359,7 @@ class KeyboardController(
         }
         val stroke: KeyStroke = keyStrokeFor(physical) ?: keyStrokeFor(text) ?: keyStrokeFor(key.label) ?: return
         // A letter on a punctuation slot (ї on `]`) has no shifted twin to look up; Shift+Ctrl+ї is still Shift+Ctrl+].
-        val shiftedSlot = uppercase && key.slot?.isLetter() == false
+        val shiftedSlot = shiftActive && key.slot?.isLetter() == false
         val meta = if (shiftedSlot) modifiers.metaState() or KeyEvent.META_SHIFT_ON or KeyEvent.META_SHIFT_LEFT_ON else modifiers.metaState()
         dispatcher.sendCombo(stroke, meta)
     }
@@ -398,7 +415,7 @@ class KeyboardController(
         val engine = glideEngine ?: return
         val scope = scope ?: return
         if (!glideAvailable || path.size < 2) return
-        val capitalize = uppercase
+        val capitalize = shiftActive
         scope.launch(background) {
             engine.setLayout(keys)
             val words = engine.classify(path)
@@ -506,7 +523,7 @@ class KeyboardController(
     /** The accent candidates a long press on [key] offers, in the current case; none in passwords. */
     fun accentsFor(key: Key): List<String> = when {
         passwordField -> emptyList()
-        uppercase -> key.longPress.map { it.uppercase() }
+        shiftActive -> key.longPress.map { it.uppercase() }
         else -> key.longPress
     }
 
