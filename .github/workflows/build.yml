@@ -82,8 +82,8 @@ jobs:
       # The tag is moved, never deleted: GitHub turns a release into a draft when its tag is
       # deleted, and it did so asynchronously to a release re-created seconds later. Only the
       # release object is removed, and the new one is created on the tag that is already there.
-      # The last loop fails the job if the new release is a draft or not a pre-release, and looks
-      # again after a pause, because that conversion arrived late.
+      # The last loop fails the job if the new release is a draft, is not a pre-release, or has
+      # no APK on it, and looks again after a pause, because that conversion arrived late.
       - name: Re-create the dev release
         env:
           GH_TOKEN: ${{ github.token }}
@@ -93,14 +93,27 @@ jobs:
           Built $(date -u +'%Y-%m-%d %H:%M UTC'). Debug build for testing, not a release.
 
           Install: download \`hcboard-dev.apk\`, open it on the phone (allow installs from your browser or files app), then enable and select **hcboard** under Settings › System › Keyboard › On-screen keyboard. Or with adb: \`adb install -r hcboard-dev.apk\`."
+          # Every call is stamped: this step once took six minutes with nothing in the log to
+          # say which of them was slow.
+          say() { printf '%s %s\n' "$(date -u +%H:%M:%S)" "$1"; }
+          say "moving the dev tag"
           git push --force origin "$GITHUB_SHA:refs/tags/dev"
           # Only a missing release is skipped (the first run); a delete that fails stops here,
           # with its own message, before anything else is touched.
+          say "deleting the previous release"
           if gh release view dev >/dev/null 2>&1; then gh release delete dev --yes; fi
-          gh release create dev hcboard-dev.apk --verify-tag --prerelease --title "Dev build" --notes "$notes"
+          # The APK is uploaded after the release exists rather than handed to create: gh puts a
+          # create's assets on a draft and publishes only once the upload finishes, so the dev
+          # release was a draft — a 404 for anyone not signed in — for as long as a 17 MB upload
+          # took, six minutes on 2026-09-17. Published first, then the file.
+          say "creating the release"
+          gh release create dev --verify-tag --prerelease --title "Dev build" --notes "$notes"
+          say "uploading the APK"
+          gh release upload dev hcboard-dev.apk --clobber
+          say "checking what the release ended up as"
           for pause in 0 20; do
             sleep "$pause"
-            state="$(gh release view dev --json isDraft,isPrerelease -q '"\(.isDraft) \(.isPrerelease)"')"
-            echo "dev release after ${pause}s: draft/prerelease = $state"
-            test "$state" = "false true"
+            state="$(gh release view dev --json isDraft,isPrerelease,assets -q '"\(.isDraft) \(.isPrerelease) \(.assets | length)"')"
+            echo "dev release after ${pause}s: draft/prerelease/assets = $state"
+            test "$state" = "false true 1"
           done
