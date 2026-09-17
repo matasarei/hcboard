@@ -20,9 +20,10 @@ object Dimens {
     val bottomPadding = 12.dp
     val keyRadius = 10.dp
     val toolbarHeight = 44.dp
-    val labelSize = 12.sp
+    /** Word keys: Esc, Tab, Caps, Shift, the modifiers, F1-F12 under Fn, ?123, the space bar. */
+    val labelSize = 14.sp
     /** Labels on the developer strip, whose keys are one unit wide. */
-    val stripLabelSize = 10.sp
+    val stripLabelSize = 12.sp
     val popupRadius = 16.dp
 
     /** The keyboard never takes more than this share of the screen height. */
