@@ -572,6 +572,29 @@ class KeyboardController(
         else -> key.longPress
     }
 
+    /**
+     * What a long press types on a key that offers no accents: the shifted symbol printed on it,
+     * which is otherwise only reachable through Shift. Caps Lock inverts it, because a tap there
+     * already gives the shifted symbol. Null where the rule does not apply — a letter, a key with
+     * no shifted symbol, or any key while Fn is active, which gives the key another meaning.
+     */
+    fun longPressText(key: Key): String? {
+        if (fnActive) return null
+        val shifted = (key.action as? KeyAction.Text)?.shifted ?: return null
+        return if (shift.state == LatchState.LOCKED) (key.action as KeyAction.Text).text else shifted
+    }
+
+    /**
+     * Types what [longPressText] says, exactly as a tap on the shifted key would: separators
+     * apply a pending correction, a held Ctrl or Alt still sends a combination. False when the
+     * key has nothing to offer, which leaves the long press to whatever the caller does next.
+     */
+    fun onKeyLongPressShift(key: Key): Boolean {
+        val text = longPressText(key) ?: return false
+        perform(key, KeyAction.Text(text))
+        return true
+    }
+
     /** A chosen accent goes in like a letter: it consumes a one-shot shift. */
     fun commitAccent(text: String) {
         dispatcher.commitText(text)

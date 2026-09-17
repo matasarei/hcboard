@@ -1,6 +1,7 @@
 package net.matasar.keyboard.ime
 
 import android.text.InputType
+import android.view.KeyEvent
 import android.view.inputmethod.EditorInfo
 import net.matasar.keyboard.input.FakeEditorPort
 import net.matasar.keyboard.input.InputDispatcher
@@ -10,9 +11,12 @@ import net.matasar.keyboard.layout.KeyAction
 import net.matasar.keyboard.layout.Languages
 import net.matasar.keyboard.layout.LayerId
 import net.matasar.keyboard.layout.LettersLayer
+import net.matasar.keyboard.layout.ModifierKey
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertNull
+import kotlin.test.assertTrue
 
 class KeyboardControllerTest {
 
@@ -23,6 +27,10 @@ class KeyboardControllerTest {
     private val shiftKey = LettersLayer.rows[2].keys[0]
     private val q = LettersLayer.rows[0].keys[0]
     private val symbolsKey = LettersLayer.rows[3].keys[0]
+    private val semicolon = Key(";", KeyAction.Text(";", ":"), shiftedLabel = ":")
+    private val one = Key("1", KeyAction.Text("1", "!"), shiftedLabel = "!", fnAction = KeyAction.KeyCode(KeyEvent.KEYCODE_F1))
+    private val capsKey = Key("Caps", KeyAction.CapsLock)
+    private val tab = Key("Tab", KeyAction.KeyCode(KeyEvent.KEYCODE_TAB))
     private val globeKey = Key("globe", KeyAction.SwitchLanguage)
 
     @Test
@@ -76,6 +84,37 @@ class KeyboardControllerTest {
         controller.onKey(globeKey)
         assertEquals(Languages.english, controller.language)
         assertEquals(LayerId.SYMBOLS, controller.layer)
+    }
+
+    @Test
+    fun `a long press types the key's shifted symbol, and Caps Lock inverts it`() {
+        assertTrue(controller.onKeyLongPressShift(semicolon))
+        assertEquals(listOf(":"), port.committed)
+
+        // A separator goes in the way a tapped one does.
+        assertTrue(controller.onKeyLongPressShift(one))
+        assertEquals("!", port.committed.last())
+
+        // An armed Shift does not change what it types, and is spent as any key press spends it.
+        controller.onKey(shiftKey)
+        assertTrue(controller.onKeyLongPressShift(semicolon))
+        assertEquals(":", port.committed.last())
+        assertEquals(LatchState.IDLE, controller.shift.state)
+
+        // Caps Lock on: a tap already gives the shifted symbol, so the hold gives the plain one.
+        controller.onKey(capsKey)
+        assertEquals(LatchState.LOCKED, controller.shift.state)
+        assertTrue(controller.onKeyLongPressShift(semicolon))
+        assertEquals(";", port.committed.last())
+    }
+
+    @Test
+    fun `a long press does nothing on a letter, a key with no shifted symbol, or under Fn`() {
+        assertFalse(controller.onKeyLongPressShift(q))
+        assertFalse(controller.onKeyLongPressShift(tab))
+        controller.onKey(Key("Fn", KeyAction.Modifier(ModifierKey.FN)))
+        assertFalse(controller.onKeyLongPressShift(one))
+        assertTrue(port.committed.isEmpty())
     }
 
     @Test
