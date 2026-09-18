@@ -79,5 +79,9 @@ class CandidatesTest {
         val ukrainian = Candidates(File("src/main/assets/dictionaries/uk.txt").bufferedReader().useLines { WordList.parse(it) })
         val words = ukrainian.forWord("прив")!!.words
         assertTrue("привіт" in words, "$words")
+        for (modern in listOf("app", "apps", "dev", "diff", "wifi", "git")) {
+            val cand = english.forWord(modern)
+            assertNull(cand?.correction, "expected $modern to be known with no correction, got ${cand?.correction}")
+        }
     }
 }
