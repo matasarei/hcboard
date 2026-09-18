@@ -13,6 +13,8 @@
     <string name="enable_done">Done</string>
     <string name="enable_not_yet">Not yet</string>
     <string name="enable_try_label">Try it here</string>
+    <string name="enable_open_settings">Open settings</string>
+    <string name="enable_privacy_policy">Privacy policy</string>
 
     <string name="settings_title">hcboard settings</string>
     <string name="settings_section_look">Look</string>
