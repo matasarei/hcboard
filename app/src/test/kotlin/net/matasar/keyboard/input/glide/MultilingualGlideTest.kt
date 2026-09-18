@@ -83,6 +83,9 @@ class MultilingualGlideTest {
     fun `german glides danke`() = assertGlides(Languages.german, "danke", "danke")
 
     @Test
+    fun `bulgarian glides здравей`() = assertGlides(Languages.bulgarian, "здравей", "здравей")
+
+    @Test
     fun `every language's list is typeable on its layer`() {
         for (language in Languages.all) {
             val list = File("src/main/assets/dictionaries/${language.tag}.txt").bufferedReader().useLines { WordList.parse(it) }

@@ -107,6 +107,30 @@ class SixtyPercentLayoutTest {
     }
 
     @Test
+    fun `bulgarian keeps the closing bracket on row 1 and puts brackets and punctuation on fn`() {
+        val layer = sixtyPercentLayer(Languages.bulgarian, withGlobe = false)
+        val keys = layer.rows.flatMap { it.keys }
+        assertEquals("Tab я в е р т ъ у и о п ч ] \\", layer.rows[1].keys.joinToString(" ") { it.label })
+        assertEquals('[', keys.first { it.label == "ч" }.slot)
+        assertEquals("[{", keys.first { it.label == "ч" }.fnLegend)
+        assertEquals(KeyAction.Text("[", "{"), keys.first { it.label == "ч" }.fnAction)
+        assertEquals("]", layer.rows[1].keys[12].label)
+        assertEquals(KeyAction.Text("]", "}"), layer.rows[1].keys[12].action)
+
+        assertEquals("Caps а с д ф г х й к л ш щ enter", layer.rows[2].keys.joinToString(" ") { it.label })
+        assertEquals(';', keys.first { it.label == "ш" }.slot)
+        assertEquals('\'', keys.first { it.label == "щ" }.slot)
+        assertEquals(";:", keys.first { it.label == "ш" }.fnLegend)
+        assertEquals("'\"", keys.first { it.label == "щ" }.fnLegend)
+
+        val shiftRow = layer.rows[3].keys
+        assertEquals("Shift з ь ц ж б н м ю . / Shift", shiftRow.joinToString(" ") { it.label })
+        assertEquals(listOf(2.75f, 2.25f), listOf(shiftRow.first().width, shiftRow.last().width))
+        assertEquals(',', keys.first { it.label == "ю" }.slot)
+        assertEquals(",<", keys.first { it.label == "ю" }.fnLegend)
+    }
+
+    @Test
     fun `english renders the standard board and its letters carry their own slot`() {
         assertEquals("Shift z x c v b n m , . / Shift", SixtyPercentLayer.rows[3].keys.joinToString(" ") { it.label })
         assertEquals(listOf(2.75f, 2.25f), listOf(SixtyPercentLayer.rows[3].keys.first().width, SixtyPercentLayer.rows[3].keys.last().width))
