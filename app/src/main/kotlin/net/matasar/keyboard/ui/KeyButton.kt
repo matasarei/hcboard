@@ -97,6 +97,8 @@ fun KeyButton(
     labelSize: TextUnit = Dimens.labelSize,
     /** Receives the key's bounds in root coordinates; the glide detector maps fingers to keys with it. */
     onBounds: ((Key, Rect) -> Unit)? = null,
+    /** Whether the key repeats while held down in its current state. */
+    repeats: Boolean = key.repeats,
 ) {
     val colors = LocalKeyboardColors.current
     val view = LocalView.current
@@ -106,6 +108,7 @@ fun KeyButton(
     var bounds by remember { mutableStateOf(Rect.Zero) }
     val currentCallbacks by rememberUpdatedState(callbacks)
     val currentHaptics by rememberUpdatedState(haptics)
+    val currentRepeats by rememberUpdatedState(repeats)
     val shape = RoundedCornerShape(Dimens.keyRadius)
     val scale by animateFloatAsState(
         targetValue = if (pressed) 0.96f else 1f,
@@ -123,7 +126,7 @@ fun KeyButton(
                 repeated = false
                 if (currentHaptics) view.keyDownTick()
                 currentCallbacks.onPressStart(key, bounds)
-                if (key.repeats) {
+                if (currentRepeats) {
                     repeatJob = scope.launch {
                         delay(REPEAT_DELAY_MS)
                         while (isActive) {
@@ -147,7 +150,7 @@ fun KeyButton(
             }
 
             override fun onLongPress(): LongPressResult {
-                if (key.repeats) return LongPressResult.HANDLED
+                if (currentRepeats) return LongPressResult.HANDLED
                 return currentCallbacks.onLongPress(key, bounds)
             }
 

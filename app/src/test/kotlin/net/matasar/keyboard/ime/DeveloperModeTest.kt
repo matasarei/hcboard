@@ -174,4 +174,27 @@ class DeveloperModeTest {
         controller.onStartInput(null)
         assertEquals(null, controller.modifiers.chipText())
     }
+
+    @Test
+    fun `developer strip arrow keys repeat on hold`() {
+        val up = DeveloperStrip.keys.first { it.label == "up" }
+        val down = DeveloperStrip.keys.first { it.label == "down" }
+        val left = DeveloperStrip.keys.first { it.label == "left" }
+        val right = DeveloperStrip.keys.first { it.label == "right" }
+
+        assertTrue(controller.repeats(up))
+        assertTrue(controller.repeats(down))
+        assertTrue(controller.repeats(left))
+        assertTrue(controller.repeats(right))
+
+        controller.onKeyRepeat(left)
+        controller.onKeyRepeat(right)
+        assertEquals(
+            listOf(
+                KeyEvent.KEYCODE_DPAD_LEFT to 0,
+                KeyEvent.KEYCODE_DPAD_RIGHT to 0,
+            ),
+            port.keys,
+        )
+    }
 }

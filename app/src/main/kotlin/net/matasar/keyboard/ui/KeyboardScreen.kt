@@ -226,6 +226,7 @@ private fun LayerGrid(controller: KeyboardController, feel: KeyboardFeel, popups
                         legendColor = if (controller.fnLive(key)) colors.armedRing else null,
                         topLegendColor = if (controller.shiftLive(key)) colors.armedRing else null,
                         onBounds = if (key.action is KeyAction.Letter) ({ k, rect -> letterBounds[(k.action as KeyAction.Letter).lower[0]] = rect }) else null,
+                        repeats = controller.repeats(key),
                     )
                 }
             }
@@ -247,7 +248,7 @@ private class KeyScreenCallbacks(
 
     override fun onPressStart(key: Key, bounds: Rect) {
         (key.action as? KeyAction.Modifier)?.let { controller.onModifierPressStart(it.modifier) }
-        if (feel.previews && !controller.passwordField && key.showsPreview()) {
+        if (feel.previews && !controller.passwordField && key.showsPreview() && !controller.repeats(key)) {
             popups.preview = PressPreview(bounds, controller.displayLabel(key))
         }
     }

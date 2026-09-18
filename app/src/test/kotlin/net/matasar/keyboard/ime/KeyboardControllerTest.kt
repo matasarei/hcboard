@@ -168,4 +168,26 @@ class WideBoardControllerTest {
         controller.onKey(key("i"))
         assertEquals(listOf(android.view.KeyEvent.KEYCODE_F2 to 0, android.view.KeyEvent.KEYCODE_DPAD_UP to 0), port.keys)
     }
+
+    @Test
+    fun `arrow keys under fn repeat on hold while letters do not`() {
+        val iKey = key("i")
+        val backspace = key("backspace")
+
+        assertFalse(controller.repeats(iKey))
+        assertTrue(controller.repeats(backspace))
+
+        port.before = "hello"
+        controller.onKeyRepeat(backspace)
+        assertEquals(listOf(1 to 0), port.deletions)
+
+        controller.onKey(key("Fn"))
+        assertTrue(controller.repeats(iKey))
+
+        controller.onKeyRepeat(iKey)
+        assertEquals(listOf(KeyEvent.KEYCODE_DPAD_UP to 0), port.keys)
+
+        controller.onKeyRepeat(backspace)
+        assertEquals(listOf(1 to 0, 0 to 1), port.deletions)
+    }
 }
