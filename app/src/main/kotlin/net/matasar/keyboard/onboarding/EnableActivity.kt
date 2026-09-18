@@ -2,6 +2,7 @@ package net.matasar.keyboard.onboarding
 
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
 import android.view.inputmethod.InputMethodManager
@@ -25,6 +26,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -38,7 +40,10 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import net.matasar.keyboard.R
+import net.matasar.keyboard.settings.SettingsActivity
 import net.matasar.keyboard.ui.theme.KeyboardTheme
+
+private const val PRIVACY_POLICY_URL = "https://github.com/matasarei/hcboard/blob/main/docs/PRIVACY.md"
 
 /**
  * Launcher screen: walks the user through enabling the keyboard in system settings and
@@ -112,12 +117,32 @@ private fun EnableScreen() {
             },
         )
 
+        if (enabled && selected) {
+            Button(
+                onClick = { context.startActivity(Intent(context, SettingsActivity::class.java)) },
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Text(stringResource(R.string.enable_open_settings))
+            }
+        }
+
         OutlinedTextField(
             value = tryText,
             onValueChange = { tryText = it },
             label = { Text(stringResource(R.string.enable_try_label)) },
             modifier = Modifier.fillMaxWidth(),
         )
+
+        TextButton(
+            onClick = {
+                runCatching {
+                    context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(PRIVACY_POLICY_URL)))
+                }
+            },
+            modifier = Modifier.align(Alignment.CenterHorizontally),
+        ) {
+            Text(stringResource(R.string.enable_privacy_policy))
+        }
     }
 }
 

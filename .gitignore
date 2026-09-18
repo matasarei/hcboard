@@ -2,6 +2,7 @@
 .tasks/
 .gku/
 .claude/repo-profile.json
+docs/store-listing.md
 
 # Android / Gradle
 build/
@@ -9,5 +10,7 @@ build/
 local.properties
 .idea/
 *.iml
+*.keystore
+*.jks
 .kotlin/
 captures/

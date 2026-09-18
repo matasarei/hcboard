@@ -7,7 +7,8 @@
 **A keyboard for everyday typing that is ready when you want to tinker — and keeps to itself.**
 
 [![Build](https://github.com/matasarei/hcboard/actions/workflows/build.yml/badge.svg?branch=main)](https://github.com/matasarei/hcboard/actions/workflows/build.yml)
-[![Download the dev build](https://img.shields.io/badge/download-dev%20build-blue)](https://github.com/matasarei/hcboard/releases/tag/dev)
+[![Latest Release](https://img.shields.io/github/v/release/matasarei/hcboard?label=release&color=blue)](https://github.com/matasarei/hcboard/releases/latest)
+[![Obtainium](https://img.shields.io/badge/Obtainium-auto--updates-purple)](https://github.com/ImranR98/Obtainium)
 [![Licence: Apache-2.0](https://img.shields.io/badge/licence-Apache--2.0-green)](LICENSE)
 ![Android 8.0+](https://img.shields.io/badge/Android-8.0%2B-3DDC84)
 [![No network access](https://img.shields.io/badge/network-none-6f42c1)](#privacy)
@@ -88,14 +89,29 @@ from the password manager you already use, and the keyboard never shows or keeps
 
 ## Install
 
-Every push to `main` produces a debug build in the
-[dev pre-release](https://github.com/matasarei/hcboard/releases/tag/dev). Download
-`hcboard-dev.apk`, open it on the phone, then turn on **hcboard** and choose it under
-Settings › System › Keyboard › On-screen keyboard. The app's own screen walks you through both
-steps and gives you a field to try it in. With a phone attached:
+### Option 1: Official Release (Recommended)
+Download the latest signed release APK (`hcboard-vX.Y.Z.apk`) from [GitHub Releases](https://github.com/matasarei/hcboard/releases/latest).
 
+### Option 2: Automatic Updates via Obtainium
+To receive automatic background update notifications without an app store:
+1. Install [Obtainium](https://github.com/ImranR98/Obtainium) on your Android device.
+2. Tap **Add App** and paste: `https://github.com/matasarei/hcboard`
+3. Tap **Add** to install and track updates.
+
+### Option 3: Development Builds
+Every push to `main` produces an automated debug build in the [dev pre-release](https://github.com/matasarei/hcboard/releases/tag/dev) (`hcboard-dev.apk`).
+
+---
+
+### Setup on your phone
+After installing the APK, open **hcboard** from your app launcher. The setup screen guides you to:
+1. Enable **hcboard** in your on-screen keyboards list.
+2. Select **hcboard** as your active input method.
+3. Tap **Open settings** to customise themes, height, and languages.
+
+Or with adb:
 ```
-adb install -r hcboard-dev.apk
+adb install -r hcboard-release.apk
 ```
 
 ## Build
