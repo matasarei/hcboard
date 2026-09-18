@@ -48,6 +48,7 @@ class LanguagesTest {
         assertEquals("ß", accents(Languages.german, "s").first())
         assertEquals("ç", accents(Languages.portuguese, "c").first())
         assertEquals("ѝ", accents(Languages.bulgarian, "и").first())
+        assertEquals(listOf("і", "ї", "ѝ"), accents(Languages.russian, "и"))
     }
 
     @Test
