@@ -104,12 +104,22 @@ fun PopupLayer(state: PopupState) {
                 .height(PopupMetrics.previewHeight),
             contentAlignment = Alignment.Center,
         ) {
-            Text(
-                preview.label,
-                color = colors.onPopup,
-                fontSize = PopupMetrics.glyphSize,
-                fontWeight = FontWeight.Medium,
-            )
+            val arrow = ArrowDirection.fromString(preview.label)
+            if (arrow != null) {
+                ArrowSymbol(
+                    direction = arrow,
+                    color = colors.onPopup,
+                    size = 24.dp,
+                    strokeWidth = 2.4.dp,
+                )
+            } else {
+                Text(
+                    preview.label,
+                    color = colors.onPopup,
+                    fontSize = PopupMetrics.glyphSize,
+                    fontWeight = FontWeight.Medium,
+                )
+            }
         }
     }
 

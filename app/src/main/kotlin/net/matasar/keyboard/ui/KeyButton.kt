@@ -201,27 +201,47 @@ fun KeyButton(
                 Box(modifier = Modifier.fillMaxWidth().heightIn(min = Dimens.legendLine(height))) {
                     val legendSize = Dimens.legendTextSize(height)
                     if (topLegend != null) {
-                        Text(
-                            text = topLegend,
-                            color = topLegendColor ?: colors.subtle,
-                            fontSize = legendSize,
-                            // Pinned: the two zones are measured in advance, so the line box has
-                            // to be the one Dimens proved the fit against.
-                            lineHeight = legendSize * Dimens.legendLineHeightRatio,
-                            maxLines = 1,
-                            modifier = Modifier.align(Alignment.CenterStart).padding(start = 6.dp),
-                        )
+                        val arrow = ArrowDirection.fromString(topLegend)
+                        if (arrow != null) {
+                            ArrowSymbol(
+                                direction = arrow,
+                                color = topLegendColor ?: colors.subtle,
+                                size = legendSize.value.dp,
+                                modifier = Modifier.align(Alignment.CenterStart).padding(start = 6.dp),
+                            )
+                        } else {
+                            Text(
+                                text = topLegend,
+                                color = topLegendColor ?: colors.subtle,
+                                fontSize = legendSize,
+                                // Pinned: the two zones are measured in advance, so the line box has
+                                // to be the one Dimens proved the fit against.
+                                lineHeight = legendSize * Dimens.legendLineHeightRatio,
+                                maxLines = 1,
+                                modifier = Modifier.align(Alignment.CenterStart).padding(start = 6.dp),
+                            )
+                        }
                     }
                     if (legend != null) {
-                        Text(
-                            text = legend,
-                            color = legendColor ?: colors.legend,
-                            fontSize = legendSize,
-                            lineHeight = legendSize * Dimens.legendLineHeightRatio,
-                            fontWeight = FontWeight.Medium,
-                            maxLines = 1,
-                            modifier = Modifier.align(Alignment.CenterEnd).padding(end = 5.dp),
-                        )
+                        val arrow = ArrowDirection.fromString(legend)
+                        if (arrow != null) {
+                            ArrowSymbol(
+                                direction = arrow,
+                                color = legendColor ?: colors.legend,
+                                size = legendSize.value.dp,
+                                modifier = Modifier.align(Alignment.CenterEnd).padding(end = 5.dp),
+                            )
+                        } else {
+                            Text(
+                                text = legend,
+                                color = legendColor ?: colors.legend,
+                                fontSize = legendSize,
+                                lineHeight = legendSize * Dimens.legendLineHeightRatio,
+                                fontWeight = FontWeight.Medium,
+                                maxLines = 1,
+                                modifier = Modifier.align(Alignment.CenterEnd).padding(end = 5.dp),
+                            )
+                        }
                     }
                 }
             }
@@ -229,12 +249,19 @@ fun KeyButton(
                 modifier = Modifier.fillMaxWidth().weight(1f),
                 contentAlignment = Alignment.Center,
             ) {
+                val arrow = ArrowDirection.fromString(label)
                 if (icon != null) {
                     Icon(
                         painter = painterResource(icon.drawable()),
                         contentDescription = key.label,
                         tint = visual.foreground,
                         modifier = Modifier.height(Dimens.iconSize(height, sizedForLegendLine)),
+                    )
+                } else if (arrow != null) {
+                    ArrowSymbol(
+                        direction = arrow,
+                        color = visual.foreground,
+                        size = Dimens.iconSize(height, sizedForLegendLine),
                     )
                 } else {
                     val word = key.style != KeyStyle.LETTER || label.length > 1
