@@ -135,7 +135,9 @@ private fun EnableScreen() {
 
         TextButton(
             onClick = {
-                context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(PRIVACY_POLICY_URL)))
+                runCatching {
+                    context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(PRIVACY_POLICY_URL)))
+                }
             },
             modifier = Modifier.align(Alignment.CenterHorizontally),
         ) {
