@@ -66,7 +66,13 @@ object Languages {
         ),
     )
 
-    val all: List<Language> = listOf(english, ukrainian, russian, french, spanish, german, italian, portuguese, polish)
+    val bulgarian = Language(
+        tag = "bg", nativeName = "Български", englishName = "Bulgarian",
+        rows = listOf("явертъуиопч", "асдфгхйклшщ", "зьцжбнмю"),
+        accents = mapOf('и' to listOf("ѝ")),
+    )
+
+    val all: List<Language> = listOf(english, ukrainian, russian, bulgarian, french, spanish, german, italian, portuguese, polish)
 
     fun byTag(tag: String): Language? = all.firstOrNull { it.tag == tag }
 
