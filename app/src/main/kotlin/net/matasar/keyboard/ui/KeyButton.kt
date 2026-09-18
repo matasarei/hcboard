@@ -6,11 +6,9 @@ import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
@@ -82,9 +80,8 @@ fun KeyButton(
     keyBorders: Boolean = true,
     showLabel: Boolean = true,
     /**
-     * The 60% board: every key keeps its top line for legends (the shifted symbol left, the Fn
-     * meaning right) and draws its main glyph below it, so the two never meet and every key in a
-     * row shares one baseline whether or not it carries a legend.
+     * Sizing hint: on the 60% board every letter in a row is sized as though it carried legends,
+     * so plain keys and keys with alts share the exact same font size and vertical center.
      */
     legendBand: Boolean = false,
     legend: String? = key.fnLegend,
@@ -183,100 +180,98 @@ fun KeyButton(
             .keyGestures(key.id, longPressMs, listener),
     ) {
         if (!showLabel) return@Box
-        // A key is two zones, never a stack of paddings: the legend line on top, the glyph in what
-        // is left. Nothing is dropped on a short key — both zones are sized from the key's own
-        // height, so the 80% setting shrinks them instead.
+        // Every key centers its main glyph in the key, so all letters in a row share the exact
+        // same vertical center and baseline.
         //
-        // Drawing the line and sizing for it are two different questions. A key with nothing to
-        // say on that line draws no line and centres its glyph in the whole key, which is how a
-        // keyboard's plain keys read; but on the 60% board it is still *sized* as though the line
-        // were there, so every letter in a row is the same size whether or not it carries one.
+        // On keys with alts, compact legends sit in the top corners (the shifted symbol top-start,
+        // the Fn meaning top-end) above the centered glyph. On the 60% board (legendBand = true),
+        // plain keys use the same glyph size as keys with alts so the entire row is uniform.
         val drawsLegendLine = topLegend != null || legend != null
         val sizedForLegendLine = legendBand || drawsLegendLine
-        Column(modifier = Modifier.fillMaxSize()) {
-            if (drawsLegendLine) {
-                // A minimum, not a cap: the line reserves the same room on every key in the row so
-                // they share a baseline, and grows rather than clipping a legend if the font is
-                // taller than the reserve (a large system font scale).
-                Box(modifier = Modifier.fillMaxWidth().heightIn(min = Dimens.legendLine(height))) {
-                    val legendSize = Dimens.legendTextSize(height)
-                    if (topLegend != null) {
-                        val arrow = ArrowDirection.fromString(topLegend)
-                        if (arrow != null) {
-                            ArrowSymbol(
-                                direction = arrow,
-                                color = topLegendColor ?: colors.subtle,
-                                size = legendSize.value.dp,
-                                modifier = Modifier.align(Alignment.CenterStart).padding(start = 6.dp),
-                            )
-                        } else {
-                            Text(
-                                text = topLegend,
-                                color = topLegendColor ?: colors.subtle,
-                                fontSize = legendSize,
-                                // Pinned: the two zones are measured in advance, so the line box has
-                                // to be the one Dimens proved the fit against.
-                                lineHeight = legendSize * Dimens.legendLineHeightRatio,
-                                maxLines = 1,
-                                modifier = Modifier.align(Alignment.CenterStart).padding(start = 6.dp),
-                            )
-                        }
-                    }
-                    if (legend != null) {
-                        val arrow = ArrowDirection.fromString(legend)
-                        if (arrow != null) {
-                            ArrowSymbol(
-                                direction = arrow,
-                                color = legendColor ?: colors.legend,
-                                size = legendSize.value.dp,
-                                modifier = Modifier.align(Alignment.CenterEnd).padding(end = 5.dp),
-                            )
-                        } else {
-                            Text(
-                                text = legend,
-                                color = legendColor ?: colors.legend,
-                                fontSize = legendSize,
-                                lineHeight = legendSize * Dimens.legendLineHeightRatio,
-                                fontWeight = FontWeight.Medium,
-                                maxLines = 1,
-                                modifier = Modifier.align(Alignment.CenterEnd).padding(end = 5.dp),
-                            )
-                        }
-                    }
+
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center,
+        ) {
+            val arrow = ArrowDirection.fromString(label)
+            if (icon != null) {
+                Icon(
+                    painter = painterResource(icon.drawable()),
+                    contentDescription = key.label,
+                    tint = visual.foreground,
+                    modifier = Modifier.height(Dimens.iconSize(height, sizedForLegendLine)),
+                )
+            } else if (arrow != null) {
+                ArrowSymbol(
+                    direction = arrow,
+                    color = visual.foreground,
+                    size = Dimens.iconSize(height, sizedForLegendLine),
+                )
+            } else {
+                val word = key.style != KeyStyle.LETTER || label.length > 1
+                val size = when {
+                    word -> Dimens.wordSize(height, labelSize, sizedForLegendLine)
+                    sizedForLegendLine -> Dimens.glyphSize(height)
+                    else -> Dimens.plainGlyphSize(height)
                 }
+                Text(
+                    text = label,
+                    color = visual.foreground,
+                    fontSize = size,
+                    lineHeight = size * Dimens.glyphLineHeightRatio,
+                    fontWeight = if (word) FontWeight.Medium else FontWeight.Normal,
+                    maxLines = 1,
+                )
             }
-            Box(
-                modifier = Modifier.fillMaxWidth().weight(1f),
-                contentAlignment = Alignment.Center,
-            ) {
-                val arrow = ArrowDirection.fromString(label)
-                if (icon != null) {
-                    Icon(
-                        painter = painterResource(icon.drawable()),
-                        contentDescription = key.label,
-                        tint = visual.foreground,
-                        modifier = Modifier.height(Dimens.iconSize(height, sizedForLegendLine)),
-                    )
-                } else if (arrow != null) {
+        }
+        if (drawsLegendLine) {
+            val legendSize = Dimens.legendTextSize(height)
+            if (topLegend != null) {
+                val arrow = ArrowDirection.fromString(topLegend)
+                if (arrow != null) {
                     ArrowSymbol(
                         direction = arrow,
-                        color = visual.foreground,
-                        size = Dimens.iconSize(height, sizedForLegendLine),
+                        color = topLegendColor ?: colors.subtle,
+                        size = legendSize.value.dp,
+                        modifier = Modifier
+                            .align(Alignment.TopStart)
+                            .padding(start = 5.dp, top = 2.dp),
                     )
                 } else {
-                    val word = key.style != KeyStyle.LETTER || label.length > 1
-                    val size = when {
-                        word -> Dimens.wordSize(height, labelSize, sizedForLegendLine)
-                        sizedForLegendLine -> Dimens.glyphSize(height)
-                        else -> Dimens.plainGlyphSize(height)
-                    }
                     Text(
-                        text = label,
-                        color = visual.foreground,
-                        fontSize = size,
-                        lineHeight = size * Dimens.glyphLineHeightRatio,
-                        fontWeight = if (word) FontWeight.Medium else FontWeight.Normal,
+                        text = topLegend,
+                        color = topLegendColor ?: colors.subtle,
+                        fontSize = legendSize,
+                        lineHeight = legendSize * Dimens.legendLineHeightRatio,
                         maxLines = 1,
+                        modifier = Modifier
+                            .align(Alignment.TopStart)
+                            .padding(start = 5.dp, top = 2.dp),
+                    )
+                }
+            }
+            if (legend != null) {
+                val arrow = ArrowDirection.fromString(legend)
+                if (arrow != null) {
+                    ArrowSymbol(
+                        direction = arrow,
+                        color = legendColor ?: colors.legend,
+                        size = legendSize.value.dp,
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .padding(end = 5.dp, top = 2.dp),
+                    )
+                } else {
+                    Text(
+                        text = legend,
+                        color = legendColor ?: colors.legend,
+                        fontSize = legendSize,
+                        lineHeight = legendSize * Dimens.legendLineHeightRatio,
+                        fontWeight = FontWeight.Medium,
+                        maxLines = 1,
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .padding(end = 5.dp, top = 2.dp),
                     )
                 }
             }

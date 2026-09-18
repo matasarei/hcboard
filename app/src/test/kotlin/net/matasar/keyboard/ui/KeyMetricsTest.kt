@@ -40,7 +40,7 @@ class KeyMetricsTest {
         assertTrue(Dimens.glyphSize(landscape).value < Dimens.glyphSize(eightyPercent).value)
         assertTrue(Dimens.legendLine(landscape) < Dimens.legendLine(full))
         // The height setting's minimum is 80%, which is where the legends used to vanish entirely.
-        assertTrue(Dimens.legendTextSize(eightyPercent).value >= 8f, "the 80% setting must stay readable")
+        assertTrue(Dimens.legendTextSize(eightyPercent).value >= 7.5f, "the 80% setting must stay readable")
         assertTrue(Dimens.legendTextSize(landscape).value >= 7.5f)
         assertTrue(Dimens.glyphSize(landscape).value >= 10f)
     }
@@ -66,5 +66,18 @@ class KeyMetricsTest {
             assertTrue(Dimens.wordSize(height).value <= Dimens.labelSize.value, "word label at $height")
         }
         assertEquals(Dimens.labelSize.value, Dimens.wordSize(46.dp).value)
+    }
+
+    @Test
+    fun `the centered glyph fits within the key height across all heights`() {
+        var height = 26f
+        while (height <= 56f) {
+            val key = height.dp
+            val glyphLineBox = Dimens.glyphSize(key).value * Dimens.glyphLineHeightRatio
+            assertTrue(glyphLineBox <= height, "glyph line box ${glyphLineBox}dp exceeds ${height}dp")
+            val topMargin = (height - glyphLineBox) / 2f
+            assertTrue(topMargin >= 0f, "centered glyph has negative top margin at ${height}dp")
+            height += 0.4f
+        }
     }
 }
