@@ -416,9 +416,33 @@ class KeyboardController(
         }
     }
 
-    /** Backspace held down: one more deletion per repeat tick. */
+    /** Whether [key] repeats while held down in the current modifier state. */
+    fun repeats(key: Key): Boolean {
+        if (key.action == KeyAction.Backspace) return true
+        val action = if (fnActive && key.fnAction != null) key.fnAction else key.action
+        val code = if (fnActive && action is KeyAction.KeyCode && action.fnKeyCode != null) {
+            action.fnKeyCode
+        } else {
+            (action as? KeyAction.KeyCode)?.keyCode
+        }
+        if (code != null && code.isDpadArrow()) return true
+        return key.repeats && !fnActive
+    }
+
+    /** Backspace or arrow held down: repeat one step per tick. */
     fun onKeyRepeat(key: Key) {
-        if (key.action == KeyAction.Backspace) dispatcher.backspace()
+        if (key.action == KeyAction.Backspace) {
+            if (fnActive) dispatcher.forwardDelete() else dispatcher.backspace()
+            return
+        }
+        val action = if (fnActive && key.fnAction != null) key.fnAction else key.action
+        if (action is KeyAction.KeyCode) {
+            val code = if (fnActive && action.fnKeyCode != null) action.fnKeyCode else action.keyCode
+            if (code.isDpadArrow()) {
+                dispatcher.sendKey(code, modifiers.metaState())
+                candidates = null
+            }
+        }
     }
 
     fun onKeyLongPress(key: Key) {
@@ -640,4 +664,12 @@ class KeyboardController(
             return if (hasAction && !noEnterAction && !multiLine) action else null
         }
     }
+}
+
+private fun Int.isDpadArrow(): Boolean = when (this) {
+    KeyEvent.KEYCODE_DPAD_UP,
+    KeyEvent.KEYCODE_DPAD_DOWN,
+    KeyEvent.KEYCODE_DPAD_LEFT,
+    KeyEvent.KEYCODE_DPAD_RIGHT -> true
+    else -> false
 }

@@ -41,6 +41,7 @@ fun ModifierStrip(
             haptics = feel.haptics,
             keyBorders = feel.keyBorders,
             showLabel = !controller.trackpad,
+            repeats = controller.repeats(key),
         )
     }
 }
