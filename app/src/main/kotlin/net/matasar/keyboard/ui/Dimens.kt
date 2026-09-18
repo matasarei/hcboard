@@ -47,11 +47,11 @@ object Dimens {
     const val glyphLineHeightRatio = 1.15f
 
     /**
-     * The two legends on that line. The legend leads and the line follows it, not the other way
-     * round: a legend has a size below which it stops being readable at all, so it holds at 7.5 sp
-     * on the shortest keys and gives the glyph what is left.
+     * The compact legends in the key corners (shifted symbol top-start, Fn meaning top-end).
+     * Sized compactly (~8–8.5 sp on standard keys) so they sit neatly in the corners above the
+     * centered main glyph without pushing it down, holding at 7.5 sp on short keys.
      */
-    fun legendTextSize(keyHeight: Dp): TextUnit = (keyHeight.value * 0.22f).coerceIn(7.5f, 10f).sp
+    fun legendTextSize(keyHeight: Dp): TextUnit = (keyHeight.value * 0.18f).coerceIn(7.5f, 8.5f).sp
 
     /**
      * The glyph under the line: what the key types right now, in what the line leaves. It takes

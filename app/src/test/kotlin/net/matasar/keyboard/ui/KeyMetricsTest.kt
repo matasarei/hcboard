@@ -40,7 +40,7 @@ class KeyMetricsTest {
         assertTrue(Dimens.glyphSize(landscape).value < Dimens.glyphSize(eightyPercent).value)
         assertTrue(Dimens.legendLine(landscape) < Dimens.legendLine(full))
         // The height setting's minimum is 80%, which is where the legends used to vanish entirely.
-        assertTrue(Dimens.legendTextSize(eightyPercent).value >= 8f, "the 80% setting must stay readable")
+        assertTrue(Dimens.legendTextSize(eightyPercent).value >= 7.5f, "the 80% setting must stay readable")
         assertTrue(Dimens.legendTextSize(landscape).value >= 7.5f)
         assertTrue(Dimens.glyphSize(landscape).value >= 10f)
     }
