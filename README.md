@@ -47,7 +47,8 @@ from the password manager you already use, and the keyboard never shows or keeps
 - **Ten languages:** English, Ukrainian, Russian, Bulgarian, French, Spanish, German, Italian, Portuguese
   (Brazil) and Polish, each with its own layout and long-press accents. Until you change the set
   it follows your phone's languages, plus English; a globe key switches them, and holding it opens
-  the list.
+  the list. For Russian speakers in Bulgaria who prefer typing on the Russian ЙЦУКЕН layout, an optional
+  setting enables combined Bulgarian vocabulary with collision-safe autocorrect.
 - **The feel of a phone keyboard:** a preview above the key you press, a spring under your finger,
   a light haptic tick, accents on a long press, and a cursor trackpad when you hold the space bar.
 - **Your phone's look:** Material 3, with dynamic colour on Android 12 and later. Four themes —
