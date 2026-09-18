@@ -100,6 +100,7 @@ fun KeyboardScreen(
                     chipText = chipText,
                     actions = actions,
                     sheetOpen = controller.managerSheetOpen,
+                    haptics = feel.haptics,
                     // The password manager's chips win the toolbar; word candidates take it next.
                     center = if (controller.suggestions.isNotEmpty()) ({ SuggestionStrip(controller.suggestions) }) else null,
                     candidates = controller.candidates.takeIf { controller.suggestions.isEmpty() && chipText == null && !controller.candidatesCollapsed },

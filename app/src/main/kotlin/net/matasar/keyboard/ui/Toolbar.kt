@@ -1,7 +1,11 @@
 package net.matasar.keyboard.ui
 
+import android.os.SystemClock
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -12,12 +16,28 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.onClick
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.delay
 import net.matasar.keyboard.R
+import net.matasar.keyboard.haptics.keyDownTick
 import net.matasar.keyboard.nlp.WordCandidates
 import net.matasar.keyboard.ui.theme.LocalKeyboardColors
 
@@ -48,6 +68,7 @@ fun Toolbar(
     candidates: WordCandidates? = null,
     onPickCandidate: (String) -> Unit = {},
     onCollapseCandidates: () -> Unit = {},
+    haptics: Boolean = true,
 ) {
     Row(
         modifier = modifier
@@ -57,13 +78,13 @@ fun Toolbar(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         if (candidates != null) {
-            ToolbarButton(R.drawable.ic_arrow_left, "Show toolbar") { onCollapseCandidates() }
+            ToolbarButton(R.drawable.ic_arrow_left, "Show toolbar", haptics = haptics) { onCollapseCandidates() }
             CandidateStrip(candidates, onPickCandidate, modifier = Modifier.weight(1f))
         } else {
             Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                ToolbarButton(R.drawable.ic_key, "Password manager", active = sheetOpen) { actions.toggleManagerSheet() }
-                if (showDeveloperToggle) ToolbarButton(R.drawable.ic_code, "Developer mode", active = developerMode) { actions.toggleDeveloperMode() }
-                ToolbarButton(R.drawable.ic_clipboard, "Paste") { actions.pasteClipboard() }
+                ToolbarButton(R.drawable.ic_key, "Password manager", active = sheetOpen, haptics = haptics) { actions.toggleManagerSheet() }
+                if (showDeveloperToggle) ToolbarButton(R.drawable.ic_code, "Developer mode", active = developerMode, haptics = haptics) { actions.toggleDeveloperMode() }
+                ToolbarButton(R.drawable.ic_clipboard, "Paste", haptics = haptics) { actions.pasteClipboard() }
             }
             Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
                 when {
@@ -73,28 +94,83 @@ fun Toolbar(
             }
             // Settings sits with Hide on the right, as on Samsung's keyboard: the left group is
             // for what acts on the text, the right for the keyboard itself.
-            ToolbarButton(R.drawable.ic_settings, "Settings") { actions.openSettings() }
+            ToolbarButton(R.drawable.ic_settings, "Settings", haptics = haptics) { actions.openSettings() }
         }
-        ToolbarButton(R.drawable.ic_keyboard_hide, "Hide keyboard") { actions.hideKeyboard() }
+        ToolbarButton(R.drawable.ic_keyboard_hide, "Hide keyboard", haptics = haptics) { actions.hideKeyboard() }
     }
 }
 
 @Composable
-fun ToolbarButton(icon: Int, description: String, active: Boolean = false, onClick: () -> Unit) {
+fun ToolbarButton(
+    icon: Int,
+    description: String,
+    active: Boolean = false,
+    haptics: Boolean = true,
+    onClick: () -> Unit,
+) {
     val colors = LocalKeyboardColors.current
+    val view = LocalView.current
+    val currentHaptics by rememberUpdatedState(haptics)
+    val currentOnClick by rememberUpdatedState(onClick)
+    var pressed by remember { mutableStateOf(false) }
+
+    val scale by animateFloatAsState(
+        targetValue = if (pressed) 0.94f else 1f,
+        animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessHigh),
+        label = "toolbar_button_press",
+    )
+
+    val background = when {
+        pressed -> colors.pressedKey
+        active -> colors.chip
+        else -> Color.Transparent
+    }
+
     Box(
         modifier = Modifier
             .width(40.dp)
             .height(32.dp)
+            .graphicsLayer {
+                scaleX = scale
+                scaleY = scale
+            }
             .clip(RoundedCornerShape(16.dp))
-            .background(if (active) colors.chip else androidx.compose.ui.graphics.Color.Transparent)
-            .clickable(onClick = onClick),
+            .background(background)
+            .pointerInput(Unit) {
+                detectTapGestures(
+                    onPress = {
+                        val start = SystemClock.uptimeMillis()
+                        pressed = true
+                        if (currentHaptics) view.keyDownTick()
+                        try {
+                            val released = tryAwaitRelease()
+                            if (released) {
+                                currentOnClick()
+                            }
+                            val elapsed = SystemClock.uptimeMillis() - start
+                            if (elapsed < 80L) {
+                                delay(80L - elapsed)
+                            }
+                        } finally {
+                            pressed = false
+                        }
+                    }
+                )
+            }
+            .semantics {
+                this.role = Role.Button
+                this.contentDescription = description
+                onClick {
+                    currentOnClick()
+                    true
+                }
+            },
         contentAlignment = Alignment.Center,
     ) {
         Icon(
             painter = painterResource(icon),
-            contentDescription = description,
-            tint = if (active) colors.onChip else colors.icon,
+            contentDescription = null,
+            tint = if (active && !pressed) colors.onChip else colors.icon,
             modifier = Modifier.height(22.dp),
         )
     }
