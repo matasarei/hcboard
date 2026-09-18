@@ -157,14 +157,35 @@ class DeveloperModeTest {
     }
 
     @Test
-    fun `fn turns arrows into home and backspace into forward delete`() {
+    fun `fn backspace in a terminal sends KEYCODE_FORWARD_DEL`() {
         terminal()
         controller.onKey(fn)
         controller.onKey(left)
         assertEquals(listOf(KeyEvent.KEYCODE_MOVE_HOME to 0), port.keys)
         controller.onKey(fn)
         controller.onKey(Key("backspace", KeyAction.Backspace))
+        assertEquals(listOf(KeyEvent.KEYCODE_MOVE_HOME to 0, KeyEvent.KEYCODE_FORWARD_DEL to 0), port.keys)
+        assertTrue(port.deletions.isEmpty())
+    }
+
+    @Test
+    fun `fn backspace in a text field uses deleteSurroundingText`() {
+        controller.onStartInput(android.view.inputmethod.EditorInfo().apply { inputType = InputType.TYPE_CLASS_TEXT })
+        controller.onKey(fn)
+        controller.onKey(Key("backspace", KeyAction.Backspace))
         assertEquals(listOf(0 to 1), port.deletions)
+        assertTrue(port.keys.isEmpty())
+    }
+
+    @Test
+    fun `fn backspace with a selection clears the selection`() {
+        terminal()
+        port.selected = "hello"
+        controller.onKey(fn)
+        controller.onKey(Key("backspace", KeyAction.Backspace))
+        assertEquals(listOf(""), port.committed)
+        assertTrue(port.keys.isEmpty())
+        assertTrue(port.deletions.isEmpty())
     }
 
     @Test

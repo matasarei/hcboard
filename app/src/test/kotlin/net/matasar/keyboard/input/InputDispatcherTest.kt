@@ -31,6 +31,36 @@ class InputDispatcherTest {
     }
 
     @Test
+    fun `forward delete deletes one character`() {
+        val port = FakeEditorPort(after = "ab")
+        InputDispatcher(port).forwardDelete()
+        assertEquals(listOf(0 to 1), port.deletions)
+    }
+
+    @Test
+    fun `forward delete deletes a whole emoji`() {
+        val port = FakeEditorPort(after = "😀b")
+        InputDispatcher(port).forwardDelete()
+        assertEquals(listOf(0 to 2), port.deletions)
+    }
+
+    @Test
+    fun `forward delete on a selection replaces it with nothing`() {
+        val port = FakeEditorPort(after = "abc", selected = "bc")
+        InputDispatcher(port).forwardDelete()
+        assertEquals(listOf(""), port.committed)
+        assertTrue(port.deletions.isEmpty())
+    }
+
+    @Test
+    fun `forward delete in terminal sends KEYCODE_FORWARD_DEL`() {
+        val port = FakeEditorPort(after = "abc")
+        InputDispatcher(port).forwardDelete(terminal = true)
+        assertEquals(listOf(KeyEvent.KEYCODE_FORWARD_DEL to 0), port.keys)
+        assertTrue(port.deletions.isEmpty())
+    }
+
+    @Test
     fun `enter performs the editor action when the field has one`() {
         val port = FakeEditorPort()
         InputDispatcher(port).enter(editorActionId = 3)

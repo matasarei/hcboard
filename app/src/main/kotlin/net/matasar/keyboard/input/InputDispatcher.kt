@@ -67,8 +67,28 @@ class InputDispatcher(private val port: EditorPort) {
         port.commitText(new)
     }
 
-    /** Forward delete of one character after the cursor. */
-    fun forwardDelete() = port.deleteSurroundingText(0, 1)
+    /**
+     * Forward delete: clears the selection when there is one (same as [backspace]), otherwise
+     * deletes one character after the cursor. In a [terminal] field the delete is a
+     * [KeyEvent.KEYCODE_FORWARD_DEL] key event, because terminal emulators ignore
+     * `deleteSurroundingText`.
+     */
+    fun forwardDelete(terminal: Boolean = false) {
+        val selected = port.selectedText()
+        if (!selected.isNullOrEmpty()) {
+            port.commitText("")
+            return
+        }
+        if (terminal) {
+            port.sendKey(KeyEvent.KEYCODE_FORWARD_DEL, 0)
+        } else {
+            val after = port.textAfterCursor(2)
+            val length = if (after != null && after.length == 2 &&
+                Character.isHighSurrogate(after[0]) && Character.isLowSurrogate(after[1])
+            ) 2 else 1
+            port.deleteSurroundingText(0, length)
+        }
+    }
 
     /**
      * Enter: performs the field's own action (Search, Send, Go…) when it has one, otherwise
