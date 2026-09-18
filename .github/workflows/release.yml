@@ -40,7 +40,11 @@ jobs:
       - name: Package release assets
         run: |
           tag="${{ github.ref_name }}"
-          cp app/build/outputs/apk/release/app-release.apk "hcboard-${tag}.apk"
+          apk_file="app/build/outputs/apk/release/app-release.apk"
+          if [[ ! -f "$apk_file" ]]; then
+            apk_file="app/build/outputs/apk/release/app-release-unsigned.apk"
+          fi
+          cp "$apk_file" "hcboard-${tag}.apk"
           cp app/build/outputs/bundle/release/app-release.aab "hcboard-${tag}.aab"
 
       - name: Publish GitHub Release
