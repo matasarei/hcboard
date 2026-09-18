@@ -67,4 +67,17 @@ class KeyMetricsTest {
         }
         assertEquals(Dimens.labelSize.value, Dimens.wordSize(46.dp).value)
     }
+
+    @Test
+    fun `the centered glyph fits within the key height across all heights`() {
+        var height = 26f
+        while (height <= 56f) {
+            val key = height.dp
+            val glyphLineBox = Dimens.glyphSize(key).value * Dimens.glyphLineHeightRatio
+            assertTrue(glyphLineBox <= height, "glyph line box ${glyphLineBox}dp exceeds ${height}dp")
+            val topMargin = (height - glyphLineBox) / 2f
+            assertTrue(topMargin >= 0f, "centered glyph has negative top margin at ${height}dp")
+            height += 0.4f
+        }
+    }
 }
