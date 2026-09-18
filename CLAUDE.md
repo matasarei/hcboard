@@ -53,9 +53,10 @@ emulator profile is `medium_phone`; boot it headless with
   classifier with its header kept; do not "clean it up". Word lists live in `assets/dictionaries/`
   and are built by `scripts/build-wordlist.py` from AOSP (Apache-2.0) and, for Ukrainian, Helium314's
   CC BY 4.0 list plus the curated overlay `scripts/wordlists/uk-everyday.tsv` (the corpus is news
-  text and under-rates chat words); regenerate, never hand-edit: the builder reads a shipped asset
-  as its source, so `scripts/build-wordlist.py <uk.txt> <uk.txt> --boost <the tsv>` rebuilds it
-  and `UkrainianOverlayTest` fails when the asset drifts below the overlay. The same lists feed
+  text and under-rates chat words), and for English, AOSP plus `scripts/wordlists/en-modern.tsv`
+  (essential tech and modern chat words); regenerate, never hand-edit: the builder reads a shipped asset
+  as its source, so `scripts/build-wordlist.py <asset> <asset> --boost <the tsv>` rebuilds it
+  and `UkrainianOverlayTest` / `EnglishOverlayTest` fail when an asset drifts below its overlay. The same lists feed
   `nlp/Candidates.kt` (prefix completions and one-edit corrections for the word before the cursor,
   read through `InputDispatcher.wordBeforeCursor`): there is no composing region on purpose, words
   are replaced with delete-and-commit, and nothing is read in a field where `suggestionsAllowed` says no. The grid's letter-bounds registry is rebuilt per
