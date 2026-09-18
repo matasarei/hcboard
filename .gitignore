@@ -2,6 +2,7 @@
 .tasks/
 .gku/
 .claude/repo-profile.json
+docs/store-listing.md
 
 # Android / Gradle
 build/
