@@ -71,8 +71,8 @@ emulator profile is `medium_phone`; boot it headless with
   plus the phone's languages the keyboard ships (`Languages.defaultEnabled`). The 60% board is
   built from the same data (`layout/SixtyPercentLayout.kt`): letters fill the ANSI slots of
   `AnsiSlots.rows` left to right, a letter on a punctuation slot carries that punctuation on Fn,
-  and a nine-letter Shift row shrinks both Shifts to keep `.` and `/`. Both Cyrillic boards fill
-  all twelve top-row slots (ї, ъ), so `[` and `]` are Fn on the same two keys in either. Every
+  and a nine-letter Shift row shrinks both Shifts to keep `.` and `/` (eight letters in Bulgarian leave standard shifts and punctuation). Ukrainian and Russian fill
+  all twelve top-row slots (ї, ъ), while Bulgarian fills eleven (ч on `[`), so `[` and `]` are Fn or punctuation keys. Every
   letter key carries `Key.slot`, the US character of its slot: modifier combinations send the slot
   (Ctrl+С is Ctrl+C) and `displayLabel` shows it while Ctrl, Alt or Meta is active.
 - **A key is a legend line and a glyph** (`ui/KeyButton.kt`), never a stack of paddings: the

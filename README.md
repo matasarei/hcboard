@@ -18,7 +18,7 @@
 
 hcboard is an on-screen keyboard for Android you can use all day: chats, messages, search boxes,
 forms. Type or glide across the letters, pick a word from the strip above the keys, and let a tap
-of space fix the typo you just made — in any of nine languages, with the phone's own colours,
+of space fix the typo you just made — in any of ten languages, with the phone's own colours,
 light or dark.
 
 When you need more than letters, it is already there. Unfold the phone or pick up a tablet and you
@@ -44,7 +44,7 @@ from the password manager you already use, and the keyboard never shows or keeps
   toolbar behind a chevron. Space applies the highlighted correction and one backspace takes it
   back. Both parts can be turned off, and neither runs in password, terminal, number, address or
   e-mail fields.
-- **Nine languages:** English, Ukrainian, Russian, French, Spanish, German, Italian, Portuguese
+- **Ten languages:** English, Ukrainian, Russian, Bulgarian, French, Spanish, German, Italian, Portuguese
   (Brazil) and Polish, each with its own layout and long-press accents. Until you change the set
   it follows your phone's languages, plus English; a globe key switches them, and holding it opens
   the list.
