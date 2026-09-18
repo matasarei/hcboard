@@ -139,6 +139,18 @@ private fun SettingsScreen(settings: Settings, prefs: Prefs) {
         for (language in Languages.all) {
             val enabled = language.tag in settings.enabledLanguages
             SwitchRow("${language.nativeName} · ${language.englishName}", enabled) { scope.launch { prefs.setLanguageEnabled(language.tag, it) } }
+            if (language.tag == "ru" && enabled) {
+                Column(modifier = Modifier.padding(start = 16.dp, top = 4.dp, bottom = 4.dp)) {
+                    SwitchRow(stringResource(R.string.settings_ru_bg_vocabulary), settings.ruBulgarianVocabulary) {
+                        scope.launch { prefs.setRuBulgarianVocabulary(it) }
+                    }
+                    Text(
+                        stringResource(R.string.settings_ru_bg_vocabulary_hint),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
         }
 
         Section(stringResource(R.string.settings_section_suggestions))
