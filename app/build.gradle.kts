@@ -19,13 +19,23 @@ android {
     // CI signs dev builds with a stable key from secrets, so a new build installs over the last
     // one. Locally, without the variables, the debug build keeps the default debug key.
     val devKeystore = System.getenv("HCBOARD_KEYSTORE")?.let(::file)?.takeIf { it.exists() }
-    if (devKeystore != null) {
-        signingConfigs {
+    val releaseKeystore = System.getenv("HCBOARD_RELEASE_KEYSTORE")?.let(::file)?.takeIf { it.exists() }
+
+    signingConfigs {
+        if (devKeystore != null) {
             create("dev") {
                 storeFile = devKeystore
                 storePassword = System.getenv("HCBOARD_KEYSTORE_PASSWORD")
                 keyAlias = System.getenv("HCBOARD_KEY_ALIAS") ?: "dev"
                 keyPassword = System.getenv("HCBOARD_KEY_PASSWORD")
+            }
+        }
+        if (releaseKeystore != null) {
+            create("release") {
+                storeFile = releaseKeystore
+                storePassword = System.getenv("HCBOARD_RELEASE_KEYSTORE_PASSWORD")
+                keyAlias = System.getenv("HCBOARD_RELEASE_KEY_ALIAS") ?: "release"
+                keyPassword = System.getenv("HCBOARD_RELEASE_KEY_PASSWORD")
             }
         }
     }
@@ -35,6 +45,7 @@ android {
             if (devKeystore != null) signingConfig = signingConfigs.getByName("dev")
         }
         release {
+            if (releaseKeystore != null) signingConfig = signingConfigs.getByName("release")
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
