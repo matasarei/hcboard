@@ -17,5 +17,6 @@ class EnabledLanguagesTest {
     fun `defaults are english only`() {
         assertEquals(setOf("en_US"), Settings().enabledLanguages)
         assertEquals("en_US", Settings().currentLanguage)
+        assertEquals(false, Settings().ruBulgarianVocabulary)
     }
 }

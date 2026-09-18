@@ -100,16 +100,19 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
     /** One pair of engines per language, built on first use and kept; the word lists are small. */
     private val engines = HashMap<String, LanguageEngines>()
 
+    private var ruBulgarianVocabulary = false
+
     /** Points the controller at [tag]'s engines, loading the word list off the main thread if needed. */
     private fun loadLanguage(tag: String) {
-        engines[tag]?.let { use(it); return }
+        val assetTag = if (tag == "ru" && ruBulgarianVocabulary) "ru_bg" else tag
+        engines[assetTag]?.let { use(it); return }
         controller.glideEngine = null
         controller.candidateEngine = null
         lifecycleScope.launch(Dispatchers.IO) {
-            val list = WordList.load(applicationContext, tag)
+            val list = WordList.load(applicationContext, assetTag)
             val loaded = LanguageEngines(GlideEngine(list), Candidates(list).apply { warmUp() })
             withContext(Dispatchers.Main) {
-                engines[tag] = loaded
+                engines[assetTag] = loaded
                 if (controller.language.tag == tag) use(loaded)
             }
         }
@@ -167,6 +170,8 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
         lifecycleRegistry.currentState = Lifecycle.State.CREATED
         lifecycleScope.launch {
             prefs.settings.collect { settings ->
+                val ruBgChanged = ruBulgarianVocabulary != settings.ruBulgarianVocabulary
+                ruBulgarianVocabulary = settings.ruBulgarianVocabulary
                 controller.editingShortcutsInTextFields = settings.editingShortcuts
                 controller.doubleTapLock = settings.doubleTapLock
                 controller.glideEnabled = settings.glide
@@ -182,6 +187,8 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
                 if (wanted != null && wanted != controller.language) {
                     controller.restoreLanguage(wanted)
                     loadLanguage(wanted.tag)
+                } else if (ruBgChanged && controller.language.tag == "ru") {
+                    loadLanguage("ru")
                 }
             }
         }

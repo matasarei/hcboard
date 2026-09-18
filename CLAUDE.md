@@ -56,7 +56,10 @@ emulator profile is `medium_phone`; boot it headless with
   text and under-rates chat words), and for English, AOSP plus `scripts/wordlists/en-modern.tsv`
   (essential tech and modern chat words); regenerate, never hand-edit: the builder reads a shipped asset
   as its source, so `scripts/build-wordlist.py <asset> <asset> --boost <the tsv>` rebuilds it
-  and `UkrainianOverlayTest` / `EnglishOverlayTest` fail when an asset drifts below its overlay. The same lists feed
+  and `UkrainianOverlayTest` / `EnglishOverlayTest` fail when an asset drifts below its overlay. The combined
+  Russian+Bulgarian dictionary `ru_bg.txt` is built by `scripts/build-ru-bg-wordlist.py` with collision
+  protection (1-edit Bulgarian words capped at 75 < 80) and loaded when `ruBulgarianVocabulary` is active.
+  The same lists feed
   `nlp/Candidates.kt` (prefix completions and one-edit corrections for the word before the cursor,
   read through `InputDispatcher.wordBeforeCursor`): there is no composing region on purpose, words
   are replaced with delete-and-commit, and nothing is read in a field where `suggestionsAllowed` says no. The grid's letter-bounds registry is rebuilt per

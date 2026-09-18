@@ -38,6 +38,8 @@ data class Settings(
     /** Tags of the enabled languages; never empty. */
     val enabledLanguages: Set<String> = setOf(DEFAULT_LANGUAGE),
     val currentLanguage: String = DEFAULT_LANGUAGE,
+    /** Whether the Russian keyboard loads the combined RU+BG dictionary. */
+    val ruBulgarianVocabulary: Boolean = false,
 ) {
     companion object {
         const val DEFAULT_LANGUAGE = "en_US"
@@ -75,6 +77,7 @@ class Prefs(private val context: Context) {
             glideTrail = p[GLIDE_TRAIL] ?: true,
             enabledLanguages = p[ENABLED_LANGUAGES]?.takeIf { it.isNotEmpty() } ?: defaultEnabledLanguages(),
             currentLanguage = p[CURRENT_LANGUAGE] ?: Settings.DEFAULT_LANGUAGE,
+            ruBulgarianVocabulary = p[RU_BULGARIAN_VOCABULARY] ?: false,
         )
     }
 
@@ -92,6 +95,7 @@ class Prefs(private val context: Context) {
     suspend fun setGlide(value: Boolean) = context.dataStore.edit { it[GLIDE] = value }
     suspend fun setGlideTrail(value: Boolean) = context.dataStore.edit { it[GLIDE_TRAIL] = value }
     suspend fun setCurrentLanguage(tag: String) = context.dataStore.edit { it[CURRENT_LANGUAGE] = tag }
+    suspend fun setRuBulgarianVocabulary(value: Boolean) = context.dataStore.edit { it[RU_BULGARIAN_VOCABULARY] = value }
 
     suspend fun setLanguageEnabled(tag: String, enabled: Boolean) = context.dataStore.edit { p ->
         val current = p[ENABLED_LANGUAGES]?.takeIf { it.isNotEmpty() } ?: defaultEnabledLanguages()
@@ -134,5 +138,6 @@ class Prefs(private val context: Context) {
         val GLIDE_TRAIL = booleanPreferencesKey("glide_trail")
         val ENABLED_LANGUAGES = stringSetPreferencesKey("enabled_languages")
         val CURRENT_LANGUAGE = stringPreferencesKey("current_language")
+        val RU_BULGARIAN_VOCABULARY = booleanPreferencesKey("ru_bulgarian_vocabulary")
     }
 }

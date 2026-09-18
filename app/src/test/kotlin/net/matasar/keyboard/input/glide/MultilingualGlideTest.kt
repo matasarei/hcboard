@@ -86,6 +86,25 @@ class MultilingualGlideTest {
     fun `bulgarian glides здравей`() = assertGlides(Languages.bulgarian, "здравей", "здравей")
 
     @Test
+    fun `combined ru_bg dictionary glides both russian and bulgarian words on russian keyboard`() {
+        val list = File("src/main/assets/dictionaries/ru_bg.txt").bufferedReader().useLines { WordList.parse(it) }
+        val geometry = LanguageGeometry(Languages.russian)
+        val classifier = GlideClassifier(list).apply { setLayout(geometry.keys) }
+
+        // Russian words glide cleanly on Russian layout
+        for (word in listOf("привет", "хорошо", "совет")) {
+            val suggestions = classifier.classify(geometry.path(word), 4)
+            assertTrue(word in suggestions, "ru_bg: expected '$word' in $suggestions")
+        }
+
+        // Bulgarian words glide cleanly on Russian layout
+        for (word in listOf("здравей", "благодаря", "български")) {
+            val suggestions = classifier.classify(geometry.path(word), 4)
+            assertTrue(word in suggestions, "ru_bg: expected '$word' in $suggestions")
+        }
+    }
+
+    @Test
     fun `every language's list is typeable on its layer`() {
         for (language in Languages.all) {
             val list = File("src/main/assets/dictionaries/${language.tag}.txt").bufferedReader().useLines { WordList.parse(it) }
