@@ -337,7 +337,7 @@ class KeyboardController(
             }
             KeyAction.Backspace -> {
                 when {
-                    modifiers.isActive(ModifierKey.FN) -> dispatcher.forwardDelete()
+                    modifiers.isActive(ModifierKey.FN) -> dispatcher.forwardDelete(terminalField)
                     modifiers.anyMetaActive -> dispatcher.sendKey(KeyEvent.KEYCODE_DEL, modifiers.metaState())
                     else -> { dispatcher.backspace(); refreshCandidates() }
                 }
@@ -432,7 +432,7 @@ class KeyboardController(
     /** Backspace or arrow held down: repeat one step per tick. */
     fun onKeyRepeat(key: Key) {
         if (key.action == KeyAction.Backspace) {
-            if (fnActive) dispatcher.forwardDelete() else dispatcher.backspace()
+            if (fnActive) dispatcher.forwardDelete(terminalField) else dispatcher.backspace()
             return
         }
         val action = if (fnActive && key.fnAction != null) key.fnAction else key.action
