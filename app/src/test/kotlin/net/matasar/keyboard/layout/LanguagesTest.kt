@@ -31,8 +31,10 @@ class LanguagesTest {
         assertEquals("a", Languages.french.rows[0].first().toString())
         assertTrue(letters(Languages.spanish).contains("ñ"))
         assertTrue(letters(Languages.german).containsAll(listOf("ü", "ö", "ä")))
+        assertTrue(letters(Languages.bulgarian).containsAll(listOf("я", "ъ", "ч", "ш", "щ", "ю")))
         assertEquals(12f, Languages.ukrainian.units)
         assertEquals(11f, Languages.german.units)
+        assertEquals(11f, Languages.bulgarian.units)
         assertEquals(10f, Languages.french.units)
     }
 
@@ -45,12 +47,14 @@ class LanguagesTest {
         assertEquals("é", accents(Languages.french, "e").first())
         assertEquals("ß", accents(Languages.german, "s").first())
         assertEquals("ç", accents(Languages.portuguese, "c").first())
+        assertEquals("ѝ", accents(Languages.bulgarian, "и").first())
     }
 
     @Test
     fun `the space bar names the language and the globe cycles enabled languages`() {
         val space = Languages.ukrainian.lettersLayer(true).rows[3].keys.first { it.action == KeyAction.Space }
         assertEquals("Українська", space.label)
+        assertEquals("Български", Languages.bulgarian.lettersLayer(true).rows[3].keys.first { it.action == KeyAction.Space }.label)
         val enabled = setOf("en_US", "uk", "ru")
         assertEquals(Languages.ukrainian, Languages.next(Languages.english, enabled))
         assertEquals(Languages.english, Languages.next(Languages.russian, enabled))
@@ -67,6 +71,12 @@ class LanguagesTest {
         assertEquals(']', slot(Languages.ukrainian, "ї"))
         assertEquals('c', slot(Languages.russian, "с"))
         assertEquals('a', slot(Languages.french, "q"))
+        assertEquals('q', slot(Languages.bulgarian, "я"))
+        assertEquals('w', slot(Languages.bulgarian, "в"))
+        assertEquals('[', slot(Languages.bulgarian, "ч"))
+        assertEquals(';', slot(Languages.bulgarian, "ш"))
+        assertEquals('\'', slot(Languages.bulgarian, "щ"))
+        assertEquals(',', slot(Languages.bulgarian, "ю"))
         for (language in Languages.all) {
             val letters = language.lettersLayer(false).rows.flatMap { it.keys }.filter { it.action is KeyAction.Letter }
             assertTrue(letters.all { it.slot != null }, "${language.tag} has a letter without a slot")
@@ -76,8 +86,10 @@ class LanguagesTest {
     @Test
     fun `the first-run languages are english plus the phone's shipped languages`() {
         val uk = java.util.Locale("uk", "UA"); val ru = java.util.Locale("ru", "RU"); val ja = java.util.Locale("ja", "JP")
+        val bg = java.util.Locale("bg", "BG")
         assertEquals(setOf("en_US", "uk", "ru"), Languages.defaultEnabled(listOf(uk, ru)))
         assertEquals(setOf("en_US", "pt_BR"), Languages.defaultEnabled(listOf(java.util.Locale("pt", "PT"))))
+        assertEquals(setOf("en_US", "bg"), Languages.defaultEnabled(listOf(bg)))
         assertEquals(setOf("en_US"), Languages.defaultEnabled(listOf(ja)))
         assertEquals(setOf("en_US"), Languages.defaultEnabled(listOf(java.util.Locale("en", "GB"))))
         assertEquals(setOf("en_US"), Languages.defaultEnabled(emptyList()))
