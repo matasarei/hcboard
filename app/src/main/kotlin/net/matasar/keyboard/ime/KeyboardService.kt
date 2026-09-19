@@ -157,6 +157,9 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
 
     /** The last measurement, kept for `dumpsys activity service`. */
     private var lastMeasurement: String = "not measured yet"
+
+    /** The last insets handed to the window manager, kept for the dump. */
+    private var lastComputedInsets: String = "not computed yet"
     private var currentPackage: String? = null
     private var currentFieldId = View.NO_ID
 
@@ -342,6 +345,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
     /** Every inset type the decor reports, its padding, and the last measurement, one line each. */
     private fun insetReport(): String {
         val lines = mutableListOf("measurement: $lastMeasurement auto=$autoBottomPadding manualPaddingDp=$manualBottomPaddingDp")
+        lines += "computed insets: $lastComputedInsets"
         lines += "configuration: ${resources.configuration.screenWidthDp}x${resources.configuration.screenHeightDp}dp density=${resources.configuration.densityDpi} rebuilds=$inputViewRebuilds"
         lines += "device: ${android.os.Build.MANUFACTURER} ${android.os.Build.MODEL}, Android ${android.os.Build.VERSION.RELEASE} (API ${android.os.Build.VERSION.SDK_INT}), navigation_mode=${runCatching { android.provider.Settings.Secure.getInt(contentResolver, "navigation_mode", -1) }.getOrDefault(-1)}, locales=${resources.configuration.locales.toLanguageTags()}"
         val decor = window?.window?.decorView ?: return (lines + "window: none").joinToString("\n")
@@ -431,6 +435,16 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
         outInsets.visibleTopInsets += overhang
         outInsets.touchableInsets = Insets.TOUCHABLE_INSETS_REGION
         outInsets.touchableRegion.set(0, outInsets.contentTopInsets, view.width, outInsets.contentTopInsets + view.height)
+        // What the app is told the keyboard takes, next to where the window and the keys really
+        // are on screen: the report an app pushed too far up has to be diagnosed from.
+        val decorOnScreen = IntArray(2).also { window?.window?.decorView?.getLocationOnScreen(it) }
+        val viewOnScreen = IntArray(2).also { view.getLocationOnScreen(it) }
+        val reported = "contentTop=${outInsets.contentTopInsets} visibleTop=${outInsets.visibleTopInsets} overhang=$overhang " +
+            "decorScreenTop=${decorOnScreen[1]} viewScreenTop=${viewOnScreen[1]} fullscreen=$isFullscreenMode extractShown=$isExtractViewShown"
+        if (reported != lastComputedInsets) {
+            lastComputedInsets = reported
+            KeyboardDiagnostics.insets = insetReport()
+        }
     }
 
     override fun onFinishInput() {
