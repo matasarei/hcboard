@@ -37,9 +37,9 @@ There are no remote servers, no analytics, no crash reporting SDKs, no ad framew
 ## 4. Passwords & Autofill Security
 
 * **Inline Suggestions:** Autofill suggestion chips shown in the toolbar are rendered directly by your device's chosen Password Manager via AndroidX Autofill. hcboard merely hosts the container view and cannot read or inspect the credentials inside those views.
-* **"Fill a Password" Screen (`FillActivity`):** When filling credentials into terminal emulators or apps that do not support inline suggestions:
+* **"Fill a Login" Screen (`FillActivity`):** When filling credentials into terminal emulators or apps that do not support inline suggestions:
   * The screen is locked with `WindowManager.LayoutParams.FLAG_SECURE` to prevent screenshots, screen recording, and exposure in recent-app previews.
-  * A password provided by your password manager is stored only in transient memory for a maximum of 30 seconds for a single, one-time injection into the requesting application.
+  * The username and password provided by your password manager are stored only in transient memory for a maximum of 30 seconds for a single, one-time injection into the requesting application. Started from a username field, the username is typed there and the password into the next password field of the same application, within 10 seconds; started from a password field or a terminal, only the password is typed. Switching to another application discards them.
   * Once committed, the memory reference is immediately wiped. Credentials are never written to disk, never logged, and never included in Android Intents or Bundles.
 
 ---
