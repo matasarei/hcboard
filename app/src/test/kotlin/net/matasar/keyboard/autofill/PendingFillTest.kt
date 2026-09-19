@@ -221,6 +221,29 @@ class PendingFillTest {
     }
 
     @Test
+    fun `once the username is in, the password waits for its field a short while only`() {
+        val password = secret()
+        fill.offer(login, password, alice())
+        deliver(field(login, FieldKind.TEXT, canGoNext = true))
+        advanceTo(now + PendingFill.PASSWORD_FIELD_WAIT_MS - 1)
+        assertTrue(fill.waiting)
+        advanceTo(now + 1)
+        assertFalse(fill.waiting)
+        assertTrue(password.wiped())
+        assertEquals(emptyList(), deliver(field(login.copy(fieldId = 4), FieldKind.PASSWORD)))
+    }
+
+    @Test
+    fun `the short wait never outlasts the fill's own expiry`() {
+        fill.offer(login, secret(), alice())
+        now += PendingFill.TTL_MS - 1_000
+        deliver(field(login, FieldKind.TEXT, canGoNext = true))
+        now += 1_000
+        assertEquals(emptyList(), deliver(field(login.copy(fieldId = 4), FieldKind.PASSWORD)))
+        assertFalse(fill.waiting)
+    }
+
+    @Test
     fun `the first stage only happens in the field the fill started from`() {
         fill.offer(login, secret(), alice())
         assertEquals(emptyList(), deliver(field(login.copy(fieldId = 9), FieldKind.TEXT, canGoNext = true)))

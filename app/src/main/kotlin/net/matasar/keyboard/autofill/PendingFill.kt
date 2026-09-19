@@ -40,9 +40,10 @@ interface FillTyper {
  * Started from a text field with a username to go with it, the fill is two stages: the username
  * goes into that field (unless it already holds text), the keyboard moves on to the next field
  * when the field says there is one, and the password then waits for the first password field of
- * the same app — which may come a page later, on a two-step login. Started from anything else (a
- * password field, a terminal, a PIN), or without a username, the password goes into the field
- * the fill started from, as a single fill.
+ * the same app — which may come a page later, on a two-step login — for [PASSWORD_FIELD_WAIT_MS]
+ * at most. In a browser the same app is every site and tab, so that wait is kept short. Started
+ * from anything else (a password field, a terminal, a PIN), or without a username, the password
+ * goes into the field the fill started from, as a single fill.
  *
  * It lives in this process only — never logged, stored, shown, or put in an `Intent` — and is
  * handed out at most once: to the app it was asked for, before it expires. Another app taking
@@ -125,6 +126,8 @@ class PendingFill(private val clock: () -> Long, private val schedule: (Long, ()
         try {
             if (field.isEmpty()) typer.typeUsername(CharBuffer.wrap(chars))
             awaitingPasswordField = true
+            expiresAt = minOf(expiresAt, clock() + PASSWORD_FIELD_WAIT_MS)
+            schedule(PASSWORD_FIELD_WAIT_MS, ::clearIfExpired)
             if (field.canGoNext) typer.goNext()
         } catch (failure: Throwable) {
             clear()
@@ -148,6 +151,13 @@ class PendingFill(private val clock: () -> Long, private val schedule: (Long, ()
     companion object {
         /** Long enough to pick a login and come back; short enough not to outstay the moment. */
         const val TTL_MS = 30_000L
+
+        /**
+         * How long the password waits for a password field once the username is in: enough to
+         * tap Next on a two-step login, short enough that another site in the same browser is
+         * unlikely to be the one that gets it.
+         */
+        const val PASSWORD_FIELD_WAIT_MS = 10_000L
 
         /** What a used or dropped login's characters are overwritten with. */
         val WIPED = Char(0)
