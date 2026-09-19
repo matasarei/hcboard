@@ -515,7 +515,13 @@ class KeyboardController(
             if (word == glided) return
             dispatcher.replaceWordBeforeCursor(glided, word)
             lastGlideWord = word
-            lastGlideCommit = glideCommit?.replace(glided, word) ?: word
+            lastGlideCommit = when (glideCommit) {
+                " $glided " -> " $word "
+                " $glided" -> " $word"
+                "$glided " -> "$word "
+                glided -> word
+                else -> word
+            }
             return
         }
         if (word == current.typed) return
