@@ -1,6 +1,9 @@
 package net.matasar.keyboard.settings
 
+import android.content.ClipData
+import android.os.Build
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -16,6 +19,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
@@ -27,9 +31,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.ClipEntry
+import androidx.compose.ui.platform.LocalClipboard
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.text.KeyboardOptions
@@ -82,6 +90,11 @@ private fun SettingsScreen(settings: Settings, prefs: Prefs) {
     var tryText by remember { mutableStateOf("") }
     // Never rememberSaveable: a test password must not outlive the screen.
     var tryPassword by remember { mutableStateOf("") }
+    var diagnosticsShown by rememberSaveable { mutableStateOf(false) }
+    val clipboard = LocalClipboard.current
+    val context = LocalContext.current
+    val diagnosticsClipLabel = stringResource(R.string.settings_section_diagnostics)
+    val diagnosticsCopied = stringResource(R.string.settings_diagnostics_copied)
 
     Column(
         modifier = Modifier
@@ -197,12 +210,33 @@ private fun SettingsScreen(settings: Settings, prefs: Prefs) {
 
         Section(stringResource(R.string.settings_section_diagnostics))
         Text(stringResource(R.string.settings_diagnostics_hint), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        SelectionContainer {
-            Text(
-                KeyboardDiagnostics.field + "\n\n" + KeyboardDiagnostics.insets,
-                style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace),
-                modifier = Modifier.padding(top = 4.dp),
-            )
+        // Hidden until asked for; once shown, the same button copies what is on screen.
+        if (!diagnosticsShown) {
+            OutlinedButton(onClick = { diagnosticsShown = true }) {
+                Text(stringResource(R.string.settings_diagnostics_show))
+            }
+        } else {
+            OutlinedButton(
+                onClick = {
+                    val report = KeyboardDiagnostics.report()
+                    scope.launch {
+                        clipboard.setClipEntry(ClipEntry(ClipData.newPlainText(diagnosticsClipLabel, report)))
+                    }
+                    // Android 13 and later confirm a copy themselves.
+                    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+                        Toast.makeText(context, diagnosticsCopied, Toast.LENGTH_SHORT).show()
+                    }
+                },
+            ) {
+                Text(stringResource(R.string.settings_diagnostics_copy))
+            }
+            SelectionContainer {
+                Text(
+                    KeyboardDiagnostics.report(),
+                    style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace),
+                    modifier = Modifier.padding(top = 4.dp),
+                )
+            }
         }
     }
 }

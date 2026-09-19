@@ -13,6 +13,13 @@ android {
         targetSdk = libs.versions.targetSdk.get().toInt()
         versionCode = 1
         versionName = "0.1.0"
+        // The commit a build came from, for the diagnostics on the settings screen. CI sets
+        // HCBOARD_COMMIT (a pull request's head, not GitHub's merge commit); anything that is not
+        // a full hash, including no variable at all, reads "local build". Checked, because it is
+        // pasted into a Java string literal.
+        val commit = providers.environmentVariable("HCBOARD_COMMIT").orNull
+            ?.takeIf { it.matches(Regex("[0-9a-f]{40}")) } ?: "local build"
+        buildConfigField("String", "COMMIT", "\"$commit\"")
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -59,6 +66,7 @@ android {
 
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 
     testOptions {

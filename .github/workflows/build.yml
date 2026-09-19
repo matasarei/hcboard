@@ -19,6 +19,10 @@ jobs:
   build:
     name: Test, lint and build the debug APK
     runs-on: ubuntu-latest
+    env:
+      # The commit the APK reports in its diagnostics. A pull request builds GitHub's merge commit,
+      # which is nowhere in the branch's history, so it reports the branch head instead.
+      HCBOARD_COMMIT: ${{ github.event.pull_request.head.sha || github.sha }}
     steps:
       - uses: actions/checkout@v4
 
