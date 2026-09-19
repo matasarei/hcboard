@@ -146,7 +146,7 @@ private fun SettingsScreen(settings: Settings, prefs: Prefs) {
 
         Section(stringResource(R.string.settings_section_languages))
         Text(stringResource(R.string.settings_languages_hint), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        for (language in Languages.all) {
+        for (language in Languages.all.filter { it != Languages.english }) {
             val enabled = language.tag in settings.enabledLanguages
             SwitchRow("${language.nativeName} · ${language.englishName}", enabled) { scope.launch { prefs.setLanguageEnabled(language.tag, it) } }
             if (language.tag == "ru" && enabled) {

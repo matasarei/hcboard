@@ -85,15 +85,16 @@ class LanguagesTest {
     }
 
     @Test
-    fun `the first-run languages are english plus the phone's shipped languages`() {
+    fun `the first-run default is english only regardless of system locales`() {
         val uk = java.util.Locale("uk", "UA"); val ru = java.util.Locale("ru", "RU"); val ja = java.util.Locale("ja", "JP")
         val bg = java.util.Locale("bg", "BG")
-        assertEquals(setOf("en_US", "uk", "ru"), Languages.defaultEnabled(listOf(uk, ru)))
-        assertEquals(setOf("en_US", "pt_BR"), Languages.defaultEnabled(listOf(java.util.Locale("pt", "PT"))))
-        assertEquals(setOf("en_US", "bg"), Languages.defaultEnabled(listOf(bg)))
+        assertEquals(setOf("en_US"), Languages.defaultEnabled(listOf(uk, ru)))
+        assertEquals(setOf("en_US"), Languages.defaultEnabled(listOf(java.util.Locale("pt", "PT"))))
+        assertEquals(setOf("en_US"), Languages.defaultEnabled(listOf(bg)))
         assertEquals(setOf("en_US"), Languages.defaultEnabled(listOf(ja)))
         assertEquals(setOf("en_US"), Languages.defaultEnabled(listOf(java.util.Locale("en", "GB"))))
         assertEquals(setOf("en_US"), Languages.defaultEnabled(emptyList()))
+        assertEquals(setOf("en_US"), Languages.defaultEnabled())
     }
 
     @Test

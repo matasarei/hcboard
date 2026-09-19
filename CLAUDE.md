@@ -71,7 +71,8 @@ emulator profile is `medium_phone`; boot it headless with
   current language is authoritative and the service follows changes to it. The enabled set is the
   keyboard's own: `method.xml` declares no subtypes on purpose (Android's own per-language list
   disagreed with ours and its picker never reached the keys), and the first-run default is English
-  plus the phone's languages the keyboard ships (`Languages.defaultEnabled`). The 60% board is
+  only; additional languages are added by the user in settings (`Languages.defaultEnabled`).
+  English is always on and not toggleable in settings. The 60% board is
   built from the same data (`layout/SixtyPercentLayout.kt`): letters fill the ANSI slots of
   `AnsiSlots.rows` left to right, a letter on a punctuation slot carries that punctuation on Fn,
   and a nine-letter Shift row shrinks both Shifts to keep `.` and `/` (eight letters in Bulgarian leave standard shifts and punctuation). Ukrainian and Russian fill
