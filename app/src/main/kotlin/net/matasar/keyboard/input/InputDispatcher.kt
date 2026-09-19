@@ -99,6 +99,19 @@ class InputDispatcher(private val port: EditorPort) {
         sendKey(KeyEvent.KEYCODE_ENTER)
     }
 
+    /** Moves to another field (Next, Previous) the way the field's own action key would. */
+    fun performEditorAction(actionId: Int): Boolean = port.performEditorAction(actionId)
+
+    /**
+     * Whether the field holds no text around the cursor and none selected; a field that cannot
+     * say (its connection went away) counts as holding some. Reads one character either side.
+     */
+    fun fieldIsEmpty(): Boolean {
+        val before = port.textBeforeCursor(1) ?: return false
+        val after = port.textAfterCursor(1) ?: return false
+        return before.isEmpty() && after.isEmpty() && port.selectedText().isNullOrEmpty()
+    }
+
     /** A key event down/up pair with the given meta state. */
     fun sendKey(keyCode: Int, metaState: Int = 0) = port.sendKey(keyCode, metaState)
 
