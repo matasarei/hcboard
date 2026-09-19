@@ -384,8 +384,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
     /** `adb shell dumpsys activity service net.matasar.keyboard/.ime.KeyboardService`: the build, the field and the insets. */
     override fun dump(fd: FileDescriptor, fout: PrintWriter, args: Array<String>) {
         super.dump(fd, fout, args)
-        fout.println(KeyboardDiagnostics.versionLine())
-        for (line in (KeyboardDiagnostics.field + "\n" + insetReport()).lines()) fout.println("hcboard $line")
+        fout.println(KeyboardDiagnostics.report())
     }
 
     /**
