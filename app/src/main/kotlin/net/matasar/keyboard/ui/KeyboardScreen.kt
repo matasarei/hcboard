@@ -51,6 +51,7 @@ data class KeyboardFeel(
     val previews: Boolean = true,
     val keyBorders: Boolean = true,
     val heightScale: Float = 1f,
+    val widthScale: Float = 1f,
     val glide: Boolean = true,
     val glideTrail: Boolean = true,
 )
