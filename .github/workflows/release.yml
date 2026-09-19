@@ -12,6 +12,9 @@ jobs:
   release:
     name: Build, test and publish release
     runs-on: ubuntu-latest
+    env:
+      # The tagged commit, which the APK reports in its diagnostics.
+      HCBOARD_COMMIT: ${{ github.sha }}
     steps:
       - uses: actions/checkout@v4
 
