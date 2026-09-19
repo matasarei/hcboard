@@ -51,6 +51,7 @@ data class KeyboardFeel(
     val previews: Boolean = true,
     val keyBorders: Boolean = true,
     val heightScale: Float = 1f,
+    val widthScale: Float = 1f,
     val glide: Boolean = true,
     val glideTrail: Boolean = true,
 )
@@ -84,6 +85,7 @@ fun KeyboardScreen(
             },
     ) {
         val wide = maxWidth >= Dimens.wideBreakpoint
+        val extraSidePadding = (maxWidth * ((1f - feel.widthScale.coerceIn(0.7f, 1f)) / 2f)).coerceAtLeast(0.dp)
         Column(modifier = Modifier.fillMaxWidth()) {
             Spacer(modifier = Modifier.height(PopupMetrics.overhang))
             Column(
@@ -94,7 +96,9 @@ fun KeyboardScreen(
             ) {
                 val chipText = if (controller.trackpad) "Move cursor" else controller.modifiers.chipText()
                 Toolbar(
-                    modifier = Modifier.background(colors.toolbar),
+                    modifier = Modifier
+                        .background(colors.toolbar)
+                        .padding(horizontal = extraSidePadding),
                     developerMode = controller.developerMode,
                     showDeveloperToggle = !wide,
                     chipText = chipText,
@@ -107,7 +111,7 @@ fun KeyboardScreen(
                     onPickCandidate = controller::pickCandidate,
                     onCollapseCandidates = controller::collapseCandidates,
                 )
-                LayerGrid(controller, feel, popups)
+                LayerGrid(controller, feel, popups, extraSidePadding)
             }
         }
         PopupLayer(popups)
@@ -131,7 +135,12 @@ fun KeyboardScreen(
 }
 
 @Composable
-private fun LayerGrid(controller: KeyboardController, feel: KeyboardFeel, popups: PopupState) {
+private fun LayerGrid(
+    controller: KeyboardController,
+    feel: KeyboardFeel,
+    popups: PopupState,
+    extraSidePadding: Dp = 0.dp,
+) {
     val colors = LocalKeyboardColors.current
     val density = LocalDensity.current
     val callbacks = remember(controller, popups, feel, density) {
@@ -174,7 +183,7 @@ private fun LayerGrid(controller: KeyboardController, feel: KeyboardFeel, popups
             }
         }
         val layer = layout.layers[controller.layer] ?: layout.layers.values.first()
-        val sidePadding = if (wide) Dimens.wideSidePadding else Dimens.sidePadding
+        val sidePadding = (if (wide) Dimens.wideSidePadding else Dimens.sidePadding) + extraSidePadding
         // The gaps follow the height setting too: keys shrunk to 80% under full-size gaps read as
         // small keys floating in space.
         val rowGap = (if (wide) Dimens.wideRowGap else Dimens.rowGap) * feel.heightScale
@@ -205,7 +214,7 @@ private fun LayerGrid(controller: KeyboardController, feel: KeyboardFeel, popups
             verticalArrangement = Arrangement.spacedBy(rowGap),
         ) {
             if (controller.developerMode && !wide) {
-                ModifierStrip(controller, feel, callbacks, unitWidth, keyHeight = keyHeight)
+                ModifierStrip(controller, feel, callbacks, unitWidth, keyHeight = keyHeight, sidePadding = sidePadding)
             }
             for (row in layer.rows) {
                 KeyRow(row = row, unitWidth = unitWidth, gap = Dimens.keyGap, modifier = Modifier.padding(horizontal = sidePadding)) { key ->

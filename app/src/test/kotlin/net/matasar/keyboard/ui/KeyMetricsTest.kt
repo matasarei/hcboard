@@ -80,4 +80,46 @@ class KeyMetricsTest {
             height += 0.4f
         }
     }
+
+    @Test
+    fun `width scale adds proportional side padding and keeps unit width positive`() {
+        val screenWidths = listOf(360.dp, 390.dp, 412.dp)
+        val scales = listOf(0.7f, 0.75f, 0.8f, 0.85f, 0.9f, 0.95f, 1.0f)
+        val unitCounts = listOf(10f, 12f) // 10 units for Latin, 12 units for Cyrillic (ru, uk)
+
+        for (maxWidth in screenWidths) {
+            for (scale in scales) {
+                val extraSidePadding = (maxWidth * ((1f - scale.coerceIn(0.7f, 1f)) / 2f)).coerceAtLeast(0.dp)
+                val baseSidePadding = Dimens.sidePadding
+                val sidePadding = baseSidePadding + extraSidePadding
+
+                if (scale == 1.0f) {
+                    assertEquals(0f, extraSidePadding.value, 0.001f)
+                    assertEquals(Dimens.sidePadding, sidePadding)
+                } else {
+                    assertTrue(extraSidePadding.value > 0f)
+                }
+
+                for (units in unitCounts) {
+                    val unitWidth = (maxWidth - sidePadding * 2 - Dimens.keyGap * (units.toInt() - 1)) / units
+                    assertTrue(unitWidth.value > 15f, "unit width too small at width $maxWidth, scale $scale, units $units: $unitWidth")
+                    val totalRowWidth = sidePadding * 2 + unitWidth * units + Dimens.keyGap * (units.toInt() - 1)
+                    assertEquals(maxWidth.value, totalRowWidth.value, 0.01f)
+                }
+            }
+        }
+    }
+
+    @Test
+    fun `extra side padding is clamped between 70 percent and 100 percent`() {
+        val maxWidth = 400.dp
+        val belowMin = (maxWidth * ((1f - 0.5f.coerceIn(0.7f, 1f)) / 2f)).coerceAtLeast(0.dp)
+        val atMin = (maxWidth * ((1f - 0.7f.coerceIn(0.7f, 1f)) / 2f)).coerceAtLeast(0.dp)
+        assertEquals(atMin, belowMin)
+
+        val aboveMax = (maxWidth * ((1f - 1.2f.coerceIn(0.7f, 1f)) / 2f)).coerceAtLeast(0.dp)
+        val atMax = (maxWidth * ((1f - 1.0f.coerceIn(0.7f, 1f)) / 2f)).coerceAtLeast(0.dp)
+        assertEquals(atMax, aboveMax)
+        assertEquals(0.dp, atMax)
+    }
 }

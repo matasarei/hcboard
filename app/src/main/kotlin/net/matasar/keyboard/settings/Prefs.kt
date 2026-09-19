@@ -19,6 +19,7 @@ enum class ThemeChoice { SYSTEM, LIGHT, DARK, BLACK }
 /** Everything the settings screen edits and the keyboard reads. */
 data class Settings(
     val heightScale: Float = 1f,
+    val widthScale: Float = 1f,
     /** Whether the room under the keys follows what the window measures (the system's bar and buttons). */
     val bottomPaddingAuto: Boolean = true,
     /** The room under the keys, in dp, when [bottomPaddingAuto] is off. */
@@ -62,6 +63,7 @@ class Prefs(private val context: Context) {
     val settings: Flow<Settings> = context.dataStore.data.map { p ->
         Settings(
             heightScale = p[HEIGHT_SCALE] ?: 1f,
+            widthScale = (p[WIDTH_SCALE] ?: 1f).coerceIn(0.7f, 1f),
             bottomPaddingAuto = p[BOTTOM_PADDING_AUTO] ?: true,
             bottomPaddingDp = (p[BOTTOM_PADDING_DP] ?: 0).coerceIn(0, Settings.MAX_BOTTOM_PADDING_DP),
             haptics = p[HAPTICS] ?: true,
@@ -82,6 +84,7 @@ class Prefs(private val context: Context) {
     }
 
     suspend fun setHeightScale(value: Float) = context.dataStore.edit { it[HEIGHT_SCALE] = value }
+    suspend fun setWidthScale(value: Float) = context.dataStore.edit { it[WIDTH_SCALE] = value.coerceIn(0.7f, 1f) }
     suspend fun setBottomPaddingAuto(value: Boolean) = context.dataStore.edit { it[BOTTOM_PADDING_AUTO] = value }
     suspend fun setBottomPaddingDp(value: Int) = context.dataStore.edit { it[BOTTOM_PADDING_DP] = value.coerceIn(0, Settings.MAX_BOTTOM_PADDING_DP) }
     suspend fun setHaptics(value: Boolean) = context.dataStore.edit { it[HAPTICS] = value }
@@ -123,6 +126,7 @@ class Prefs(private val context: Context) {
 
     private companion object {
         val HEIGHT_SCALE = floatPreferencesKey("height_scale")
+        val WIDTH_SCALE = floatPreferencesKey("width_scale")
         val BOTTOM_PADDING_AUTO = booleanPreferencesKey("bottom_padding_auto")
         val BOTTOM_PADDING_DP = intPreferencesKey("bottom_padding_dp")
         val HAPTICS = booleanPreferencesKey("haptics")

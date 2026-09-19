@@ -247,6 +247,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
                             previews = settings.previews,
                             keyBorders = settings.keyBorders,
                             heightScale = settings.heightScale,
+                            widthScale = settings.widthScale,
                             glide = settings.glide,
                             glideTrail = settings.glideTrail,
                         ),
