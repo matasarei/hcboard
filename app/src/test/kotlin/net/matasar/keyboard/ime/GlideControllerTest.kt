@@ -122,11 +122,41 @@ class GlideControllerTest {
         assertTrue(port.committed.isEmpty())
     }
 
+    private val backspace = LettersLayer.rows.flatMap { it.keys }.first { it.action == KeyAction.Backspace }
+
     @Test
     fun `typing a key afterwards clears the alternatives`() {
         controller.onStartInput(EditorInfo().apply { inputType = InputType.TYPE_CLASS_TEXT })
         controller.onGlideEnd(path("helo"), keys)
         controller.onKey(LettersLayer.rows[0].keys[0])
         assertEquals(null, controller.candidates)
+    }
+
+    @Test
+    fun `backspace right after a glide removes the entire word`() {
+        controller.onStartInput(EditorInfo().apply { inputType = InputType.TYPE_CLASS_TEXT })
+        controller.onGlideEnd(path("helo"), keys)
+        assertEquals("hello", port.before)
+        controller.onKey(backspace)
+        assertEquals("", port.before)
+    }
+
+    @Test
+    fun `backspace after a second glide removes the word and its auto-space`() {
+        controller.onStartInput(EditorInfo().apply { inputType = InputType.TYPE_CLASS_TEXT })
+        controller.onGlideEnd(path("helo"), keys)
+        controller.onGlideEnd(path("world"), keys)
+        assertEquals("hello world", port.before)
+        controller.onKey(backspace)
+        assertEquals("hello", port.before)
+    }
+
+    @Test
+    fun `backspace after a glide falls back to ordinary delete when the text changed`() {
+        controller.onStartInput(EditorInfo().apply { inputType = InputType.TYPE_CLASS_TEXT })
+        controller.onGlideEnd(path("helo"), keys)
+        port.before = "something else"
+        controller.onKey(backspace)
+        assertEquals("something els", port.before)
     }
 }

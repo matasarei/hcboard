@@ -303,7 +303,12 @@ class KeyboardController(
         candidatesCollapsed = false
         val undo = lastAutocorrect
         lastAutocorrect = null
-        if (lastGlideWord != null) clearCandidates()
+        val glidedWord = lastGlideWord
+        if (glidedWord != null) clearCandidates()
+        if (glidedWord != null && key.action == KeyAction.Backspace && !modifiers.anyActive) {
+            undoGlide(glidedWord)
+            return
+        }
         if (undo != null && key.action == KeyAction.Backspace && !modifiers.anyActive) {
             undoAutocorrect(undo)
             return
@@ -579,6 +584,26 @@ class KeyboardController(
         dispatcher.replaceWordBeforeCursor(applied, undo.typed)
         uncorrectable = undo.typed
         refreshCandidates()
+    }
+
+    /**
+     * Backspace right after a glide removes the entire swiped word and any auto-inserted spaces
+     * around it, so the effect is a full revert. If the text no longer ends with what was
+     * committed (the cursor was moved), it is an ordinary backspace.
+     */
+    private fun undoGlide(word: String) {
+        // commitGlide commits `before + word + after` where both `before` and `after` are either
+        // " " or "".  The cursor sits at the end of the committed text, so the text before the
+        // cursor ends with one of four variants.  Try longest first so the auto-spaces are
+        // removed too.
+        val variants = listOf(" $word ", " $word", "$word ", word)
+        val committed = variants.firstOrNull { dispatcher.textEndsWith(it) }
+        if (committed == null) {
+            dispatcher.backspace()
+            refreshCandidates()
+            return
+        }
+        dispatcher.replaceWordBeforeCursor(committed, "")
     }
 
     private fun clearCandidates() {
