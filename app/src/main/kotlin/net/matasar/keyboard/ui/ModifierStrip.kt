@@ -22,10 +22,11 @@ fun ModifierStrip(
     unitWidth: Dp,
     keyHeight: Dp = Dimens.keyHeight,
     modifier: Modifier = Modifier,
+    sidePadding: Dp = Dimens.sidePadding,
 ) {
     val colors = LocalKeyboardColors.current
     val fnActive = controller.modifiers.isActive(ModifierKey.FN)
-    KeyRow(row = DeveloperStrip, unitWidth = unitWidth, gap = Dimens.keyGap, modifier = modifier.padding(horizontal = Dimens.sidePadding)) { key ->
+    KeyRow(row = DeveloperStrip, unitWidth = unitWidth, gap = Dimens.keyGap, modifier = modifier.padding(horizontal = sidePadding)) { key ->
         // Phone-width strip keys are 35 dp: no room for an icon plus a legend. While Fn is
         // active the arrow keys show their Fn meaning as the label instead of the icon.
         val fnWord = key.fnLegend?.takeIf { fnActive }
