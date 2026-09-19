@@ -55,6 +55,14 @@ fun suggestionsAllowed(inputType: Int): Boolean {
 }
 
 /**
+ * Whether the field says there is another field after it: its action is Next, or it carries the
+ * navigate-next flag beside another action (a web form's username field often shows Go).
+ */
+fun canNavigateNext(imeOptions: Int): Boolean =
+    imeOptions and EditorInfo.IME_MASK_ACTION == EditorInfo.IME_ACTION_NEXT ||
+        imeOptions and EditorInfo.IME_FLAG_NAVIGATE_NEXT != 0
+
+/**
  * What a field told the keyboard, and what the keyboard made of it, for the diagnostics on the
  * settings screen. The numbers are the field's own declaration, which is what decides whether
  * suggestions, glide typing and the developer strip are offered at all; an app that sets the

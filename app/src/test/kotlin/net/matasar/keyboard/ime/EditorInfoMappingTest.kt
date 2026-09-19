@@ -35,6 +35,16 @@ class EditorInfoMappingTest {
     }
 
     @Test
+    fun `a field has a next one when its action is next or it carries the navigate-next flag`() {
+        assertTrue(canNavigateNext(EditorInfo.IME_ACTION_NEXT))
+        assertTrue(canNavigateNext(EditorInfo.IME_ACTION_GO or EditorInfo.IME_FLAG_NAVIGATE_NEXT))
+        assertTrue(canNavigateNext(EditorInfo.IME_ACTION_DONE or EditorInfo.IME_FLAG_NAVIGATE_NEXT))
+        assertFalse(canNavigateNext(EditorInfo.IME_ACTION_DONE))
+        assertFalse(canNavigateNext(EditorInfo.IME_ACTION_GO or EditorInfo.IME_FLAG_NAVIGATE_PREVIOUS))
+        assertFalse(canNavigateNext(EditorInfo.IME_NULL))
+    }
+
+    @Test
     fun `enter shows the field action`() {
         assertEquals(KeyIcon.SEARCH, enterIconFor(EditorInfo.IME_ACTION_SEARCH))
         assertEquals(KeyIcon.SEND, enterIconFor(EditorInfo.IME_ACTION_SEND))

@@ -1,9 +1,9 @@
 package net.matasar.keyboard.autofill
 
+import net.matasar.keyboard.ime.FieldKind
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
-import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class PendingFillTest {
@@ -19,24 +19,43 @@ class PendingFillTest {
         scheduled.removeAll { it.first <= time }
     }
     private val termux = FillTarget("com.termux", 7)
+    private val login = FillTarget("com.bank", 3)
 
     private fun secret() = "s3cret".toCharArray()
+    private fun alice() = "alice".toCharArray()
     private fun CharArray.wiped() = all { it == PendingFill.WIPED }
+
+    private fun field(
+        target: FillTarget = termux,
+        kind: FieldKind = FieldKind.TERMINAL,
+        canGoNext: Boolean = false,
+        empty: Boolean = true,
+    ) = FocusedField(target, kind, canGoNext) { empty }
+
+    /** Records what a fill did, in order, as the controller would have done it. */
+    private class Recorder : FillTyper {
+        val done = mutableListOf<String>()
+        override fun typeUsername(text: CharSequence) { done += "user:$text" }
+        override fun typePassword(text: CharSequence) { done += "pass:$text" }
+        override fun goNext() { done += "next" }
+    }
+
+    private fun deliver(field: FocusedField?): List<String> = Recorder().also { fill.deliverTo(field, it) }.done
 
     @Test
     fun `the password goes to the package it was asked for, once`() {
         fill.offer(termux, secret())
         assertTrue(fill.waiting)
-        assertEquals("s3cret", fill.takeFor(termux) { String(it) })
+        assertEquals(listOf("pass:s3cret"), deliver(field()))
         assertFalse(fill.waiting)
-        assertNull(fill.takeFor(termux) { String(it) })
+        assertEquals(emptyList(), deliver(field()))
     }
 
     @Test
     fun `another package gets nothing, and the password is gone for the right one too`() {
         fill.offer(termux, secret())
-        assertNull(fill.takeFor(FillTarget("com.evil.app", 7)) { String(it) })
-        assertNull(fill.takeFor(termux) { String(it) })
+        assertEquals(emptyList(), deliver(field(FillTarget("com.evil.app", 7))))
+        assertEquals(emptyList(), deliver(field()))
     }
 
     @Test
@@ -61,14 +80,14 @@ class PendingFillTest {
     @Test
     fun `another field of the same app gets nothing`() {
         fill.offer(termux, secret())
-        assertNull(fill.takeFor(termux.copy(fieldId = 8)) { String(it) })
+        assertEquals(emptyList(), deliver(field(termux.copy(fieldId = 8))))
         assertFalse(fill.waiting)
     }
 
     @Test
     fun `an unknown field gets nothing`() {
         fill.offer(termux, secret())
-        assertNull(fill.takeFor(null) { String(it) })
+        assertEquals(emptyList(), deliver(null))
         assertFalse(fill.waiting)
     }
 
@@ -76,22 +95,22 @@ class PendingFillTest {
     fun `it expires`() {
         fill.offer(termux, secret())
         now += PendingFill.TTL_MS - 1
-        assertEquals("s3cret", fill.takeFor(termux) { String(it) })
+        assertEquals(listOf("pass:s3cret"), deliver(field()))
         fill.offer(termux, secret())
         now += PendingFill.TTL_MS
-        assertNull(fill.takeFor(termux) { String(it) })
+        assertEquals(emptyList(), deliver(field()))
     }
 
     @Test
     fun `the characters are wiped after use, and when they went nowhere`() {
         val used = secret()
         fill.offer(termux, used)
-        fill.takeFor(termux) { }
+        deliver(field())
         assertTrue(used.wiped())
 
         val refused = secret()
         fill.offer(termux, refused)
-        fill.takeFor(FillTarget("com.other", 7)) { }
+        deliver(field(FillTarget("com.other", 7)))
         assertTrue(refused.wiped())
     }
 
@@ -101,12 +120,14 @@ class PendingFillTest {
         fill.offer(termux, first)
         fill.offer(termux, "second".toCharArray())
         assertTrue(first.wiped())
-        assertEquals("second", fill.takeFor(termux) { String(it) })
+        assertEquals(listOf("pass:second"), deliver(field()))
 
         val cleared = secret()
-        fill.offer(termux, cleared)
+        val user = alice()
+        fill.offer(termux, cleared, user)
         fill.clear()
         assertTrue(cleared.wiped())
+        assertTrue(user.wiped())
         assertFalse(fill.waiting)
     }
 
@@ -114,8 +135,134 @@ class PendingFillTest {
     fun `the characters are wiped even when using them fails`() {
         val chars = secret()
         fill.offer(termux, chars)
-        runCatching { fill.takeFor(termux) { error("the editor went away") } }
+        val failing = object : FillTyper {
+            override fun typeUsername(text: CharSequence) = Unit
+            override fun typePassword(text: CharSequence) = error("the editor went away")
+            override fun goNext() = Unit
+        }
+        runCatching { fill.deliverTo(field(), failing) }
         assertTrue(chars.wiped())
+        assertFalse(fill.waiting)
+    }
+
+    // ---- username and password ----
+
+    @Test
+    fun `from a username field the username goes there, the keyboard moves on, and the password goes into the password field`() {
+        val user = alice()
+        val password = secret()
+        fill.offer(login, password, user)
+        assertEquals(listOf("user:alice", "next"), deliver(field(login, FieldKind.TEXT, canGoNext = true)))
+        assertTrue(user.wiped())
+        assertTrue(fill.waiting)
+        assertEquals(listOf("pass:s3cret"), deliver(field(login.copy(fieldId = 4), FieldKind.PASSWORD)))
+        assertTrue(password.wiped())
+        assertFalse(fill.waiting)
+    }
+
+    @Test
+    fun `a username field that holds text keeps it, and the password still follows`() {
+        val user = alice()
+        fill.offer(login, secret(), user)
+        assertEquals(listOf("next"), deliver(field(login, FieldKind.TEXT, canGoNext = true, empty = false)))
+        assertTrue(user.wiped())
+        assertEquals(listOf("pass:s3cret"), deliver(field(login.copy(fieldId = 4), FieldKind.PASSWORD)))
+    }
+
+    @Test
+    fun `a field that says nothing follows it is not left, and the password waits for the next page`() {
+        fill.offer(login, secret(), alice())
+        assertEquals(listOf("user:alice"), deliver(field(login, FieldKind.TEXT)))
+        // The same field restarting, and a text field on the way, leave the password waiting.
+        assertEquals(emptyList(), deliver(field(login, FieldKind.TEXT)))
+        assertEquals(emptyList(), deliver(field(login.copy(fieldId = 5), FieldKind.TEXT)))
+        assertTrue(fill.waiting)
+        assertEquals(listOf("pass:s3cret"), deliver(field(login.copy(fieldId = 6), FieldKind.PASSWORD)))
+    }
+
+    @Test
+    fun `from a password field, a terminal or a pin only the password is typed`() {
+        for (kind in listOf(FieldKind.PASSWORD, FieldKind.TERMINAL, FieldKind.NUMBER)) {
+            val user = alice()
+            var asked = false
+            fill.offer(login, secret(), user)
+            val done = Recorder().also { fill.deliverTo(FocusedField(login, kind, canGoNext = true) { asked = true; true }, it) }.done
+            assertEquals(listOf("pass:s3cret"), done, "$kind")
+            assertTrue(user.wiped(), "$kind")
+            assertFalse(asked, "$kind: the field is not read")
+            assertFalse(fill.waiting, "$kind")
+        }
+    }
+
+    @Test
+    fun `without a username a text field gets the password, as a single fill`() {
+        fill.offer(login, secret())
+        assertEquals(listOf("pass:s3cret"), deliver(field(login, FieldKind.TEXT, canGoNext = true)))
+        assertFalse(fill.waiting)
+    }
+
+    @Test
+    fun `leaving the app between the stages wipes the password`() {
+        val password = secret()
+        fill.offer(login, password, alice())
+        deliver(field(login, FieldKind.TEXT, canGoNext = true))
+        assertEquals(emptyList(), deliver(field(FillTarget("com.chat", 4), FieldKind.PASSWORD)))
+        assertTrue(password.wiped())
+        assertEquals(emptyList(), deliver(field(login.copy(fieldId = 4), FieldKind.PASSWORD)))
+    }
+
+    @Test
+    fun `the password waiting for its field still expires`() {
+        fill.offer(login, secret(), alice())
+        deliver(field(login, FieldKind.TEXT, canGoNext = true))
+        advanceTo(now + PendingFill.TTL_MS)
+        assertFalse(fill.waiting)
+        assertEquals(emptyList(), deliver(field(login.copy(fieldId = 4), FieldKind.PASSWORD)))
+    }
+
+    @Test
+    fun `once the username is in, the password waits for its field a short while only`() {
+        val password = secret()
+        fill.offer(login, password, alice())
+        deliver(field(login, FieldKind.TEXT, canGoNext = true))
+        advanceTo(now + PendingFill.PASSWORD_FIELD_WAIT_MS - 1)
+        assertTrue(fill.waiting)
+        advanceTo(now + 1)
+        assertFalse(fill.waiting)
+        assertTrue(password.wiped())
+        assertEquals(emptyList(), deliver(field(login.copy(fieldId = 4), FieldKind.PASSWORD)))
+    }
+
+    @Test
+    fun `the short wait never outlasts the fill's own expiry`() {
+        fill.offer(login, secret(), alice())
+        now += PendingFill.TTL_MS - 1_000
+        deliver(field(login, FieldKind.TEXT, canGoNext = true))
+        now += 1_000
+        assertEquals(emptyList(), deliver(field(login.copy(fieldId = 4), FieldKind.PASSWORD)))
+        assertFalse(fill.waiting)
+    }
+
+    @Test
+    fun `the first stage only happens in the field the fill started from`() {
+        fill.offer(login, secret(), alice())
+        assertEquals(emptyList(), deliver(field(login.copy(fieldId = 9), FieldKind.TEXT, canGoNext = true)))
+        assertFalse(fill.waiting)
+    }
+
+    @Test
+    fun `a username that cannot be typed takes the password with it`() {
+        val user = alice()
+        val password = secret()
+        fill.offer(login, password, user)
+        val failing = object : FillTyper {
+            override fun typeUsername(text: CharSequence) = error("the editor went away")
+            override fun typePassword(text: CharSequence) = Unit
+            override fun goNext() = Unit
+        }
+        runCatching { fill.deliverTo(field(login, FieldKind.TEXT, canGoNext = true), failing) }
+        assertTrue(user.wiped())
+        assertTrue(password.wiped())
         assertFalse(fill.waiting)
     }
 }
