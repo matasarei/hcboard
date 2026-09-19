@@ -510,11 +510,12 @@ class KeyboardController(
     fun pickCandidate(word: String) {
         val current = candidates ?: return
         val glided = lastGlideWord
+        val glideCommit = lastGlideCommit
         if (glided != null) {
             if (word == glided) return
             dispatcher.replaceWordBeforeCursor(glided, word)
             lastGlideWord = word
-            lastGlideCommit = word
+            lastGlideCommit = glideCommit?.replace(glided, word) ?: word
             return
         }
         if (word == current.typed) return
