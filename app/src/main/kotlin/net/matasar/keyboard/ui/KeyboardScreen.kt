@@ -68,6 +68,8 @@ fun KeyboardScreen(
     feel: KeyboardFeel = KeyboardFeel(),
     /** Room to leave under the keys for the system's bottom bar; the service measures it. */
     bottomInset: Dp = 0.dp,
+    /** Room to leave on the sides for display cutouts (camera punch holes in landscape). */
+    sideInset: Dp = 0.dp,
 ) {
     val colors = LocalKeyboardColors.current
     val popups = remember { PopupState() }
@@ -86,6 +88,7 @@ fun KeyboardScreen(
     ) {
         val wide = maxWidth >= Dimens.wideBreakpoint
         val extraSidePadding = (maxWidth * ((1f - feel.widthScale.coerceIn(0.7f, 1f)) / 2f)).coerceAtLeast(0.dp)
+        val effectiveSidePadding = maxOf(extraSidePadding, sideInset)
         Column(modifier = Modifier.fillMaxWidth()) {
             Spacer(modifier = Modifier.height(PopupMetrics.overhang))
             Column(
@@ -98,7 +101,7 @@ fun KeyboardScreen(
                 Toolbar(
                     modifier = Modifier
                         .background(colors.toolbar)
-                        .padding(horizontal = extraSidePadding),
+                        .padding(horizontal = effectiveSidePadding),
                     developerMode = controller.developerMode,
                     showDeveloperToggle = !wide,
                     chipText = chipText,
@@ -111,12 +114,17 @@ fun KeyboardScreen(
                     onPickCandidate = controller::pickCandidate,
                     onCollapseCandidates = controller::collapseCandidates,
                 )
-                LayerGrid(controller, feel, popups, extraSidePadding)
+                LayerGrid(controller, feel, popups, effectiveSidePadding)
             }
         }
         PopupLayer(popups)
         if (controller.languageSheetOpen) {
-            Box(modifier = Modifier.matchParentSize().padding(top = PopupMetrics.overhang + Dimens.toolbarHeight)) {
+            Box(
+                modifier = Modifier
+                    .matchParentSize()
+                    .padding(top = PopupMetrics.overhang + Dimens.toolbarHeight)
+                    .padding(horizontal = effectiveSidePadding),
+            ) {
                 LanguageSheet(
                     languages = controller.enabledLanguageList,
                     current = controller.language,
@@ -127,7 +135,12 @@ fun KeyboardScreen(
         }
         if (controller.managerSheetOpen) {
             // Covers the keys, not the overhang: the sheet starts under the toolbar like the mock.
-            Box(modifier = Modifier.matchParentSize().padding(top = PopupMetrics.overhang + Dimens.toolbarHeight)) {
+            Box(
+                modifier = Modifier
+                    .matchParentSize()
+                    .padding(top = PopupMetrics.overhang + Dimens.toolbarHeight)
+                    .padding(horizontal = effectiveSidePadding),
+            ) {
                 ManagerSheet(autofill, onDismiss = { controller.managerSheetOpen = false })
             }
         }

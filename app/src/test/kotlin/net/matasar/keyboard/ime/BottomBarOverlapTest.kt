@@ -36,4 +36,13 @@ class BottomBarOverlapTest {
         assertEquals(63, reportedBottomBar(navigationBarPx = 63, tappablePx = 0, gestureAreaPx = 0))
         assertEquals(96, reportedBottomBar(navigationBarPx = 0, tappablePx = 0, gestureAreaPx = 96))
     }
+
+    @Test
+    fun `side insets clear only what the decor did not already pad`() {
+        assertEquals(0, sideInsetOverlap(requiredPx = 80, spacePx = 80))
+        assertEquals(0, sideInsetOverlap(requiredPx = 80, spacePx = 100))
+        assertEquals(80, sideInsetOverlap(requiredPx = 80, spacePx = 0))
+        assertEquals(20, sideInsetOverlap(requiredPx = 80, spacePx = 60))
+        assertEquals(0, sideInsetOverlap(requiredPx = 0, spacePx = 0))
+    }
 }

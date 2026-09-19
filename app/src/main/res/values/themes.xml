@@ -9,6 +9,7 @@
     -->
     <style name="Theme.Hcboard.Ime" parent="@android:style/Theme.DeviceDefault.InputMethod">
         <item name="android:windowOptOutEdgeToEdgeEnforcement" tools:targetApi="35">true</item>
+        <item name="android:windowLayoutInDisplayCutoutMode" tools:targetApi="28">shortEdges</item>
     </style>
 
     <!-- The fill screen floats over the app the password is for, as a dialog. -->

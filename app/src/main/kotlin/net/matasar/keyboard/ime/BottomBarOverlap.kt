@@ -25,3 +25,11 @@ internal fun reportedBottomBar(navigationBarPx: Int, tappablePx: Int, gestureAre
     val bar = maxOf(navigationBarPx, tappablePx)
     return if (bar > 0) bar else gestureAreaPx
 }
+
+/**
+ * How much of a display cutout or side bar, [requiredPx] wide on one side, reaches into the
+ * input view when the window already leaves [spacePx] between the screen edge and the view.
+ * Never negative.
+ */
+internal fun sideInsetOverlap(requiredPx: Int, spacePx: Int): Int = (requiredPx - spacePx).coerceAtLeast(0)
+

@@ -22,6 +22,8 @@ import net.matasar.keyboard.ui.theme.LocalKeyboardColors
 import androidx.compose.runtime.SideEffect
 import android.annotation.SuppressLint
 import android.view.View
+import android.view.Window
+import android.view.WindowManager
 import android.view.inputmethod.EditorInfo
 import net.matasar.keyboard.R
 import net.matasar.keyboard.layout.Languages
@@ -136,6 +138,13 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
      */
     private var bottomBarOverlapPx by mutableIntStateOf(0)
 
+    /**
+     * How far a display cutout reaches into the input view on the left or right, in px. In
+     * landscape mode, corner or side camera cutouts extend into the keyboard area; this measures
+     * the needed padding so keys are not obscured by the physical camera hole.
+     */
+    private var sideCutoutOverlapPx by mutableIntStateOf(0)
+
     /** The last configuration seen, so a change can be told apart from a change that matters. */
     private lateinit var lastConfiguration: Configuration
 
@@ -214,6 +223,20 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
         if (resumed) lifecycleRegistry.currentState = Lifecycle.State.RESUMED
     }
 
+    override fun onConfigureWindow(win: Window, isFullscreen: Boolean, isCandidatesOnly: Boolean) {
+        super.onConfigureWindow(win, isFullscreen, isCandidatesOnly)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            val params = win.attributes
+            params.layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS
+            win.attributes = params
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            val params = win.attributes
+            @Suppress("DEPRECATION")
+            params.layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
+            win.attributes = params
+        }
+    }
+
     override fun onCreateInputView(): View {
         lifecycleRegistry.currentState = Lifecycle.State.STARTED
         // Compose resolves its window recomposer from the window's root view, so the owners
@@ -242,6 +265,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
                         actions = this@KeyboardService,
                         autofill = autofillActions,
                         bottomInset = if (autoBottomPadding) with(LocalDensity.current) { bottomBarOverlapPx.toDp() } else manualBottomPaddingDp.dp,
+                        sideInset = with(LocalDensity.current) { sideCutoutOverlapPx.toDp() },
                         feel = KeyboardFeel(
                             haptics = settings.haptics,
                             previews = settings.previews,
@@ -283,9 +307,16 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
         val location = IntArray(2).also { view.getLocationInWindow(it) }
         val spaceBelowView = decor.height - (location[1] + view.height)
         val overlap = bottomBarOverlap(bar, spaceBelowView)
+        val cutout = insets.getInsets(WindowInsetsCompat.Type.displayCutout())
+        val spaceLeft = location[0]
+        val spaceRight = decor.width - (location[0] + view.width)
+        val leftCutout = sideInsetOverlap(cutout.left, spaceLeft)
+        val rightCutout = sideInsetOverlap(cutout.right, spaceRight)
+        val sideOverlap = maxOf(leftCutout, rightCutout)
         val measurement = "reported=$reported bar=$bar decorHeight=${decor.height} viewTop=${location[1]} viewHeight=${view.height} " +
-            "spaceBelow=$spaceBelowView overlap=$overlap gestureNav=${gestureNavigation()} systemBarHeight=${systemNavigationBarHeightPx()}"
+            "spaceBelow=$spaceBelowView overlap=$overlap sideOverlap=$sideOverlap gestureNav=${gestureNavigation()} systemBarHeight=${systemNavigationBarHeightPx()}"
         if (overlap != bottomBarOverlapPx) bottomBarOverlapPx = overlap
+        if (sideOverlap != sideCutoutOverlapPx) sideCutoutOverlapPx = sideOverlap
         // Layout passes are frequent; the report is only worth rebuilding when the numbers moved.
         if (measurement != lastMeasurement) {
             lastMeasurement = measurement
