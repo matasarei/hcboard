@@ -14,6 +14,7 @@ import net.matasar.keyboard.nlp.Candidates
 import net.matasar.keyboard.nlp.WordList
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
@@ -143,6 +144,33 @@ class SuggestionControllerTest {
         port.before = "spel"
         controller.onSelectionChanged()
         assertEquals("spel", controller.candidates?.typed) // and so does another field
+    }
+
+    @Test
+    fun `a filled username is typed and never read back, and the keyboard moves on with next`() {
+        textField(InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS)
+        assertTrue(controller.fieldIsEmpty())
+        val reads = port.textReads
+        controller.typeFilledUsername("chec")
+        assertEquals(listOf("chec"), port.committed)
+        controller.onSelectionChanged()
+        assertNull(controller.candidates)
+        assertEquals(reads, port.textReads)
+        controller.goToNextField()
+        assertEquals(listOf(EditorInfo.IME_ACTION_NEXT), port.editorActions)
+    }
+
+    @Test
+    fun `a field with text before, after or selected is not empty`() {
+        textField()
+        port.before = "a"
+        assertFalse(controller.fieldIsEmpty())
+        port.before = ""
+        port.after = "b"
+        assertFalse(controller.fieldIsEmpty())
+        port.after = ""
+        port.selected = "c"
+        assertFalse(controller.fieldIsEmpty())
     }
 
     @Test

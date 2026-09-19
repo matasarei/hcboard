@@ -110,7 +110,7 @@ fun ManagerSheet(actions: AutofillActions, onDismiss: () -> Unit) {
             } else if (actions.canFillHere()) {
                 SheetRow(
                     icon = R.drawable.ic_key,
-                    title = "Fill a password",
+                    title = "Fill a login",
                     subtitle = "Pick a login from your password manager; it is typed here",
                     onClick = { actions.fillPassword(); onDismiss() },
                 )

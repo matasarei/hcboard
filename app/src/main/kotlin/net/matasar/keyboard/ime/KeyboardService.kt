@@ -15,6 +15,8 @@ import net.matasar.keyboard.autofill.AndroidAutofillActions
 import net.matasar.keyboard.autofill.FILL_SCREEN_IME_OPTION
 import net.matasar.keyboard.autofill.FillActivity
 import net.matasar.keyboard.autofill.FillTarget
+import net.matasar.keyboard.autofill.FillTyper
+import net.matasar.keyboard.autofill.FocusedField
 import net.matasar.keyboard.autofill.InlineSuggestions
 import net.matasar.keyboard.autofill.PendingFill
 import net.matasar.keyboard.autofill.SuggestionColors
@@ -38,7 +40,6 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import java.io.FileDescriptor
 import java.io.PrintWriter
-import java.nio.CharBuffer
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.lifecycle.Lifecycle
@@ -387,8 +388,9 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
     }
 
     /**
-     * A field got the keyboard's connection, shown or not: if it belongs to the app a password was
-     * filled for, the password is typed now, once. The fill screen's own form never takes it.
+     * A field got the keyboard's connection, shown or not: if it belongs to the app a login was
+     * filled for, what belongs in it — the username, or the password — is typed now, once. The
+     * fill screen's own form never takes either.
      */
     override fun onStartInput(attribute: EditorInfo?, restarting: Boolean) {
         super.onStartInput(attribute, restarting)
@@ -398,10 +400,17 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
             KeyboardDiagnostics.field = fieldReport(attribute)
         }
         if (attribute == null || attribute.privateImeOptions == FILL_SCREEN_IME_OPTION) return
-        val field = attribute.packageName?.let { FillTarget(it, attribute.fieldId) }
-        PendingFill.shared.takeFor(field) { password ->
-            controller.typeFilledPassword(CharBuffer.wrap(password))
+        val field = attribute.packageName?.let {
+            FocusedField(FillTarget(it, attribute.fieldId), fieldKindOf(attribute.inputType), canNavigateNext(attribute.imeOptions), controller::fieldIsEmpty)
         }
+        PendingFill.shared.deliverTo(field, fillTyper)
+    }
+
+    /** How a fill reaches the field: through the controller, like every other keystroke. */
+    private val fillTyper = object : FillTyper {
+        override fun typeUsername(text: CharSequence) = controller.typeFilledUsername(text)
+        override fun typePassword(text: CharSequence) = controller.typeFilledPassword(text)
+        override fun goNext() = controller.goToNextField()
     }
 
     override fun onStartInputView(editorInfo: EditorInfo?, restarting: Boolean) {

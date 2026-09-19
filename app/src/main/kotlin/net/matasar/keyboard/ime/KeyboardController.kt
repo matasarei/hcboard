@@ -540,6 +540,24 @@ class KeyboardController(
         clearCandidates()
     }
 
+    /**
+     * Types a username the fill screen got from the manager, the first half of a login. Like a
+     * filled password, the strip never reads it back.
+     */
+    fun typeFilledUsername(username: CharSequence) {
+        dispatcher.commitText(username)
+        passwordTyped = true
+        clearCandidates()
+    }
+
+    /** Moves on to the field this one says follows it, the password after a username. */
+    fun goToNextField() {
+        dispatcher.performEditorAction(EditorInfo.IME_ACTION_NEXT)
+    }
+
+    /** Whether the field has no text of its own, so a filled username overwrites nothing. */
+    fun fieldIsEmpty(): Boolean = dispatcher.fieldIsEmpty()
+
     /** The chevron: fold the strip away so the toolbar's buttons show until the next key. */
     fun collapseCandidates() {
         candidatesCollapsed = true

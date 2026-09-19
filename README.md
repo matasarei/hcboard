@@ -81,9 +81,11 @@ from the password manager you already use, and the keyboard never shows or keeps
   at the word before the cursor, on the phone, and not at all in a password or terminal field.
 - **Autofill suggestions belong to your manager.** When it offers a login above the keys, those
   chips are views your manager draws; the keyboard places them and never reads them.
-- **A password the keyboard types for you is held for one moment only.** "Fill a password" opens a
-  small screen that your password manager fills. That screen blocks screenshots, shows nothing, and
-  hands the password to one field in one app, within 30 seconds, once — then overwrites it in
+- **A login the keyboard types for you is held for one moment only.** "Fill a login" opens a small
+  screen that your password manager fills. That screen blocks screenshots, shows nothing, and hands
+  the login to the app you came from, within 30 seconds, once: started from a username field, the
+  username goes there and the password into that app's next password field, within 10 seconds;
+  started from a password field or a terminal, only the password goes in. Then it is overwritten in
   memory. It is never written down, logged, or put into an Android message between apps.
 - **Everything is on the phone**, which is also why there is nothing to sign in to.
 
