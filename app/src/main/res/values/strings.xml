@@ -2,7 +2,7 @@
 <resources>
     <string name="app_name">hcboard</string>
     <string name="ime_label">hcboard</string>
-    <string name="ime_description">Everyday typing, developer mode, no telemetry</string>
+    <string name="ime_description">Privacy keyboard for everyday typing and developer mode</string>
 
     <string name="enable_title">Set up the keyboard</string>
     <string name="enable_step1_title">1. Enable it</string>
