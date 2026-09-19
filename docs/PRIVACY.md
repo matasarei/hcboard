@@ -47,7 +47,7 @@ There are no remote servers, no analytics, no crash reporting SDKs, no ad framew
 ## 5. Local Settings & Diagnostics
 
 * **Local Preferences:** User preferences (such as keyboard height, selected theme, haptic feedback, and enabled languages) are stored purely on your device using Android Jetpack DataStore.
-* **Diagnostics:** The diagnostics section in Settings displays only window insets, input types, and target package names held in transient memory to help diagnose layout issues. It never displays or records typed content.
+* **Diagnostics:** The diagnostics section in Settings is hidden until you tap "Show diagnostics". It displays only the app version and the commit it was built from, window insets, input types, and target package names held in transient memory to help diagnose layout issues. "Copy diagnostics" puts that same text on the clipboard, only when you tap it. It never displays or records typed content.
 
 ---
 
