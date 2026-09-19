@@ -22,18 +22,23 @@ import net.matasar.keyboard.R
 /**
  * The fill screen: a login form of our own for the password manager to fill. The keyboard's
  * window cannot ask for autofill (only an activity has an autofill client), and a terminal never
- * asks, so the key button opens this instead. When the manager fills the password field the
- * value goes to [PendingFill] — not into the field, not into an Intent — and the screen closes;
- * the keyboard types it once the original field is back.
+ * asks, so the key button opens this instead. When the manager fills the form, the username and
+ * the password go to [PendingFill] — not into the fields, not into an Intent — and the screen
+ * closes; the keyboard types them once the original field is back.
  *
- * The password is never shown: the field is masked, nothing is filled into it, there is no reveal
- * toggle, and the window is secure against screenshots and the recents thumbnail.
+ * Neither value is shown: nothing is filled into the fields, the password field is masked, there
+ * is no reveal toggle, and the window is secure against screenshots and the recents thumbnail.
  */
 class FillActivity : Activity() {
 
     private lateinit var password: FillField
     private var target: FillTarget? = null
     private var asked = false
+
+    // What the manager filled, kept only until the hand-over; wiped if it never happens.
+    private var filledUsername: CharArray? = null
+    private var filledPassword: CharArray? = null
+    private var handOverPosted = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -44,12 +49,12 @@ class FillActivity : Activity() {
             return
         }
 
-        val login = FillField(this, onFilled = null).apply {
+        val login = FillField(this, onFilled = { filledUsername = keep(it, filledUsername) }).apply {
             hint = getString(R.string.fill_login_label)
             inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS
             setAutofillHints(View.AUTOFILL_HINT_USERNAME, View.AUTOFILL_HINT_EMAIL_ADDRESS)
         }
-        password = FillField(this, onFilled = ::handOver).apply {
+        password = FillField(this, onFilled = { filledPassword = keep(it, filledPassword) }).apply {
             hint = getString(R.string.fill_password_label)
             inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
             setAutofillHints(View.AUTOFILL_HINT_PASSWORD)
@@ -101,11 +106,46 @@ class FillActivity : Activity() {
         runCatching { startActivity(changeManagerIntent(packageName)) }
     }
 
-    /** The manager filled the password: hand it to the keyboard and get out of the way. */
-    private fun handOver(value: CharSequence) {
-        val target = this.target ?: return
-        PendingFill.shared.offer(target, CharArray(value.length) { value[it] })
+    /**
+     * A value the manager filled, copied out of its text and replacing (and wiping) [previous].
+     * The first one of a fill schedules the hand-over after the manager's whole fill pass, so the
+     * order it fills the two fields in does not matter.
+     */
+    private fun keep(value: CharSequence, previous: CharArray?): CharArray {
+        previous?.fill(PendingFill.WIPED)
+        if (!handOverPosted) {
+            handOverPosted = true
+            window.decorView.post(::handOver)
+        }
+        return CharArray(value.length) { value[it] }
+    }
+
+    /**
+     * The manager filled the form: hand the login to the keyboard and get out of the way. A fill
+     * without a password hands nothing over; the screen stays for another pick.
+     */
+    private fun handOver() {
+        handOverPosted = false
+        val target = this.target
+        val password = filledPassword
+        val username = filledUsername
+        filledPassword = null
+        filledUsername = null
+        if (target == null || password == null) {
+            username?.fill(PendingFill.WIPED)
+            password?.fill(PendingFill.WIPED)
+            return
+        }
+        PendingFill.shared.offer(target, password, username)
         finish()
+    }
+
+    override fun onDestroy() {
+        filledUsername?.fill(PendingFill.WIPED)
+        filledPassword?.fill(PendingFill.WIPED)
+        filledUsername = null
+        filledPassword = null
+        super.onDestroy()
     }
 
     override fun finish() {
@@ -126,7 +166,7 @@ class FillActivity : Activity() {
         private const val EXTRA_TARGET_PACKAGE = "net.matasar.keyboard.autofill.TARGET_PACKAGE"
         private const val EXTRA_TARGET_FIELD = "net.matasar.keyboard.autofill.TARGET_FIELD"
 
-        /** Opens the fill screen for a password to be typed into [target]. */
+        /** Opens the fill screen for a login to be typed, starting in [target]. */
         fun intent(context: Context, target: FillTarget): Intent =
             Intent(context, FillActivity::class.java)
                 .putExtra(EXTRA_TARGET_PACKAGE, target.packageName)
