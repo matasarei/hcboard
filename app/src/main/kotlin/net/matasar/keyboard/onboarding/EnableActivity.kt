@@ -28,6 +28,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -35,6 +36,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
@@ -87,6 +89,16 @@ private fun EnableScreen() {
     LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
         enabled = isImeEnabled(context)
         selected = isImeSelected(context)
+    }
+
+    // The IME picker is a system dialog, not a separate activity, so ON_RESUME
+    // never fires when it closes. Re-check when the window regains focus instead.
+    val windowInfo = LocalWindowInfo.current
+    LaunchedEffect(windowInfo.isWindowFocused) {
+        if (windowInfo.isWindowFocused) {
+            enabled = isImeEnabled(context)
+            selected = isImeSelected(context)
+        }
     }
 
     Column(
