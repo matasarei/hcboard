@@ -99,7 +99,7 @@ class InputDispatcher(private val port: EditorPort) {
         sendKey(KeyEvent.KEYCODE_ENTER)
     }
 
-    /** Moves to another field (Next, Previous) the way the field's own action key would. */
+    /** Performs an editor action as the field's own action key would; false when the field refused. */
     fun performEditorAction(actionId: Int): Boolean = port.performEditorAction(actionId)
 
     /**
