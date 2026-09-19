@@ -29,6 +29,7 @@
     <string name="settings_theme_black">Black</string>
     <string name="settings_try_password_label">Try a password field</string>
     <string name="settings_height">Keyboard height: %1$d%%</string>
+    <string name="settings_width">Keyboard width: %1$d%%</string>
     <string name="settings_key_borders">Key borders</string>
     <string name="settings_bottom_padding_auto">Automatic space under the keys</string>
     <string name="settings_bottom_padding">Space under the keys: %1$d dp</string>
