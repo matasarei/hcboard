@@ -114,6 +114,16 @@ private fun SettingsScreen(settings: Settings, prefs: Prefs) {
             valueRange = 0.8f..1.2f,
             steps = 7,
         )
+        Text(
+            stringResource(R.string.settings_width, (settings.widthScale * 100).roundToInt()),
+            style = MaterialTheme.typography.bodyLarge,
+        )
+        Slider(
+            value = settings.widthScale,
+            onValueChange = { scope.launch { prefs.setWidthScale((it * 20).roundToInt() / 20f) } },
+            valueRange = 0.7f..1f,
+            steps = 5,
+        )
         SwitchRow(stringResource(R.string.settings_bottom_padding_auto), settings.bottomPaddingAuto) { scope.launch { prefs.setBottomPaddingAuto(it) } }
         Text(stringResource(R.string.settings_bottom_padding_hint), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         if (!settings.bottomPaddingAuto) {
