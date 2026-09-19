@@ -152,6 +152,16 @@ class GlideControllerTest {
     }
 
     @Test
+    fun `backspace after a glide keeps an existing separator before it`() {
+        controller.onStartInput(EditorInfo().apply { inputType = InputType.TYPE_CLASS_TEXT })
+        port.before = "hello "
+        controller.onGlideEnd(path("world"), keys)
+        assertEquals("hello world", port.before)
+        controller.onKey(backspace)
+        assertEquals("hello ", port.before)
+    }
+
+    @Test
     fun `backspace after a glide falls back to ordinary delete when the text changed`() {
         controller.onStartInput(EditorInfo().apply { inputType = InputType.TYPE_CLASS_TEXT })
         controller.onGlideEnd(path("helo"), keys)

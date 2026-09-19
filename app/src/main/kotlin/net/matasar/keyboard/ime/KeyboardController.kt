@@ -189,6 +189,7 @@ class KeyboardController(
         private set
 
     private var lastGlideWord: String? = null
+    private var lastGlideCommit: String? = null
 
     /** The correction the last separator applied, so one backspace right after can take it back. */
     private var lastAutocorrect: Autocorrect? = null
@@ -304,9 +305,10 @@ class KeyboardController(
         val undo = lastAutocorrect
         lastAutocorrect = null
         val glidedWord = lastGlideWord
+        val glideCommit = lastGlideCommit
         if (glidedWord != null) clearCandidates()
         if (glidedWord != null && key.action == KeyAction.Backspace && !modifiers.anyActive) {
-            undoGlide(glidedWord)
+            undoGlide(glideCommit ?: glidedWord)
             return
         }
         if (undo != null && key.action == KeyAction.Backspace && !modifiers.anyActive) {
@@ -490,8 +492,10 @@ class KeyboardController(
         val cased = words.map { if (capitalize) it.replaceFirstChar(Char::uppercase) else it }
         val before = if (dispatcher.needsSpaceBefore()) " " else ""
         val after = if (dispatcher.needsSpaceAfter()) " " else ""
-        dispatcher.commitText(before + cased.first() + after)
+        val committed = before + cased.first() + after
+        dispatcher.commitText(committed)
         lastGlideWord = cased.first()
+        lastGlideCommit = committed
         lastAutocorrect = null
         candidates = WordCandidates(cased.first(), cased.take(Candidates.MAX_WORDS))
         shift = shift.consume()
@@ -510,6 +514,7 @@ class KeyboardController(
             if (word == glided) return
             dispatcher.replaceWordBeforeCursor(glided, word)
             lastGlideWord = word
+            lastGlideCommit = word
             return
         }
         if (word == current.typed) return
@@ -544,6 +549,7 @@ class KeyboardController(
             return
         }
         lastGlideWord = null
+        lastGlideCommit = null
         val word = dispatcher.wordBeforeCursor()
         if (word != uncorrectable) uncorrectable = null
         val found = engine.forWord(word)
@@ -591,14 +597,8 @@ class KeyboardController(
      * around it, so the effect is a full revert. If the text no longer ends with what was
      * committed (the cursor was moved), it is an ordinary backspace.
      */
-    private fun undoGlide(word: String) {
-        // commitGlide commits `before + word + after` where both `before` and `after` are either
-        // " " or "".  The cursor sits at the end of the committed text, so the text before the
-        // cursor ends with one of four variants.  Try longest first so the auto-spaces are
-        // removed too.
-        val variants = listOf(" $word ", " $word", "$word ", word)
-        val committed = variants.firstOrNull { dispatcher.textEndsWith(it) }
-        if (committed == null) {
+    private fun undoGlide(committed: String) {
+        if (!dispatcher.textEndsWith(committed)) {
             dispatcher.backspace()
             refreshCandidates()
             return
@@ -610,6 +610,7 @@ class KeyboardController(
         candidates = null
         candidatesCollapsed = false
         lastGlideWord = null
+        lastGlideCommit = null
         lastAutocorrect = null
         uncorrectable = null
     }
