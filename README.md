@@ -8,7 +8,8 @@
 
 [![Build](https://github.com/matasarei/hcboard/actions/workflows/build.yml/badge.svg?branch=main)](https://github.com/matasarei/hcboard/actions/workflows/build.yml)
 [![Latest Release](https://img.shields.io/github/v/release/matasarei/hcboard?label=release&color=blue)](https://github.com/matasarei/hcboard/releases/latest)
-[![Obtainium](https://img.shields.io/badge/Obtainium-auto--updates-purple)](https://github.com/ImranR98/Obtainium)
+[![Download APK](https://img.shields.io/badge/Download-APK-2ea44f?logo=android&logoColor=white)](https://github.com/matasarei/hcboard/releases/latest)
+[![Add to Obtainium](https://img.shields.io/badge/Obtainium-Add_to_App-8a2be2?logo=android&logoColor=white)](obtainium://app/https://github.com/matasarei/hcboard)
 [![Licence: Apache-2.0](https://img.shields.io/badge/licence-Apache--2.0-green)](LICENSE)
 ![Android 8.0+](https://img.shields.io/badge/Android-8.0%2B-3DDC84)
 [![No network access](https://img.shields.io/badge/network-none-6f42c1)](#privacy)
@@ -92,12 +93,14 @@ from the password manager you already use, and the keyboard never shows or keeps
 ## Install
 
 ### Option 1: Official Release (Recommended)
-Download the latest signed release APK (`hcboard-vX.Y.Z.apk`) from [GitHub Releases](https://github.com/matasarei/hcboard/releases/latest).
+Download the latest signed release APK (`hcboard-vX.Y.Z.apk`) directly from [GitHub Releases](https://github.com/matasarei/hcboard/releases/latest).
+
+> **Note for direct APK installs:** Because this is an independent open-source release with a newly created developer certificate, Android or Samsung Auto Blocker may show an *"Unrecognized app"* or *"Unknown developer"* prompt. Tap **More details › Install anyway**. The app requests zero network permissions and cannot transmit any data.
 
 ### Option 2: Automatic Updates via Obtainium
 To receive automatic background update notifications without an app store:
 1. Install [Obtainium](https://github.com/ImranR98/Obtainium) on your Android device.
-2. Tap **Add App** and paste: `https://github.com/matasarei/hcboard`
+2. Tap the **[Add to Obtainium](obtainium://app/https://github.com/matasarei/hcboard)** button (or tap **Add App** in Obtainium and paste `https://github.com/matasarei/hcboard`).
 3. Tap **Add** to install and track updates.
 
 ### Option 3: Development Builds
