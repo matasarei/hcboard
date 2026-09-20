@@ -51,6 +51,7 @@ from the password manager you already use, and the keyboard never shows or keeps
   it follows your phone's languages, plus English; a globe key switches them, and holding it opens
   the list. For Russian speakers in Bulgaria who prefer typing on the Russian ЙЦУКЕН layout, an optional
   setting enables combined Bulgarian vocabulary with collision-safe autocorrect.
+  *(Want your language or a feature? [Create an issue](https://github.com/matasarei/hcboard/issues) and tell me!)*
 - **The feel of a phone keyboard:** a preview above the key you press, a spring under your finger,
   a light haptic tick, accents on a long press, and a cursor trackpad when you hold the space bar.
 - **Your phone's look:** Material 3, with dynamic colour on Android 12 and later. Four themes —
@@ -149,6 +150,8 @@ Design references, not code: the layout follows Gboard's proportions and the fee
 iPhone keyboard; nothing from either was copied.
 
 ## Contributing
+
+Want your language or a feature? [Create an issue](https://github.com/matasarei/hcboard/issues) and tell me!
 
 `CLAUDE.md` holds the build commands and the conventions that matter in this codebase. Work lands
 through pull requests to `main`; every pull request runs the unit tests and lint.
