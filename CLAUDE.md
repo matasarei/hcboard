@@ -51,14 +51,19 @@ emulator profile is `medium_phone`; boot it headless with
   across layer switches and reset only on a new field. Ctrl+A/C/V/X in ordinary text fields use
   `performContextMenuAction`; in `TYPE_NULL` fields (terminals) they stay key events.
 - **Macros** (`macro/`): a stack of blocks (text, key or combination by name, random keys, repeat,
-  wait, paste) kept as JSON (kotlinx.serialization) in their own DataStore, `macros`, apart from
+  wait, paste, copy field) kept as JSON (kotlinx.serialization) in their own DataStore, `macros`, apart from
   the settings. `MacroRunner` plays them through `InputDispatcher` only: repeats are unrolled and
   counted first (over 2 000 steps plays nothing), Repeat is capped at 100 and Wait at 10 s where
   the block is read, and a run stops when the field finishes. Key blocks follow the typed-combo rule
   (Ctrl+A/C/V/X are editor actions outside terminals). Random keys go out as key events from a
   fresh `SecureRandom` per run and are never stored or logged; after them the strip reads nothing
-  back, as after a filled password. The editor is `MacrosActivity`; the keyboard only plays, from
-  `ui/MacroSheet.kt`.
+  back, as after a filled password. A text block may be `secret`: plain in memory, masked in every
+  summary and in the editor, and sealed by `KeystoreSecretBox` (AES-GCM, Android Keystore) in
+  `MacroStore`'s one `encode`, so it is never plain on disk or in a backup; one that does not open
+  loads empty with `keptSealed` and is written back unchanged. After a secret, too, nothing is read
+  back. Copy field reads the whole field through `EditorPort.fieldText`, never in a password field,
+  and the service marks the clip `EXTRA_IS_SENSITIVE` when the macro has a secret or random keys.
+  The editor is `MacrosActivity`; the keyboard only plays, from `ui/MacroSheet.kt`.
 - **Glide typing:** `input/glide/GlideClassifier.kt` is an approved Apache-2.0 copy of FlorisBoard's
   classifier with its header kept; do not "clean it up". Word lists live in `assets/dictionaries/`
   and are built by `scripts/build-wordlist.py` from AOSP (Apache-2.0) and, for Ukrainian, Helium314's
