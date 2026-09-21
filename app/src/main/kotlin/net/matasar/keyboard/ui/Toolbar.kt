@@ -58,7 +58,7 @@ interface ToolbarActions {
  * The 44 dp strip above the keys: settings, passwords and macros on the left, the chip or the
  * autofill suggestions in the middle, and the mic (when there is a voice keyboard to hand off to),
  * paste and hide on the right. While a word is being typed its [candidates] take the whole strip
- * but the chevron that brings the buttons back, so the words get the width. Where the strip is
+ * but the chevron that closes them, so the words get the width. Where the strip is
  * [collapsible] (the phone board) the left buttons sit behind a chevron of their own until
  * [expanded], leaving the middle their room.
  */

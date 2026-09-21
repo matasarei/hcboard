@@ -70,8 +70,8 @@ from the password manager you already use, and the keyboard never shows or keeps
   typing is enabled; Settings picks which one when you have several, or turns the button off),
   paste and hide on the right. On a phone the left buttons fold behind a › until you tap it, and
   fold again when the keyboard hides (Settings can keep them always shown); wide screens always
-  show them. While you type a word, its suggestions take the whole strip; the chevron brings the
-  buttons back.
+  show them. While you type a word, its suggestions take the whole strip; the chevron closes
+  them.
 - **Your password manager, one tap away.** Logins it offers appear above the keys. The key button
   can also fill a login into the field in front of you, open the manager, or change which one
   Android uses.
