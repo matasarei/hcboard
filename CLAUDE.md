@@ -33,7 +33,8 @@ emulator profile is `medium_phone`; boot it headless with
 - **Where things live:** `ime/` service and controller; `layout/` key data and the layers
   (`Layers.kt` phone, `SixtyPercentLayout.kt` wide, `DeveloperStrip.kt`); `input/` the editor
   port, dispatcher, latch and modifier state, key codes; `ui/` composables; `settings/` DataStore
-  prefs and the settings screen; `autofill/` inline suggestions and the manager sheet.
+  prefs and the settings screen; `autofill/` inline suggestions and the manager sheet; `macro/`
+  macros (model, JSON, runner, store, the block editor screen).
 - **`input/EditorPort.kt` is the only code that touches `InputConnection`.** Everything else goes
   through `InputDispatcher`, so unit tests use `FakeEditorPort`. Keep it that way.
 - **Pure logic is unit-tested on the JVM** (`app/src/test`); `android.jar` stubs return defaults,
@@ -49,6 +50,15 @@ emulator profile is `medium_phone`; boot it headless with
   key, double tap or long press locks, holding and tapping another key chords; modifiers persist
   across layer switches and reset only on a new field. Ctrl+A/C/V/X in ordinary text fields use
   `performContextMenuAction`; in `TYPE_NULL` fields (terminals) they stay key events.
+- **Macros** (`macro/`): a stack of blocks (text, key or combination by name, random keys, repeat,
+  wait, paste) kept as JSON (kotlinx.serialization) in their own DataStore, `macros`, apart from
+  the settings. `MacroRunner` plays them through `InputDispatcher` only: repeats are unrolled and
+  counted first (over 2 000 steps plays nothing), Repeat is capped at 100 and Wait at 10 s where
+  the block is read, and a run stops when the field finishes. Key blocks follow the typed-combo rule
+  (Ctrl+A/C/V/X are editor actions outside terminals). Random keys go out as key events from a
+  fresh `SecureRandom` per run and are never stored or logged; after them the strip reads nothing
+  back, as after a filled password. The editor is `MacrosActivity`; the keyboard only plays, from
+  `ui/MacroSheet.kt`.
 - **Glide typing:** `input/glide/GlideClassifier.kt` is an approved Apache-2.0 copy of FlorisBoard's
   classifier with its header kept; do not "clean it up". Word lists live in `assets/dictionaries/`
   and are built by `scripts/build-wordlist.py` from AOSP (Apache-2.0) and, for Ukrainian, Helium314's

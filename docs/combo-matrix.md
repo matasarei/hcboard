@@ -12,3 +12,16 @@ keyboard sends; Android leaves it to each app whether to honour key events from 
 | Any of the above, Ukrainian or Russian board | as above | | | | | | Ctrl+С must behave as Ctrl+C: the key sends its slot, and the keys read Q W E R T Y while Ctrl is armed |
 
 Legend: ✓ works · ✗ ignored · ~ partial (say what).
+
+## Macros
+
+Played from the toolbar's macro sheet. Random keys are key events with Shift for capitals and
+shifted symbols, so they reach an app only as far as it honours soft-keyboard key events.
+
+| App | Field type | Password generator (random keys) | Esc / F1 key blocks | Ctrl+Shift combination | Repeat ×3 Tab | Notes |
+|---|---|---|---|---|---|---|
+| Plain `EditText` (this app's Settings) | text | ✓ (emulator, Ukrainian board active) | | | | |
+| Chrome (address bar, page textarea) | text / web | | | | | |
+| Termux | `TYPE_NULL` | | | | | Ctrl+C block must interrupt |
+| Code editor (e.g. Acode) | text | | | | | |
+
