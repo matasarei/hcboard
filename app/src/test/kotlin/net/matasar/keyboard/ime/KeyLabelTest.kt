@@ -58,7 +58,9 @@ class KeyLabelTest {
         assertEquals("↑", shown("ш"))
         assertEquals("Home", shown("г"))
         assertEquals("[", shown("х"))
-        assertEquals("<", shown("."))
+        assertEquals(",", shown("б"))
+        // The `.` key has no Fn meaning of its own (б and ю carry `,<` and `.>`): it stays `.`.
+        assertEquals(".", shown("."))
     }
 
     @Test
@@ -68,7 +70,8 @@ class KeyLabelTest {
         assertTrue(controller.shiftActive)
         assertEquals("{", shown("х"))
         assertEquals("}", shown("ї"))
-        assertEquals(">", shown("."))
+        assertEquals("<", shown("б"))
+        assertEquals(">", shown("ю"))
         assertEquals("~", shown("Esc"))
         // A letter with no fn meaning of its own still follows shift.
         assertEquals("Ф", shown("ф"))

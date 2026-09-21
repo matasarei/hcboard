@@ -64,8 +64,10 @@ class SixtyPercentLayoutTest {
         assertEquals("Shift я ч с м и т ь б ю . / Shift", shiftRow.joinToString(" ") { it.label })
         assertEquals(listOf(2.25f, 1.75f), listOf(shiftRow.first().width, shiftRow.last().width))
         assertEquals(KeyAction.Text(".", ","), shiftRow.first { it.label == "." }.action)
-        assertEquals(KeyAction.Text("<", ">"), shiftRow.first { it.label == "." }.fnAction)
-        assertEquals("<>", shiftRow.first { it.label == "." }.fnLegend)
+        // б and ю already carry `,<` and `.>` on Fn: the `.` key repeats none of it.
+        assertEquals(null, shiftRow.first { it.label == "." }.fnAction)
+        assertEquals(null, shiftRow.first { it.label == "." }.fnLegend)
+        assertEquals(listOf(",<", ".>"), listOf("б", "ю").map { l -> shiftRow.first { it.label == l }.fnLegend })
         assertEquals(KeyAction.Text("/", "?"), shiftRow.first { it.label == "/" }.action)
     }
 
