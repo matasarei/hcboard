@@ -242,11 +242,12 @@ private fun LayerGrid(
                         keyBorders = feel.keyBorders,
                         showLabel = !controller.trackpad,
                         legendBand = wide,
-                        // The legends stay where they are; the one that is live tints, and the
-                        // glyph below already says what the key would type. Live means this
-                        // modifier is what makes the glyph what it is: Shift with Fn does nothing
-                        // to a digit, so `!` stays subtle while `F1` lights up.
-                        legendColor = if (controller.fnLive(key)) colors.armedRing else null,
+                        // No Fn legend: while Fn is active the glyph itself is the Fn meaning
+                        // (F1, Home, an arrow, Del), so printing it in the corner too only crowds
+                        // the key. The shifted symbol stays, and tints while Shift is what makes
+                        // the glyph what it is: Shift with Fn does nothing to a digit, so `!`
+                        // stays subtle then.
+                        legend = null,
                         topLegendColor = if (controller.shiftLive(key)) colors.armedRing else null,
                         onBounds = if (key.action is KeyAction.Letter) ({ k, rect -> letterBounds[(k.action as KeyAction.Letter).lower[0]] = rect }) else null,
                         repeats = controller.repeats(key),
