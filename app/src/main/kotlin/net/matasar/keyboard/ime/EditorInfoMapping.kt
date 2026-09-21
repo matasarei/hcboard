@@ -55,6 +55,19 @@ fun suggestionsAllowed(inputType: Int): Boolean {
 }
 
 /**
+ * Whether a field may offer the mic: never a password, which would be spoken aloud, and not when
+ * the app asks for no mic through `privateImeOptions`, in the two spellings keyboards honour: the
+ * old `nm` and Google's `com.google.android.inputmethod.latin.noMicrophoneKey`.
+ */
+fun micAllowed(inputType: Int, privateImeOptions: String?): Boolean {
+    if (fieldKindOf(inputType) == FieldKind.PASSWORD) return false
+    val options = privateImeOptions?.split(',')?.map { it.trim() }.orEmpty()
+    return NO_MIC_OPTIONS.none { it in options }
+}
+
+private val NO_MIC_OPTIONS = listOf("nm", "com.google.android.inputmethod.latin.noMicrophoneKey")
+
+/**
  * The capitalization a field asks for (`TYPE_TEXT_FLAG_CAP_*`), or 0: only plain text can ask,
  * so a terminal, a number, a password, an address or an e-mail field never gets a capital it did
  * not type. A chat box asks for sentences; a code editor asks for nothing.
