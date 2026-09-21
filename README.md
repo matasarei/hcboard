@@ -67,7 +67,8 @@ from the password manager you already use, and the keyboard never shows or keeps
   System, Light, Dark and Black — and the dark board is built on the same background your apps use.
 - **A toolbar that stays out of the way:** the gear (Developer mode and Settings), your password
   manager and your macros on the left; the microphone (when a voice keyboard such as Google voice
-  typing is enabled), paste and hide on the right. While you type a word, its suggestions take the
+  typing is enabled; Settings picks which one when you have several, or turns the button off),
+  paste and hide on the right. While you type a word, its suggestions take the
   left buttons' place; the chevron brings them back.
 - **Your password manager, one tap away.** Logins it offers appear above the keys. The key button
   can also fill a login into the field in front of you, open the manager, or change which one
