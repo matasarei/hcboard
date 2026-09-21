@@ -134,6 +134,42 @@ class KeyboardControllerTest {
         assertNull(KeyboardController.editorActionFor(EditorInfo.IME_ACTION_SEND or EditorInfo.IME_FLAG_NO_ENTER_ACTION, InputType.TYPE_CLASS_TEXT))
         assertNull(KeyboardController.editorActionFor(EditorInfo.IME_ACTION_DONE, InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_MULTI_LINE))
     }
+    @Test
+    fun `the mic shows with a voice keyboard in a text field and never in a password field`() {
+        controller.voiceAvailable = true
+        controller.onStartInput(EditorInfo().apply { inputType = InputType.TYPE_CLASS_TEXT })
+        assertTrue(controller.showVoiceKey)
+        controller.onStartInput(EditorInfo().apply { inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD })
+        assertFalse(controller.showVoiceKey)
+        controller.onStartInput(EditorInfo().apply { inputType = InputType.TYPE_CLASS_TEXT; privateImeOptions = "nm" })
+        assertFalse(controller.showVoiceKey)
+    }
+
+    @Test
+    fun `turning voice input off hides the mic at once and turning it on brings it back`() {
+        controller.voiceAvailable = true
+        controller.onStartInput(EditorInfo().apply { inputType = InputType.TYPE_CLASS_TEXT })
+        controller.voiceInputEnabled = false
+        assertFalse(controller.showVoiceKey)
+        controller.voiceInputEnabled = true
+        assertTrue(controller.showVoiceKey)
+    }
+
+    @Test
+    fun `a password field reached by a restart loses the mic`() {
+        controller.voiceAvailable = true
+        controller.onStartInput(EditorInfo().apply { inputType = InputType.TYPE_CLASS_TEXT })
+        assertTrue(controller.showVoiceKey)
+        controller.updateFieldMic(EditorInfo().apply { inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD })
+        assertFalse(controller.showVoiceKey)
+    }
+
+    @Test
+    fun `no voice keyboard means no mic`() {
+        controller.voiceAvailable = false
+        controller.onStartInput(EditorInfo().apply { inputType = InputType.TYPE_CLASS_TEXT })
+        assertFalse(controller.showVoiceKey)
+    }
 }
 
 class WideBoardControllerTest {
@@ -190,4 +226,5 @@ class WideBoardControllerTest {
         controller.onKeyRepeat(backspace)
         assertEquals(listOf(1 to 0, 0 to 1), port.deletions)
     }
+
 }

@@ -2,6 +2,7 @@ package net.matasar.keyboard.ime
 
 import android.text.InputType
 import android.view.inputmethod.EditorInfo
+import net.matasar.keyboard.autofill.FILL_SCREEN_IME_OPTION
 import net.matasar.keyboard.layout.KeyIcon
 import net.matasar.keyboard.layout.LayerId
 
@@ -53,6 +54,20 @@ fun suggestionsAllowed(inputType: Int): Boolean {
         else -> true
     }
 }
+
+/**
+ * Whether a field may offer the mic: never a password, which would be spoken aloud, and not when
+ * the app asks for no mic through `privateImeOptions`, in the two spellings keyboards honour: the
+ * old `nm` and Google's `com.google.android.inputmethod.latin.noMicrophoneKey`. Nor on the fill
+ * screen: its username field is plain e-mail, and a voice keyboard there would take the fill over.
+ */
+fun micAllowed(inputType: Int, privateImeOptions: String?): Boolean {
+    if (fieldKindOf(inputType) == FieldKind.PASSWORD) return false
+    val options = privateImeOptions?.split(',')?.map { it.trim() }.orEmpty()
+    return NO_MIC_OPTIONS.none { it in options }
+}
+
+private val NO_MIC_OPTIONS = listOf("nm", "com.google.android.inputmethod.latin.noMicrophoneKey", FILL_SCREEN_IME_OPTION)
 
 /**
  * The capitalization a field asks for (`TYPE_TEXT_FLAG_CAP_*`), or 0: only plain text can ask,

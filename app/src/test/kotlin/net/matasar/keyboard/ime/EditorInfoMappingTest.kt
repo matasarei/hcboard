@@ -127,4 +127,26 @@ class EditorInfoMappingTest {
         val plain = EditorInfo().apply { inputType = InputType.TYPE_CLASS_TEXT }
         assertTrue(fieldReport(plain).contains("caps none"), fieldReport(plain))
     }
+
+    @Test
+    fun `the mic is offered in text fields but never in a password field`() {
+        assertTrue(micAllowed(InputType.TYPE_CLASS_TEXT, null))
+        assertTrue(micAllowed(InputType.TYPE_NULL, ""))
+        assertFalse(micAllowed(InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD, null))
+        assertFalse(micAllowed(InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_VARIATION_PASSWORD, null))
+    }
+
+    @Test
+    fun `an app that asks for no mic in either spelling gets none`() {
+        assertFalse(micAllowed(InputType.TYPE_CLASS_TEXT, "nm"))
+        assertFalse(micAllowed(InputType.TYPE_CLASS_TEXT, "foo, com.google.android.inputmethod.latin.noMicrophoneKey"))
+        assertTrue(micAllowed(InputType.TYPE_CLASS_TEXT, "nmx,other"))
+    }
+
+    @Test
+    fun `the fill screen's username field gets no mic`() {
+        val username = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS
+        assertTrue(micAllowed(username, null))
+        assertFalse(micAllowed(username, net.matasar.keyboard.autofill.FILL_SCREEN_IME_OPTION))
+    }
 }

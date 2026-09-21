@@ -46,6 +46,12 @@
     <string name="settings_bottom_padding_hint">Automatic keeps the keys clear of the system\'s bar and its buttons. Turn it off to set the space yourself, smaller or larger.</string>
     <string name="settings_haptics">Haptic tick on key press</string>
     <string name="settings_previews">Show key preview on press</string>
+    <string name="settings_voice_input">Microphone button for voice input</string>
+    <string name="settings_voice_keyboard">Voice keyboard</string>
+    <string name="settings_voice_keyboard_auto">Automatic</string>
+    <string name="settings_voice_keyboard_hint">Only keyboards that are turned on in Android\'s keyboard settings are listed. Don\'t see yours? Turn it on there.</string>
+    <string name="settings_voice_keyboard_none">No voice keyboard is turned on, so the microphone button is hidden. Turn on Google voice typing, or another keyboard that offers voice input, in Android\'s keyboard settings.</string>
+    <string name="settings_voice_keyboard_open">Android keyboard settings</string>
     <string name="settings_editing_shortcuts">Ctrl+A/C/V/X as select, copy, paste, cut in text fields</string>
     <string name="settings_double_tap_lock">Double-tap a modifier to lock it</string>
     <string name="settings_section_languages">Languages</string>
