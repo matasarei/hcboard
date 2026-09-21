@@ -492,6 +492,8 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
         if (!restarting) controller.onStartInput(editorInfo)
         currentPackage = editorInfo?.packageName
         currentFieldId = editorInfo?.fieldId ?: View.NO_ID
+        // Keyboards can be enabled or disabled between fields, so the mic's target is looked up per field.
+        controller.voiceAvailable = findVoiceTarget(inputMethodManager(), packageName) != null
         lifecycleScope.launch {
             val remembered = prefs.settings.first().developerModePackages
             controller.restoreDeveloperMode(currentPackage in remembered)
@@ -623,6 +625,31 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
     override fun hideKeyboard() {
         requestHideSelf(0)
     }
+
+    /**
+     * Hands dictation to the voice keyboard: it takes the field, and switches back here when it is
+     * done. The keyboard itself never hears or records anything.
+     */
+    override fun startVoiceInput() {
+        if (!controller.showVoiceKey) return
+        val imm = inputMethodManager()
+        val target = findVoiceTarget(imm, packageName)
+        if (target == null) {
+            controller.voiceAvailable = false
+            return
+        }
+        runCatching {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                switchInputMethod(target.imeId, target.subtype)
+            } else {
+                val token = window.window?.attributes?.token ?: return
+                @Suppress("DEPRECATION")
+                imm.setInputMethodAndSubtype(token, target.imeId, target.subtype)
+            }
+        }
+    }
+
+    private fun inputMethodManager() = getSystemService(Context.INPUT_METHOD_SERVICE) as android.view.inputmethod.InputMethodManager
 
     override fun switchToNextInputMethod() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {

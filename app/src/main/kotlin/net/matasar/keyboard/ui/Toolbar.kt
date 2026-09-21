@@ -49,13 +49,15 @@ interface ToolbarActions {
     fun openMacros()
     fun toggleDeveloperMode()
     fun pasteClipboard()
+    fun startVoiceInput()
     fun openSettings()
     fun hideKeyboard()
 }
 
 /**
  * The 44 dp strip above the keys: settings, passwords, macros and paste on the left, the chip or
- * the autofill suggestions in the middle, hide on the right. While a word is being typed its
+ * the autofill suggestions in the middle, the mic (when there is a voice keyboard to hand off to)
+ * and hide on the right. While a word is being typed its
  * [candidates] take the buttons' place behind a chevron that brings them back.
  */
 @Composable
@@ -76,6 +78,8 @@ fun Toolbar(
     onPickCandidate: (String) -> Unit = {},
     onCollapseCandidates: () -> Unit = {},
     haptics: Boolean = true,
+    /** Whether the mic shows; it stays beside Hide while candidates cover the left buttons. */
+    voice: Boolean = false,
 ) {
     Row(
         modifier = modifier
@@ -102,6 +106,9 @@ fun Toolbar(
                     chipText != null -> ModifierChip(chipText)
                 }
             }
+        }
+        if (voice) {
+            ToolbarButton(R.drawable.ic_mic, "Voice input", haptics = haptics) { actions.startVoiceInput() }
         }
         ToolbarButton(R.drawable.ic_keyboard_hide, "Hide keyboard", haptics = haptics) { actions.hideKeyboard() }
     }
