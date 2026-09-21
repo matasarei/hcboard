@@ -22,6 +22,19 @@ class WordList private constructor(private val frequencies: Map<String, Int>) {
     fun contains(word: String): Boolean = word in frequencies
 
     /**
+     * This list with the user's own words applied: a frequency above 0 adds the word or sets its
+     * frequency, 0 takes it out, so it is never suggested nor used as a correction.
+     */
+    fun withOverrides(overrides: Map<String, Int>): WordList {
+        if (overrides.isEmpty()) return this
+        val map = LinkedHashMap(frequencies)
+        for ((word, frequency) in overrides) {
+            if (frequency <= 0) map.remove(word) else map[word] = frequency.coerceAtMost(255)
+        }
+        return WordList(map)
+    }
+
+    /**
      * The most frequent words that start with [prefix] and are longer than it, best first, at
      * most [max]. Nothing for an empty prefix: every word would match.
      */
