@@ -13,13 +13,20 @@ import androidx.datastore.preferences.preferencesDataStore
 import net.matasar.keyboard.layout.Languages
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import kotlinx.serialization.Serializable
 
+@Serializable
 enum class ThemeChoice { SYSTEM, LIGHT, DARK, BLACK }
 
 /** Whether the wide board splits into halves: never, where a hinge or a sideways phone asks for it, or always. */
+@Serializable
 enum class SplitMode { OFF, AUTO, ALWAYS }
 
-/** Everything the settings screen edits and the keyboard reads. */
+/**
+ * Everything the settings screen edits and the keyboard reads. Serializable for the backup file;
+ * every field has a default, so a file from an older or newer version still reads.
+ */
+@Serializable
 data class Settings(
     val heightScale: Float = 1f,
     val widthScale: Float = 1f,
@@ -56,7 +63,25 @@ data class Settings(
     companion object {
         const val DEFAULT_LANGUAGE = "en_US"
         const val MAX_BOTTOM_PADDING_DP = 48
+        const val MIN_HEIGHT_SCALE = 0.8f
+        const val MAX_HEIGHT_SCALE = 1.2f
+        const val MIN_WIDTH_SCALE = 0.7f
     }
+}
+
+/**
+ * These settings within what the screen can set: scales and padding clamped, only languages the
+ * keyboard has, never none, and the current one among them. Applied to a file being restored.
+ */
+fun Settings.sanitized(): Settings {
+    val languages = enabledLanguages.filter { Languages.byTag(it) != null }.toSet().ifEmpty { setOf(Settings.DEFAULT_LANGUAGE) }
+    return copy(
+        heightScale = heightScale.coerceIn(Settings.MIN_HEIGHT_SCALE, Settings.MAX_HEIGHT_SCALE),
+        widthScale = widthScale.coerceIn(Settings.MIN_WIDTH_SCALE, 1f),
+        bottomPaddingDp = bottomPaddingDp.coerceIn(0, Settings.MAX_BOTTOM_PADDING_DP),
+        enabledLanguages = languages,
+        currentLanguage = currentLanguage.takeIf { it in languages } ?: languages.first(),
+    )
 }
 
 /** The enabled set after switching [tag] on or off; the last language can never be switched off. */
@@ -120,6 +145,36 @@ class Prefs(private val context: Context) {
     suspend fun setGlideTrail(value: Boolean) = context.dataStore.edit { it[GLIDE_TRAIL] = value }
     suspend fun setCurrentLanguage(tag: String) = context.dataStore.edit { it[CURRENT_LANGUAGE] = tag }
     suspend fun setRuBulgarianVocabulary(value: Boolean) = context.dataStore.edit { it[RU_BULGARIAN_VOCABULARY] = value }
+
+    /** Writes every setting at once, from a restored backup, within [sanitized]'s limits. */
+    suspend fun replaceAll(settings: Settings) {
+        val s = settings.sanitized()
+        context.dataStore.edit { p ->
+            p[HEIGHT_SCALE] = s.heightScale
+            p[WIDTH_SCALE] = s.widthScale
+            p[BOTTOM_PADDING_AUTO] = s.bottomPaddingAuto
+            p[BOTTOM_PADDING_DP] = s.bottomPaddingDp
+            p[HAPTICS] = s.haptics
+            p[KEY_BORDERS] = s.keyBorders
+            p[PREVIEWS] = s.previews
+            p[FOLD_TOOLBAR] = s.foldToolbar
+            p[VOICE_INPUT] = s.voiceInput
+            if (s.voiceKeyboard == null) p.remove(VOICE_KEYBOARD) else p[VOICE_KEYBOARD] = s.voiceKeyboard
+            p[THEME] = s.theme.name
+            p[SPLIT_KEYBOARD] = s.splitKeyboard.name
+            p[EDITING_SHORTCUTS] = s.editingShortcuts
+            p[DOUBLE_TAP_LOCK] = s.doubleTapLock
+            p[DEV_MODE_PACKAGES] = s.developerModePackages
+            p[SUGGESTIONS] = s.suggestions
+            p[AUTO_CORRECT] = s.autoCorrect
+            p[AUTO_CAPITALIZE] = s.autoCapitalize
+            p[GLIDE] = s.glide
+            p[GLIDE_TRAIL] = s.glideTrail
+            p[ENABLED_LANGUAGES] = s.enabledLanguages
+            p[CURRENT_LANGUAGE] = s.currentLanguage
+            p[RU_BULGARIAN_VOCABULARY] = s.ruBulgarianVocabulary
+        }
+    }
 
     suspend fun setLanguageEnabled(tag: String, enabled: Boolean) = context.dataStore.edit { p ->
         val current = p[ENABLED_LANGUAGES]?.takeIf { it.isNotEmpty() } ?: defaultEnabledLanguages()
