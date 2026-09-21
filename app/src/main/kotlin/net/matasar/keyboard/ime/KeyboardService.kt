@@ -37,9 +37,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.window.layout.FoldingFeature
 import androidx.window.layout.WindowInfoTracker
-import androidx.core.view.WindowInsetsCompat
 import java.io.FileDescriptor
 import java.io.PrintWriter
 import androidx.compose.ui.platform.ComposeView
