@@ -156,6 +156,15 @@ class KeyboardControllerTest {
     }
 
     @Test
+    fun `a password field reached by a restart loses the mic`() {
+        controller.voiceAvailable = true
+        controller.onStartInput(EditorInfo().apply { inputType = InputType.TYPE_CLASS_TEXT })
+        assertTrue(controller.showVoiceKey)
+        controller.updateFieldMic(EditorInfo().apply { inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD })
+        assertFalse(controller.showVoiceKey)
+    }
+
+    @Test
     fun `no voice keyboard means no mic`() {
         controller.voiceAvailable = false
         controller.onStartInput(EditorInfo().apply { inputType = InputType.TYPE_CLASS_TEXT })

@@ -489,7 +489,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
 
     override fun onStartInputView(editorInfo: EditorInfo?, restarting: Boolean) {
         super.onStartInputView(editorInfo, restarting)
-        if (!restarting) controller.onStartInput(editorInfo)
+        if (!restarting) controller.onStartInput(editorInfo) else controller.updateFieldMic(editorInfo)
         currentPackage = editorInfo?.packageName
         currentFieldId = editorInfo?.fieldId ?: View.NO_ID
         // Keyboards can be enabled or disabled between fields, so the mic's target is looked up per field.

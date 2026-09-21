@@ -205,6 +205,15 @@ class KeyboardController(
     /** Whether the focused field may offer the mic: not a password, not an app that asked for none. */
     private var fieldAllowsMic: Boolean by mutableStateOf(true)
 
+    /**
+     * Reads whether [info]'s field may offer the mic. The service calls it on a restart too: moving
+     * between fields of one Compose screen restarts input without a new start, and a password field
+     * reached that way must not keep the text field's mic.
+     */
+    fun updateFieldMic(info: EditorInfo?) {
+        fieldAllowsMic = info?.let { micAllowed(it.inputType, it.privateImeOptions) } ?: true
+    }
+
     /** Whether the strip shows the mic now. */
     val showVoiceKey: Boolean
         get() = voiceInputEnabled && voiceAvailable && fieldAllowsMic
@@ -363,7 +372,7 @@ class KeyboardController(
         pendingLocks.clear()
         editorActionId = info?.let { editorActionFor(it.imeOptions, it.inputType) }
         fieldAllowsSuggestions = info?.let { suggestionsAllowed(it.inputType) } ?: true
-        fieldAllowsMic = info?.let { micAllowed(it.inputType, it.privateImeOptions) } ?: true
+        updateFieldMic(info)
         capsModes = info?.let { capsModesOf(it.inputType) } ?: 0
         autoCancelledAtMs = null
         suggestions = emptyList()
