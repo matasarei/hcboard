@@ -109,6 +109,32 @@ class KeyboardController(
     var shift: Latch by mutableStateOf(Latch())
         private set
 
+    /**
+     * The field wants a capital at the cursor (a sentence starts) and Shift is idle: the next
+     * letter goes in uppercase. Letters only — never a digit's shifted symbol, a combination or an
+     * Fn meaning — so it is kept apart from [shift] and [shiftActive].
+     */
+    var autoCapital: Boolean by mutableStateOf(false)
+        private set
+
+    /** Setting: a capital at the start of a sentence, in fields that ask for one. */
+    var autoCapitalize: Boolean = true
+        set(value) {
+            if (field == value) return
+            field = value
+            refreshAutoCapital()
+        }
+
+    /** The capitalization the focused field asks for ([capsModesOf]); 0 asks for none. */
+    private var capsModes = 0
+
+    /**
+     * When a Shift tap cancelled the automatic capital: a second quick tap locks caps, and until
+     * the next key goes out the field is not asked again (the app's report of the previous key's
+     * cursor move can arrive after the tap and would bring the capital back).
+     */
+    private var autoCancelledAtMs: Long? = null
+
     /** Ctrl, Alt, Shift, Meta, Fn: armed, locked or held. Survives layer switches. */
     var modifiers: Modifiers by mutableStateOf(Modifiers())
         private set
@@ -216,6 +242,9 @@ class KeyboardController(
 
     private val fnActive: Boolean get() = modifiers.isActive(ModifierKey.FN)
 
+    /** A letter tapped now goes in uppercase: Shift, or the field's capital outside a combination. */
+    private val letterUpper: Boolean get() = shiftActive || (autoCapital && !modifiers.anyMetaActive)
+
     /**
      * What a key shows right now, which is always what it would type if it were tapped. Shift
      * shows the shifted symbol (`1` reads `!`), Fn the key's Fn meaning (`1` reads `F1`, `х` reads
@@ -240,7 +269,7 @@ class KeyboardController(
         if (modifiers.anyMetaActive && key.action is KeyAction.Letter && key.slot != null) return key.slot.uppercase()
         fnLabel(key, shift, fn)?.let { return it }
         return when (val action = key.action) {
-            is KeyAction.Letter -> if (shift) action.upper else action.lower
+            is KeyAction.Letter -> if (shift || (autoCapital && !modifiers.anyMetaActive)) action.upper else action.lower
             is KeyAction.Text -> if (shift && action.shifted != null) action.shifted else key.label
             else -> key.label
         }
@@ -266,14 +295,20 @@ class KeyboardController(
         pendingLocks.clear()
         editorActionId = info?.let { editorActionFor(it.imeOptions, it.inputType) }
         fieldAllowsSuggestions = info?.let { suggestionsAllowed(it.inputType) } ?: true
+        capsModes = info?.let { capsModesOf(it.inputType) } ?: 0
+        autoCancelledAtMs = null
         suggestions = emptyList()
         managerSheetOpen = false
         languageSheetOpen = false
         clearCandidates()
+        refreshAutoCapital()
     }
 
     fun onFinishInput() {
         passwordTyped = false
+        capsModes = 0
+        autoCapital = false
+        autoCancelledAtMs = null
         shift = Latch()
         modifiers = Modifiers()
         usedHolds.clear()
@@ -309,10 +344,12 @@ class KeyboardController(
         if (glidedWord != null) clearCandidates()
         if (glidedWord != null && key.action == KeyAction.Backspace && !modifiers.anyActive) {
             undoGlide(glideCommit ?: glidedWord)
+            refreshAutoCapital()
             return
         }
         if (undo != null && key.action == KeyAction.Backspace && !modifiers.anyActive) {
             undoAutocorrect(undo)
+            refreshAutoCapital()
             return
         }
         val fnAction = key.fnAction
@@ -324,7 +361,7 @@ class KeyboardController(
     private fun perform(key: Key, action: KeyAction) {
         when (action) {
             is KeyAction.Letter -> {
-                val text = if (shiftActive) action.upper else action.lower
+                val text = if (letterUpper) action.upper else action.lower
                 if (modifiers.anyMetaActive) sendCombo(text, key) else { dispatcher.commitText(text); refreshCandidates() }
                 afterKey()
             }
@@ -337,7 +374,10 @@ class KeyboardController(
                 }
                 afterKey()
             }
-            KeyAction.CapsLock -> shift = if (shift.state == LatchState.LOCKED) Latch() else shift.longPress()
+            KeyAction.CapsLock -> {
+                shift = if (shift.state == LatchState.LOCKED) Latch() else shift.longPress()
+                refreshAutoCapital()
+            }
             KeyAction.Space -> {
                 if (modifiers.anyMetaActive) sendCombo(" ", key) else commitSeparator(" ")
                 afterKey()
@@ -356,7 +396,7 @@ class KeyboardController(
                 candidates = null
                 afterKey()
             }
-            KeyAction.Shift -> shift = shift.tap(clock(), doubleTapWindowMs)
+            KeyAction.Shift -> onShiftTap()
             is KeyAction.SwitchLayer -> layer = action.layer
             is KeyAction.KeyCode -> {
                 val code = if (modifiers.isActive(ModifierKey.FN) && action.fnKeyCode != null) action.fnKeyCode else action.keyCode
@@ -399,16 +439,49 @@ class KeyboardController(
         if (modifiers.held.isNotEmpty()) usedHolds += modifiers.held
         shift = shift.consume()
         modifiers = modifiers.consume()
+        autoCancelledAtMs = null
+        refreshAutoCapital()
+    }
+
+    /**
+     * Shift tapped. On an automatic capital the tap cancels it, as on a phone keyboard, and a
+     * second quick tap locks caps the way a double tap does from idle.
+     */
+    private fun onShiftTap() {
+        val now = clock()
+        val cancelledAt = autoCancelledAtMs
+        autoCancelledAtMs = null
+        when {
+            autoCapital -> {
+                autoCapital = false
+                autoCancelledAtMs = now
+            }
+            cancelledAt != null && shift.state == LatchState.IDLE && now - cancelledAt <= doubleTapWindowMs ->
+                shift = Latch(LatchState.LOCKED, now)
+            else -> shift = shift.tap(now, doubleTapWindowMs)
+        }
+    }
+
+    /**
+     * Asks the field whether the next letter should be a capital. Only when it could matter: the
+     * setting is on, the field asks for capitals, Shift is idle and did not just cancel one, and no
+     * combination or trackpad gesture is under way; otherwise the field is not asked at all.
+     */
+    private fun refreshAutoCapital() {
+        autoCapital = autoCapitalize && capsModes != 0 && autoCancelledAtMs == null && shift.state == LatchState.IDLE &&
+            !modifiers.anyMetaActive && !trackpad && dispatcher.capitalAtCursor(capsModes)
     }
 
     private fun onModifierTap(modifier: ModifierKey) {
         if (usedHolds.remove(modifier)) return
         modifiers = modifiers.tap(modifier, clock(), doubleTapWindowMs)
+        refreshAutoCapital()
     }
 
     /** A finger lands on a modifier: it is held until the finger lifts (chording). */
     fun onModifierPressStart(modifier: ModifierKey) {
         modifiers = modifiers.hold(modifier)
+        refreshAutoCapital()
     }
 
     /**
@@ -421,6 +494,7 @@ class KeyboardController(
             val chorded = usedHolds.remove(modifier)
             if (!chorded) modifiers = modifiers.longPress(modifier)
         }
+        refreshAutoCapital()
     }
 
     /** Whether [key] repeats while held down in the current modifier state. */
@@ -455,11 +529,18 @@ class KeyboardController(
     fun onKeyLongPress(key: Key) {
         when (val action = key.action) {
             KeyAction.SwitchLanguage -> languageSheetOpen = withGlobe
-            KeyAction.Shift -> shift = shift.longPress()
+            KeyAction.Shift -> {
+                shift = shift.longPress()
+                autoCancelledAtMs = null
+                refreshAutoCapital()
+            }
             // A held modifier waits for the finger to lift: the hold may still be a chord.
             is KeyAction.Modifier ->
                 if (action.modifier in modifiers.held) pendingLocks += action.modifier
-                else modifiers = modifiers.longPress(action.modifier)
+                else {
+                    modifiers = modifiers.longPress(action.modifier)
+                    refreshAutoCapital()
+                }
             else -> Unit
         }
     }
@@ -469,7 +550,7 @@ class KeyboardController(
         val engine = glideEngine ?: return
         val scope = scope ?: return
         if (!glideAvailable || path.size < 2) return
-        val capitalize = shiftActive
+        val capitalize = letterUpper
         scope.launch(background) {
             engine.setLayout(keys)
             val words = engine.classify(path)
@@ -499,6 +580,7 @@ class KeyboardController(
         lastAutocorrect = null
         candidates = WordCandidates(cased.first(), cased.take(Candidates.MAX_WORDS))
         shift = shift.consume()
+        refreshAutoCapital()
     }
 
     /**
@@ -522,12 +604,14 @@ class KeyboardController(
                 glided -> word
                 else -> word
             }
+            refreshAutoCapital()
             return
         }
         if (word == current.typed) return
         // The field may have changed under the strip; replace only what is still there.
         if (dispatcher.textEndsWith(current.typed)) dispatcher.replaceWordBeforeCursor(current.typed, word)
         candidates = null
+        refreshAutoCapital()
     }
 
     /**
@@ -583,6 +667,7 @@ class KeyboardController(
 
     /** The cursor moved (the service's onUpdateSelection): the word under it may be another one. */
     fun onSelectionChanged() {
+        refreshAutoCapital()
         // A glide's own commit moves the cursor too; its alternatives stay until the next key.
         if (lastGlideWord != null) return
         refreshCandidates()
@@ -643,7 +728,7 @@ class KeyboardController(
     /** The accent candidates a long press on [key] offers, in the current case; none in passwords. */
     fun accentsFor(key: Key): List<String> = when {
         passwordField -> emptyList()
-        shiftActive -> key.longPress.map { it.uppercase() }
+        letterUpper -> key.longPress.map { it.uppercase() }
         else -> key.longPress
     }
 
@@ -683,6 +768,7 @@ class KeyboardController(
     fun startTrackpad(stepPx: Float) {
         trackpadGesture = TrackpadGesture(stepPx)
         trackpad = true
+        autoCapital = false
         candidates = null
         lastAutocorrect = null
     }
@@ -696,6 +782,7 @@ class KeyboardController(
     fun endTrackpad() {
         trackpadGesture = null
         trackpad = false
+        refreshAutoCapital()
     }
 
     companion object {
