@@ -99,6 +99,10 @@
     <string name="macros_remove">Remove block</string>
     <string name="block_text">Type text</string>
     <string name="block_text_field">Text</string>
+    <string name="block_text_secret">Secret</string>
+    <string name="block_text_show">Show</string>
+    <string name="block_text_hide">Hide</string>
+    <string name="block_text_unreadable">Saved on another phone. Type it again.</string>
     <string name="block_key">Press key</string>
     <string name="block_key_choose">Choose a key</string>
     <string name="block_key_character">Or one character</string>

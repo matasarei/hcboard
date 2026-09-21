@@ -16,11 +16,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.AssistChipDefaults
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FilledTonalButton
@@ -44,7 +47,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import net.matasar.keyboard.R
 import net.matasar.keyboard.input.label
@@ -171,12 +178,49 @@ private fun BlockCard(
 @Composable
 private fun BlockFields(block: Block, onReplace: (Block) -> Unit) {
     when (block) {
-        is Block.TypeText -> OutlinedTextField(
-            value = block.text,
-            onValueChange = { onReplace(block.copy(text = it)) },
-            label = { Text(stringResource(R.string.block_text_field)) },
-            modifier = Modifier.fillMaxWidth(),
-        )
+        is Block.TypeText -> {
+            // Shown only while the eye is held open on this card; never saved.
+            var revealed by remember { mutableStateOf(false) }
+            val masked = block.secret && !revealed
+            OutlinedTextField(
+                value = block.text,
+                onValueChange = { onReplace(block.copy(text = it)) },
+                label = { Text(stringResource(R.string.block_text_field)) },
+                visualTransformation = if (masked) PasswordVisualTransformation() else VisualTransformation.None,
+                // A password field to the keyboard too, so nothing suggests from or learns the secret.
+                keyboardOptions = if (block.secret) KeyboardOptions(keyboardType = KeyboardType.Password, autoCorrectEnabled = false) else KeyboardOptions.Default,
+                trailingIcon = if (block.secret) {
+                    {
+                        IconButton(onClick = { revealed = !revealed }) {
+                            Icon(
+                                painterResource(if (masked) R.drawable.ic_visibility else R.drawable.ic_visibility_off),
+                                stringResource(if (masked) R.string.block_text_show else R.string.block_text_hide),
+                                modifier = Modifier.size(20.dp),
+                            )
+                        }
+                    }
+                } else {
+                    null
+                },
+                supportingText = if (block.keptSealed != null && block.text.isEmpty()) {
+                    { Text(stringResource(R.string.block_text_unreadable)) }
+                } else {
+                    null
+                },
+                modifier = Modifier.fillMaxWidth(),
+            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.clip(RoundedCornerShape(8.dp)).toggleable(
+                    value = block.secret,
+                    role = Role.Checkbox,
+                    onValueChange = { onReplace(block.copy(secret = it)); revealed = false },
+                ),
+            ) {
+                Checkbox(checked = block.secret, onCheckedChange = null)
+                Text(stringResource(R.string.block_text_secret), modifier = Modifier.padding(end = 8.dp))
+            }
+        }
         is Block.PressKey -> {
             var picking by remember { mutableStateOf(false) }
             FilledTonalButton(onClick = { picking = true }) { Text(block.keyCombination()) }
