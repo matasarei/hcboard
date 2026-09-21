@@ -65,6 +65,7 @@ class SixtyPercentLayoutTest {
         assertEquals(listOf(2.25f, 1.75f), listOf(shiftRow.first().width, shiftRow.last().width))
         assertEquals(KeyAction.Text(".", ","), shiftRow.first { it.label == "." }.action)
         assertEquals(KeyAction.Text("<", ">"), shiftRow.first { it.label == "." }.fnAction)
+        assertEquals("<>", shiftRow.first { it.label == "." }.fnLegend)
         assertEquals(KeyAction.Text("/", "?"), shiftRow.first { it.label == "/" }.action)
     }
 

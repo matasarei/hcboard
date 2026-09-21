@@ -294,12 +294,11 @@ private fun LayerGrid(
                     keyBorders = feel.keyBorders,
                     showLabel = !controller.trackpad,
                     legendBand = wide,
-                    // No Fn legend: while Fn is active the glyph itself is the Fn meaning
-                    // (F1, Home, an arrow, Del), so printing it in the corner too only crowds
-                    // the key. The shifted symbol stays, and tints while Shift is what makes
-                    // the glyph what it is: Shift with Fn does nothing to a digit, so `!`
-                    // stays subtle then.
-                    legend = null,
+                    // Only symbols are printed as Fn legends (see printedFnLegend); the live one
+                    // tints. The shifted symbol tints while Shift is what makes the glyph what it
+                    // is: Shift with Fn does nothing to a digit, so `!` stays subtle then.
+                    legend = printedFnLegend(key),
+                    legendColor = if (printedFnLegend(key) != null && controller.fnLive(key)) colors.armedRing else null,
                     topLegendColor = if (controller.shiftLive(key)) colors.armedRing else null,
                     onBounds = if (key.action is KeyAction.Letter) ({ k, rect -> letterBounds[(k.action as KeyAction.Letter).lower[0]] = rect }) else null,
                     repeats = controller.repeats(key),
@@ -429,6 +428,14 @@ private fun iconFor(key: Key, controller: KeyboardController): KeyIcon? = when {
     key.action == KeyAction.Enter -> controller.enterIcon
     else -> key.icon
 }
+
+/**
+ * The Fn legend a key prints: only a symbol Fn types, both halves of it (Esc `` `~ ``, х `[{`,
+ * б `,<`), because a symbol a long alphabet pushed off its key has nowhere else to be seen.
+ * A named meaning (F1, an arrow, Home, Del) is not printed: holding Fn shows it as the glyph,
+ * and printed it only crowds the key.
+ */
+internal fun printedFnLegend(key: Key): String? = key.fnLegend.takeIf { key.fnAction is KeyAction.Text }
 
 /**
  * Background and foreground for a key, including the shift key's armed and locked looks. An
