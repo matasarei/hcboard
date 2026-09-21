@@ -32,6 +32,16 @@ class MacroStore(private val context: Context) {
         }
     }
 
+    /** Puts a deleted [macro] back at [index], unless a macro with its id is there already. */
+    suspend fun restore(macro: Macro, index: Int) {
+        context.macroStore.edit { p ->
+            val current = read(p)
+            if (current.none { it.id == macro.id }) {
+                p[MACROS_JSON] = MacroJson.encode(current.toMutableList().apply { add(index.coerceIn(0, size), macro) })
+            }
+        }
+    }
+
     suspend fun delete(id: String) {
         context.macroStore.edit { p -> p[MACROS_JSON] = MacroJson.encode(read(p).filterNot { it.id == id }) }
     }

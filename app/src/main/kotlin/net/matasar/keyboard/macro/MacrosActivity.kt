@@ -130,11 +130,11 @@ private fun MacroList(macros: List<Macro>, scope: CoroutineScope, store: MacroSt
                             Text(macro.summary(), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                         IconButton(onClick = {
-                            val before = macros
+                            val index = macros.indexOf(macro)
                             scope.launch {
                                 store.delete(macro.id)
                                 val result = snackbar.showSnackbar(deletedFormat.format(macro.name), actionLabel = undo, withDismissAction = true)
-                                if (result == SnackbarResult.ActionPerformed) store.save(before)
+                                if (result == SnackbarResult.ActionPerformed) store.restore(macro, index)
                             }
                         }) {
                             Icon(painterResource(R.drawable.ic_close), stringResource(R.string.macros_delete), modifier = Modifier.size(20.dp))
