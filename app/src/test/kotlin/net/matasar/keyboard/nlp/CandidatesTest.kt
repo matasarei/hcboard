@@ -70,6 +70,20 @@ class CandidatesTest {
     }
 
     @Test
+    fun `an е spelling of a ё word is corrected to the ё word whatever its length or frequency`() {
+        val russian = Candidates(
+            WordList.of("идёт" to 90, "идеи" to 140, "ещё" to 160, "еле" to 120, "её" to 170, "не" to 190, "счёт" to 60, "свет" to 130),
+        )
+        assertEquals("идёт", russian.forWord("идет")!!.correction)
+        assertEquals(listOf("идет", "идёт", "идеи"), russian.forWord("идет")!!.words)
+        assertEquals("ещё", russian.forWord("еще")!!.correction)
+        assertEquals("её", russian.forWord("ее")!!.correction)
+        assertEquals("счёт", russian.forWord("счет")!!.correction)
+        assertEquals("Ещё", russian.forWord("Еще")!!.correction)
+        assertNull(russian.forWord("идёт")?.correction)
+    }
+
+    @Test
     fun `the bundled english and ukrainian lists behave the same way`() {
         val english = Candidates(File("src/main/assets/dictionaries/en_US.txt").bufferedReader().useLines { WordList.parse(it) })
         assertEquals("check", english.forWord("chek")!!.correction)

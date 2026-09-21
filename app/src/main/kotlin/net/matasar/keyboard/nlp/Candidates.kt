@@ -37,8 +37,10 @@ class Candidates(private val list: WordList) {
         val key = typed.lowercase()
         val known = list.contains(key) || list.contains(typed)
         val corrections = if (known) emptyList() else corrections(key)
+        // A ё restoration is the typed word spelled right, not a guess, so neither gate applies.
         val correction = corrections.firstOrNull()?.takeIf {
-            typed.length >= MIN_CORRECTED_LENGTH && list.frequency(it) >= AUTOCORRECT_MIN_FREQUENCY
+            isYoRestoration(key, it) ||
+                typed.length >= MIN_CORRECTED_LENGTH && list.frequency(it) >= AUTOCORRECT_MIN_FREQUENCY
         }
         val completions = list.completions(key, MAX_WORDS) +
             if (key != typed) list.completions(typed, MAX_WORDS) else emptyList()
@@ -49,7 +51,7 @@ class Candidates(private val list: WordList) {
         return WordCandidates(typed, words, correction?.let { cased(it, typed) })
     }
 
-    /** The list's words one edit away from [key], most frequent first. */
+    /** The list's words one edit away from [key]: a ё restoration of it first, then most frequent first. */
     private fun corrections(key: String): List<String> {
         val found = HashSet<String>()
         fun consider(candidate: String) {
@@ -63,8 +65,17 @@ class Candidates(private val list: WordList) {
             for (c in alphabet) if (c != key[i]) consider(key.substring(0, i) + c + key.substring(i + 1))
         }
         for (i in 0..key.length) for (c in alphabet) consider(key.substring(0, i) + c + key.substring(i))
-        return found.sortedWith(compareByDescending<String> { list.frequency(it) }.thenBy { it })
+        return found.sortedWith(
+            compareByDescending<String> { isYoRestoration(key, it) }
+                .thenByDescending { list.frequency(it) }
+                .thenBy { it },
+        )
     }
+
+    /** Whether [candidate] is [key] with an е written as ё (идет and идёт), the usual Russian shortcut. */
+    private fun isYoRestoration(key: String, candidate: String): Boolean =
+        candidate.length == key.length && candidate != key &&
+            key.indices.all { key[it] == candidate[it] || key[it] == 'е' && candidate[it] == 'ё' }
 
     /** [word] in the case pattern of [typed]: all caps, capitalised, or as the list has it. */
     private fun cased(word: String, typed: String): String = when {
