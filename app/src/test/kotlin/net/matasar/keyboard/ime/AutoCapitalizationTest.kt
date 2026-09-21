@@ -15,6 +15,7 @@ import net.matasar.keyboard.layout.Key
 import net.matasar.keyboard.layout.KeyAction
 import net.matasar.keyboard.layout.LettersLayer
 import net.matasar.keyboard.layout.ModifierKey
+import net.matasar.keyboard.nlp.Candidates
 import net.matasar.keyboard.nlp.WordList
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -41,6 +42,7 @@ class AutoCapitalizationTest {
     private val enter = Key("enter", KeyAction.Enter)
     private val one = Key("1", KeyAction.Text("1", "!"), shiftedLabel = "!", fnAction = KeyAction.KeyCode(KeyEvent.KEYCODE_F1))
     private val ctrl = DeveloperStrip.keys.first { it.action == KeyAction.Modifier(ModifierKey.CTRL) }
+    private val capsKey = Key("Caps", KeyAction.CapsLock)
     private val accented = Key("e", KeyAction.Letter("e", "E"), longPress = listOf("é", "è"))
 
     private fun startIn(inputType: Int) = controller.onStartInput(EditorInfo().apply { this.inputType = inputType })
@@ -248,5 +250,54 @@ class AutoCapitalizationTest {
         startInChat()
         controller.onFinishInput()
         assertFalse(controller.autoCapital)
+    }
+
+    @Test
+    fun `a words field capitalizes every word, and undoing a correction asks again`() {
+        controller.candidateEngine = Candidates(WordList.of("check" to 200, "chef" to 90))
+        startIn(InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PERSON_NAME or InputType.TYPE_TEXT_FLAG_CAP_WORDS)
+        type("ann chek ")
+        assertEquals("Ann Check ", port.before)
+        assertTrue(controller.autoCapital)
+        controller.onKey(backspace) // takes the correction back: the cursor is inside a word again
+        assertEquals("Ann Chek", port.before)
+        assertFalse(controller.autoCapital)
+    }
+
+    @Test
+    fun `picking a word from the strip asks the field again`() {
+        controller.candidateEngine = Candidates(WordList.of("check" to 200, "chef" to 90))
+        startIn(InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_CAP_WORDS)
+        type("che")
+        val asked = port.capsQueries
+        controller.pickCandidate("Check")
+        assertEquals("Check", port.before)
+        // A pick adds no space, so the cursor ends inside a word: no capital, but the field was asked.
+        assertFalse(controller.autoCapital)
+        assertTrue(port.capsQueries > asked)
+    }
+
+    @Test
+    fun `caps lock takes over from the automatic capital and hands it back`() {
+        startInChat()
+        controller.onKey(capsKey)
+        assertEquals(LatchState.LOCKED, controller.shift.state)
+        assertFalse(controller.autoCapital)
+        controller.onKey(capsKey)
+        assertEquals(LatchState.IDLE, controller.shift.state)
+        assertTrue(controller.autoCapital)
+    }
+
+    @Test
+    fun `the trackpad drops the capital while it moves and asks again where it stops`() {
+        startInChat()
+        type("hi")
+        controller.startTrackpad(10f)
+        assertFalse(controller.autoCapital)
+        port.before = "" // the arrows took the cursor to the start of the field
+        controller.onSelectionChanged()
+        assertFalse(controller.autoCapital)
+        controller.endTrackpad()
+        assertTrue(controller.autoCapital)
     }
 }
