@@ -94,11 +94,25 @@ class SuggestionControllerTest {
     }
 
     @Test
-    fun `tapping a candidate replaces the word with no space, and tapping the typed word does nothing`() {
+    fun `tapping the typed word keeps it and the next space does not correct it`() {
+        textField()
+        type("chek")
+        assertEquals("check", controller.candidates?.correction)
+        controller.pickCandidate("chek")
+        assertEquals("chek", port.before)
+        assertNull(controller.candidates)
+        controller.onSelectionChanged() // a stray cursor report brings the strip back without the correction
+        assertNull(controller.candidates?.correction)
+        controller.onKey(space)
+        assertEquals("chek ", port.before)
+        type("chek")
+        assertEquals("check", controller.candidates?.correction) // a new word, corrected again
+    }
+
+    @Test
+    fun `tapping a candidate replaces the word with no space`() {
         textField()
         type("spel")
-        controller.pickCandidate("spel")
-        assertEquals("spel", port.before)
         controller.pickCandidate("spelling")
         // No trailing space: what follows the word is the user's to type.
         assertEquals("spelling", port.before)
