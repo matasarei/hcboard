@@ -96,7 +96,7 @@ fun Toolbar(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         if (candidates != null) {
-            ToolbarButton(R.drawable.ic_arrow_left, "Show toolbar", haptics = haptics) { onCollapseCandidates() }
+            ToolbarButton(R.drawable.ic_arrow_left, "Close suggestions", haptics = haptics) { onCollapseCandidates() }
             CandidateStrip(candidates, onPickCandidate, modifier = Modifier.weight(1f))
         } else {
             val showButtons = !collapsible || expanded || sheetOpen || macroSheetOpen || settingsSheetOpen
