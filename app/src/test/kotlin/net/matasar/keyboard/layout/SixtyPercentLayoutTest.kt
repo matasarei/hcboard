@@ -144,8 +144,8 @@ class SixtyPercentLayoutTest {
         assertEquals(KeyAction.SwitchLanguage, with[3].action)
         assertEquals(KeyIcon.GLOBE, with[3].icon)
         assertEquals(KeyAction.Space, with[4].action)
-        assertEquals(5f, with[4].width)
-        assertEquals(6.25f, SixtyPercentLayer.rows[4].keys.first { it.action == KeyAction.Space }.width)
+        assertEquals(6.25f, with[4].width)
+        assertEquals(7.5f, SixtyPercentLayer.rows[4].keys.first { it.action == KeyAction.Space }.width)
         assertEquals(null, with[4].fnLegend)
     }
 
@@ -163,6 +163,27 @@ class SixtyPercentLayoutTest {
         assertTrue(KeyAction.Modifier(ModifierKey.CTRL) in bottom)
         assertTrue(KeyAction.Modifier(ModifierKey.META) in bottom)
         assertTrue(KeyAction.Modifier(ModifierKey.FN) in bottom)
-        assertEquals(KeyAction.HideKeyboard, bottom.last())
+        assertEquals(KeyAction.Modifier(ModifierKey.CTRL), bottom.last())
+    }
+
+    @Test
+    fun `no hide key on the wide board`() {
+        for (language in Languages.all) {
+            for (withGlobe in listOf(false, true)) {
+                val keys = sixtyPercentLayer(language, withGlobe).rows.flatMap { it.keys }
+                assertTrue(keys.none { it.action == KeyAction.HideKeyboard }, "${language.tag} globe=$withGlobe")
+            }
+        }
+    }
+
+    @Test
+    fun `the letters split between the hands near the middle`() {
+        // Where the key after the left hand's last letter starts, in units from the left edge.
+        fun startOf(row: Row, label: String): Float = row.keys.takeWhile { it.label != label }.sumOf { it.width.toDouble() }.toFloat()
+        assertEquals(7f, startOf(SixtyPercentLayer.rows[1], "y"))
+        assertEquals(7.25f, startOf(SixtyPercentLayer.rows[2], "h"))
+        assertEquals(7.75f, startOf(SixtyPercentLayer.rows[3], "n"))
+        assertEquals(1.5f, SixtyPercentLayer.rows[0].keys.last().width) // Backspace
+        assertEquals(1.75f, SixtyPercentLayer.rows[2].keys.last().width) // Enter
     }
 }
