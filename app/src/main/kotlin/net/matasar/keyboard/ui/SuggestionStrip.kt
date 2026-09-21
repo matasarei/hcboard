@@ -136,7 +136,14 @@ fun ManagerSheet(actions: AutofillActions, onDismiss: () -> Unit) {
 }
 
 @Composable
-internal fun SheetRow(icon: Int, title: String, subtitle: String, onClick: () -> Unit) {
+internal fun SheetRow(
+    icon: Int,
+    title: String,
+    subtitle: String,
+    onClick: () -> Unit,
+    /** Drawn at the row's end, such as a switch showing a setting; the whole row takes the tap. */
+    trailing: (@Composable () -> Unit)? = null,
+) {
     val colors = LocalKeyboardColors.current
     Row(
         modifier = Modifier
@@ -157,5 +164,6 @@ internal fun SheetRow(icon: Int, title: String, subtitle: String, onClick: () ->
             Text(title, color = colors.onPopup, fontSize = 15.sp)
             Text(subtitle, color = colors.subtle, fontSize = 12.sp)
         }
+        trailing?.invoke()
     }
 }
