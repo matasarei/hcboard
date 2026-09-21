@@ -1,5 +1,7 @@
 package net.matasar.keyboard.layout
 
+import kotlinx.serialization.Serializable
+
 /** Which page of keys is showing. */
 enum class LayerId { LETTERS, SYMBOLS, CODE }
 
@@ -8,6 +10,7 @@ internal fun dual(main: String, shifted: String, fnLegend: String? = null, fnAct
     Key(main, KeyAction.Text(main, shifted), width, shiftedLabel = shifted, fnLegend = fnLegend, fnAction = fnAction)
 
 /** The latching modifiers. Shift here is the combination modifier on the strip and the 60% board. */
+@Serializable
 enum class ModifierKey { CTRL, ALT, SHIFT, META, FN }
 
 /** How a key is painted. */

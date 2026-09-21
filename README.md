@@ -80,6 +80,10 @@ from the password manager you already use, and the keyboard never shows or keeps
   Ctrl+A/C/V/X are select, copy, paste and cut.
 - **Positional shortcuts.** Ctrl+С on a Cyrillic board is Ctrl+C, as on a PC, and while a modifier
   is armed the keys show the Latin letters they will send.
+- **Macros built from blocks.** Snap together coloured blocks — type text, press a key such as Esc,
+  F1 or Shift, a combination like Ctrl+Shift+T, random keys, repeat, wait, paste — then play the
+  macro into any field from the toolbar's macro button (Settings → Macros). One comes built in: a
+  password generator that types 16 random letters, digits and symbols.
 
 ## Privacy
 
@@ -95,6 +99,13 @@ from the password manager you already use, and the keyboard never shows or keeps
   username goes there and the password into that app's next password field, within 10 seconds;
   started from a password field or a terminal, only the password goes in. Then it is overwritten in
   memory. It is never written down, logged, or put into an Android message between apps.
+- **A generated password is typed, not kept.** The password generator's keys are made fresh on
+  each run and go straight into the field as key presses; they are not stored, logged or shown by
+  the keyboard, and word suggestions do not read them back.
+- **Macros are saved like your settings.** They stay on the phone, and like the settings they are
+  part of Android's own backup of the app when you have backup turned on. The text in a macro's
+  blocks is saved as you wrote it, so keep passwords out of it; the password generator makes
+  new ones each time and saves none.
 - **Everything is on the phone**, which is also why there is nothing to sign in to.
 
 ## Install

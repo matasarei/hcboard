@@ -66,6 +66,8 @@ import net.matasar.keyboard.nlp.Candidates
 import net.matasar.keyboard.nlp.WordList
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import net.matasar.keyboard.macro.MacroStore
+import net.matasar.keyboard.macro.MacrosActivity
 import net.matasar.keyboard.settings.Prefs
 import net.matasar.keyboard.settings.Settings
 import net.matasar.keyboard.settings.SettingsActivity
@@ -129,6 +131,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
         controller.candidateEngine = loaded.candidates
     }
     private lateinit var prefs: Prefs
+    private lateinit var macroStore: MacroStore
     private val autofillActions by lazy { AndroidAutofillActions(this, canFill = ::canFillHere, onFillPassword = ::fillPassword) }
     internal var inputView: View? = null
         private set
@@ -186,6 +189,8 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
         prefs = Prefs(applicationContext)
         controller.systemActions = this
         controller.scope = lifecycleScope
+        controller.clipboardText = ::clipboardText
+        macroStore = MacroStore(applicationContext)
         savedStateController.performRestore(null)
         controller.onLanguageChanged = { language ->
             lifecycleScope.launch { prefs.setCurrentLanguage(language.tag) }
@@ -272,6 +277,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
             setContent {
                 val settings by prefs.settings.collectAsState(initial = Settings())
+                val macros by macroStore.macros.collectAsState(initial = emptyList())
                 KeyboardThemeFor(settings.theme) {
                     val colors = LocalKeyboardColors.current
                     SideEffect {
@@ -295,6 +301,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
                             glideTrail = settings.glideTrail,
                             split = settings.splitKeyboard,
                         ),
+                        macros = macros,
                     )
                 }
             }
@@ -527,6 +534,12 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
         controller.onFinishInput()
     }
 
+    /** The keyboard went away: a macro stops with it, whatever it was waiting for. */
+    override fun onWindowHidden() {
+        super.onWindowHidden()
+        controller.stopMacro()
+    }
+
     /** The cursor moved, by us or by the user: the word under it decides the candidates. */
     override fun onUpdateSelection(oldSelStart: Int, oldSelEnd: Int, newSelStart: Int, newSelEnd: Int, candidatesStart: Int, candidatesEnd: Int) {
         super.onUpdateSelection(oldSelStart, oldSelEnd, newSelStart, newSelEnd, candidatesStart, candidatesEnd)
@@ -556,7 +569,16 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
     // ---- toolbar ----
 
     override fun toggleManagerSheet() {
-        controller.managerSheetOpen = !controller.managerSheetOpen
+        controller.toggleManagerSheet()
+    }
+
+    override fun toggleMacroSheet() {
+        controller.toggleMacroSheet()
+    }
+
+    override fun openMacros() {
+        controller.macroSheetOpen = false
+        runCatching { startActivity(MacrosActivity.intent(this).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }
     }
 
     override fun toggleDeveloperMode() {
@@ -566,9 +588,14 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
     }
 
     override fun pasteClipboard() {
-        val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-        val text = clipboard.primaryClip?.getItemAt(0)?.coerceToText(this)?.toString() ?: return
+        val text = clipboardText() ?: return
         currentInputConnection?.commitText(text, 1)
+    }
+
+    /** The clipboard's first item as text, for the paste button and a macro's paste block. */
+    private fun clipboardText(): String? {
+        val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+        return clipboard.primaryClip?.getItemAt(0)?.coerceToText(this)?.toString()
     }
 
     /** The fill screen's own form never asks for another fill screen. */
