@@ -21,12 +21,13 @@ class MacroStore(private val context: Context, private val box: SecretBox = Keys
 
     val macros: Flow<List<Macro>> = context.macroStore.data.map { p -> read(p) }
 
-    suspend fun save(macros: List<Macro>) {
+    /** Each write gives false when a secret could not be sealed; then nothing was written. */
+    suspend fun save(macros: List<Macro>): Boolean = saving {
         context.macroStore.edit { it[MACROS_JSON] = encode(macros) }
     }
 
     /** Replaces the macro with [macro]'s id, or adds it at the end. */
-    suspend fun upsert(macro: Macro) {
+    suspend fun upsert(macro: Macro): Boolean = saving {
         context.macroStore.edit { p ->
             val current = read(p)
             val next = if (current.any { it.id == macro.id }) current.map { if (it.id == macro.id) macro else it } else current + macro
@@ -35,7 +36,7 @@ class MacroStore(private val context: Context, private val box: SecretBox = Keys
     }
 
     /** Puts a deleted [macro] back at [index], unless a macro with its id is there already. */
-    suspend fun restore(macro: Macro, index: Int) {
+    suspend fun restore(macro: Macro, index: Int): Boolean = saving {
         context.macroStore.edit { p ->
             val current = read(p)
             if (current.none { it.id == macro.id }) {
@@ -44,8 +45,16 @@ class MacroStore(private val context: Context, private val box: SecretBox = Keys
         }
     }
 
-    suspend fun delete(id: String) {
+    suspend fun delete(id: String): Boolean = saving {
         context.macroStore.edit { p -> p[MACROS_JSON] = encode(read(p).filterNot { it.id == id }) }
+    }
+
+    // A throw inside edit discards the whole change, so the file keeps what it had.
+    private suspend fun saving(write: suspend () -> Unit): Boolean = try {
+        write()
+        true
+    } catch (_: SecretNotSaved) {
+        false
     }
 
     private fun read(p: Preferences): List<Macro> {

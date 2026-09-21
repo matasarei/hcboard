@@ -2,6 +2,7 @@ package net.matasar.keyboard.macro
 
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
 import kotlin.test.assertSame
 import kotlin.test.assertTrue
@@ -66,5 +67,17 @@ class MacroSecretsTest {
         assertTrue(MacroStore.passwordGenerator.typesSecrets())
         assertTrue(Macro("a", "A", listOf(Block.Repeat(2, listOf(Block.RandomKeys())))).typesSecrets())
         assertFalse(Macro("a", "A", listOf(Block.TypeText("hi"), Block.PasteClipboard)).typesSecrets())
+    }
+
+    @Test
+    fun `a box that fails refuses the save instead of storing the plain text`() {
+        val broken = object : SecretBox {
+            override fun seal(plain: String): String = throw java.security.ProviderException("keystore unavailable")
+            override fun open(sealed: String): String? = null
+        }
+        assertFailsWith<SecretNotSaved> { macro.sealSecrets(broken) }
+        // Nothing to seal, nothing to refuse.
+        val plain = Macro("p", "Plain", listOf(Block.TypeText("hi")))
+        assertEquals(plain, plain.sealSecrets(broken))
     }
 }

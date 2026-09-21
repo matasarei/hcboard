@@ -97,6 +97,7 @@
     <string name="macros_move_up">Move up</string>
     <string name="macros_move_down">Move down</string>
     <string name="macros_remove">Remove block</string>
+    <string name="macros_secret_not_saved">Not saved: the phone could not lock away a secret text. Try again.</string>
     <string name="block_text">Type text</string>
     <string name="block_text_field">Text</string>
     <string name="block_text_secret">Secret</string>

@@ -6,11 +6,25 @@ interface SecretBox {
     fun open(sealed: String): String?
 }
 
-/** [blocks] as they are stored: every secret text sealed, repeats included; other blocks untouched. */
+/** A secret text could not be sealed (the Keystore failed): nothing is written, and never the plain text. */
+class SecretNotSaved(cause: Throwable) : Exception("a secret text could not be sealed", cause)
+
+/**
+ * [blocks] as they are stored: every secret text sealed, repeats included; other blocks untouched.
+ * Throws [SecretNotSaved] when [box] fails, so a caller cannot fall back to writing the plain text.
+ */
 fun List<Block>.sealSecrets(box: SecretBox): List<Block> = map { block ->
     when {
         block is Block.TypeText && block.secret -> {
-            val sealed = if (block.text.isEmpty() && block.keptSealed != null) block.keptSealed else box.seal(block.text)
+            val sealed = if (block.text.isEmpty() && block.keptSealed != null) {
+                block.keptSealed
+            } else {
+                try {
+                    box.seal(block.text)
+                } catch (e: Exception) {
+                    throw SecretNotSaved(e)
+                }
+            }
             Block.TypeText(sealed, secret = true)
         }
         block is Block.Repeat -> block.copy(blocks = block.blocks.sealSecrets(box))
