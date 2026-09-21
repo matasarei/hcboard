@@ -108,6 +108,20 @@ fun BlockPalette(onAdd: (Block) -> Unit, modifier: Modifier = Modifier) {
  */
 @Composable
 fun BlockStack(root: List<Block>, container: List<Int>, onChange: (List<Block>) -> Unit) {
+    // The secret texts shown, by path. A card's own state would stay with its place when blocks
+    // move or go, and show another block's secret, so every move or removal hides them all.
+    var revealed by remember { mutableStateOf(emptySet<List<Int>>()) }
+    BlockStack(root, container, onChange, revealed) { revealed = it }
+}
+
+@Composable
+private fun BlockStack(
+    root: List<Block>,
+    container: List<Int>,
+    onChange: (List<Block>) -> Unit,
+    revealed: Set<List<Int>>,
+    onReveal: (Set<List<Int>>) -> Unit,
+) {
     val blocks = if (container.isEmpty()) root else (MacroEdits.blockAt(root, container) as? Block.Repeat)?.blocks ?: return
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         blocks.forEachIndexed { i, block ->
@@ -116,12 +130,14 @@ fun BlockStack(root: List<Block>, container: List<Int>, onChange: (List<Block>) 
                 block = block,
                 first = i == 0,
                 last = i == blocks.lastIndex,
-                onMove = { delta -> onChange(MacroEdits.move(root, path, delta)) },
-                onRemove = { onChange(MacroEdits.remove(root, path)) },
+                revealed = path in revealed,
+                onRevealChange = { on -> onReveal(if (on) revealed + setOf(path) else revealed - setOf(path)) },
+                onMove = { delta -> onReveal(emptySet()); onChange(MacroEdits.move(root, path, delta)) },
+                onRemove = { onReveal(emptySet()); onChange(MacroEdits.remove(root, path)) },
                 onReplace = { onChange(MacroEdits.replace(root, path, it)) },
             ) {
                 if (block is Block.Repeat) {
-                    BlockStack(root, path, onChange)
+                    BlockStack(root, path, onChange, revealed, onReveal)
                     AddInside { onChange(MacroEdits.insert(root, path, it)) }
                 }
             }
@@ -134,6 +150,8 @@ private fun BlockCard(
     block: Block,
     first: Boolean,
     last: Boolean,
+    revealed: Boolean,
+    onRevealChange: (Boolean) -> Unit,
     onMove: (Int) -> Unit,
     onRemove: () -> Unit,
     onReplace: (Block) -> Unit,
@@ -170,7 +188,7 @@ private fun BlockCard(
                 }
             }
             Column(modifier = Modifier.padding(end = 8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                BlockFields(block, onReplace)
+                BlockFields(block, revealed, onRevealChange, onReplace)
                 inner()
             }
         }
@@ -179,11 +197,10 @@ private fun BlockCard(
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun BlockFields(block: Block, onReplace: (Block) -> Unit) {
+private fun BlockFields(block: Block, revealed: Boolean, onRevealChange: (Boolean) -> Unit, onReplace: (Block) -> Unit) {
     when (block) {
         is Block.TypeText -> {
-            // Shown only while the eye is held open on this card; never saved.
-            var revealed by remember { mutableStateOf(false) }
+            // Shown only while the eye is open on this card; never saved.
             val masked = block.secret && !revealed
             OutlinedTextField(
                 value = block.text,
@@ -194,7 +211,7 @@ private fun BlockFields(block: Block, onReplace: (Block) -> Unit) {
                 keyboardOptions = if (block.secret) KeyboardOptions(keyboardType = KeyboardType.Password, autoCorrectEnabled = false) else KeyboardOptions.Default,
                 trailingIcon = if (block.secret) {
                     {
-                        IconButton(onClick = { revealed = !revealed }) {
+                        IconButton(onClick = { onRevealChange(!revealed) }) {
                             Icon(
                                 painterResource(if (masked) R.drawable.ic_visibility else R.drawable.ic_visibility_off),
                                 stringResource(if (masked) R.string.block_text_show else R.string.block_text_hide),
@@ -217,7 +234,7 @@ private fun BlockFields(block: Block, onReplace: (Block) -> Unit) {
                 modifier = Modifier.clip(RoundedCornerShape(8.dp)).toggleable(
                     value = block.secret,
                     role = Role.Checkbox,
-                    onValueChange = { onReplace(block.copy(secret = it)); revealed = false },
+                    onValueChange = { onReplace(block.copy(secret = it)); onRevealChange(false) },
                 ),
             ) {
                 Checkbox(checked = block.secret, onCheckedChange = null)
