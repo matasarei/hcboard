@@ -312,16 +312,22 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
             WindowInfoTracker.getOrCreate(this).windowLayoutInfo(this)
         } catch (e: RuntimeException) {
             hingeSource = "unavailable: ${e.javaClass.simpleName}"
+            KeyboardDiagnostics.insets = insetReport()
             return
         }
         lifecycleScope.launch {
             layoutInfo
-                .catch { e -> hingeSource = "unavailable: ${e.javaClass.simpleName}" }
+                .catch { e ->
+                    hingeSource = "unavailable: ${e.javaClass.simpleName}"
+                    KeyboardDiagnostics.insets = insetReport()
+                }
                 .collect { info ->
                     val fold = info.displayFeatures.filterIsInstance<FoldingFeature>()
                         .firstOrNull { it.isSeparating && it.orientation == FoldingFeature.Orientation.VERTICAL }
                     hingeInWindow = fold?.bounds
                     hingeSource = "window, ${info.displayFeatures.size} feature(s)"
+                    // The source changed even when the hinge did not (none before, none now).
+                    KeyboardDiagnostics.insets = insetReport()
                     updateHinge()
                 }
         }
