@@ -41,7 +41,7 @@ fun findVoiceTarget(imm: InputMethodManager, ownPackage: String): VoiceTarget? {
         list.forEach { add(info.id, it, shortcut = true) }
     }
     runCatching { imm.enabledInputMethodList }.getOrNull()?.forEach { info ->
-        imm.getEnabledInputMethodSubtypeList(info, true).forEach { add(info.id, it, shortcut = false) }
+        runCatching { imm.getEnabledInputMethodSubtypeList(info, true) }.getOrNull()?.forEach { add(info.id, it, shortcut = false) }
     }
     val chosen = chooseVoiceTarget(candidates, ownPackage) ?: return null
     return subtypes[chosen.subtypeIndex].let { (id, subtype) -> VoiceTarget(id, subtype) }
