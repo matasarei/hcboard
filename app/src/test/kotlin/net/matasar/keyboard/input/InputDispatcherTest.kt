@@ -112,4 +112,19 @@ class InputDispatcherTest {
             assertFalse(InputDispatcher(port).needsSpaceBefore(), "after $text")
         }
     }
+
+    @Test
+    fun `a field that asks for no capitals is not asked about the cursor`() {
+        val port = FakeEditorPort()
+        assertFalse(InputDispatcher(port).capitalAtCursor(0))
+        assertEquals(0, port.capsQueries)
+    }
+
+    @Test
+    fun `a sentence field wants a capital at the start and after a full stop`() {
+        val sentences = android.text.InputType.TYPE_TEXT_FLAG_CAP_SENTENCES
+        assertTrue(InputDispatcher(FakeEditorPort()).capitalAtCursor(sentences))
+        assertTrue(InputDispatcher(FakeEditorPort(before = "hi. ")).capitalAtCursor(sentences))
+        assertFalse(InputDispatcher(FakeEditorPort(before = "hi ")).capitalAtCursor(sentences))
+    }
 }

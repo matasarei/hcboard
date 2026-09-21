@@ -19,6 +19,12 @@ interface EditorPort {
     fun performEditorAction(actionId: Int): Boolean
     fun performContextMenuAction(id: Int): Boolean
     fun setSelection(start: Int, end: Int): Boolean
+
+    /**
+     * The capitalization the field wants at the cursor, among [reqModes] (the `TYPE_TEXT_FLAG_CAP_*`
+     * flags): the editor works it out from its own text, so nothing is read into the keyboard.
+     */
+    fun cursorCapsMode(reqModes: Int): Int
 }
 
 class AndroidEditorPort(private val connection: () -> InputConnection?) : EditorPort {
@@ -49,6 +55,8 @@ class AndroidEditorPort(private val connection: () -> InputConnection?) : Editor
     override fun performContextMenuAction(id: Int): Boolean = connection()?.performContextMenuAction(id) ?: false
 
     override fun setSelection(start: Int, end: Int): Boolean = connection()?.setSelection(start, end) ?: false
+
+    override fun cursorCapsMode(reqModes: Int): Int = connection()?.getCursorCapsMode(reqModes) ?: 0
 
     private fun keyEvent(time: Long, action: Int, keyCode: Int, metaState: Int) = KeyEvent(
         time, time, action, keyCode, 0, metaState,

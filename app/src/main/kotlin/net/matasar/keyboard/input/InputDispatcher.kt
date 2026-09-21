@@ -28,6 +28,12 @@ class InputDispatcher(private val port: EditorPort) {
     }
 
     /**
+     * Whether the next letter should be a capital: the field asked for [reqModes] (sentences, words
+     * or characters) and the text at the cursor starts one. No modes asked for, no question asked.
+     */
+    fun capitalAtCursor(reqModes: Int): Boolean = reqModes != 0 && port.cursorCapsMode(reqModes) != 0
+
+    /**
      * Whether a word committed at the cursor needs a space put in front of it: true when the
      * character before it ends a word — a letter or a digit, or the punctuation that closes one —
      * and false at the start of the field, after a space or a newline, and after a character a
