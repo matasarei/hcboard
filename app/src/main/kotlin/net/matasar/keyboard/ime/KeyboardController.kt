@@ -18,6 +18,7 @@ import net.matasar.keyboard.input.glide.GlideKey
 import net.matasar.keyboard.input.glide.GlidePoint
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -33,6 +34,14 @@ import net.matasar.keyboard.layout.LayerId
 import net.matasar.keyboard.layout.ModifierKey
 import net.matasar.keyboard.layout.PhoneLayout
 import net.matasar.keyboard.layout.wideLayout
+import net.matasar.keyboard.macro.Block
+import net.matasar.keyboard.macro.Macro
+import net.matasar.keyboard.macro.MacroField
+import net.matasar.keyboard.macro.MacroRunner
+import net.matasar.keyboard.macro.MacroTooLong
+import java.security.SecureRandom
+import kotlin.random.Random
+import kotlin.random.asKotlinRandom
 import net.matasar.keyboard.nlp.Candidates
 import net.matasar.keyboard.nlp.WordCandidates
 
@@ -198,7 +207,8 @@ class KeyboardController(
 
     /** Whether the word before the cursor may be read and candidates shown right now. */
     val suggestionsAvailable: Boolean
-        get() = suggestionsEnabled && candidateEngine != null && fieldAllowsSuggestions && !modifiers.anyMetaActive && !trackpad && !passwordTyped
+        get() = suggestionsEnabled && candidateEngine != null && fieldAllowsSuggestions && !modifiers.anyMetaActive && !trackpad && !passwordTyped &&
+            runningMacro == null
 
     /**
      * A filled password was just typed into this field: nothing is read back from it for the strip
@@ -230,6 +240,21 @@ class KeyboardController(
 
     /** Whether the key button's sheet is open. */
     var managerSheetOpen: Boolean by mutableStateOf(false)
+
+    /** Whether the macro sheet is open. */
+    var macroSheetOpen: Boolean by mutableStateOf(false)
+
+    /** The id of the macro playing now, for the sheet's Stop; null when none is. */
+    var runningMacro: String? by mutableStateOf(null)
+        private set
+
+    private var macroJob: Job? = null
+
+    /** The clipboard's text for a macro's paste block; the service plugs it in. */
+    var clipboardText: () -> String? = { null }
+
+    /** Where a run's random keys come from: a fresh SecureRandom per run. Tests seed it. */
+    internal var macroRandom: () -> Random = { SecureRandom().asKotlinRandom() }
 
     /** Modifiers whose hold was used by another key, so the release must not count as a tap. */
     private val usedHolds = mutableSetOf<ModifierKey>()
@@ -301,12 +326,15 @@ class KeyboardController(
         autoCancelledAtMs = null
         suggestions = emptyList()
         managerSheetOpen = false
+        macroSheetOpen = false
         languageSheetOpen = false
         clearCandidates()
         refreshAutoCapital()
     }
 
     fun onFinishInput() {
+        // A macro never plays into the next field.
+        stopMacro()
         passwordTyped = false
         capsModes = 0
         autoCapital = false
@@ -318,8 +346,55 @@ class KeyboardController(
         endTrackpad()
         suggestions = emptyList()
         managerSheetOpen = false
+        macroSheetOpen = false
         fieldAllowsSuggestions = false
         clearCandidates()
+    }
+
+    fun toggleManagerSheet() {
+        managerSheetOpen = !managerSheetOpen
+        if (managerSheetOpen) macroSheetOpen = false
+    }
+
+    fun toggleMacroSheet() {
+        macroSheetOpen = !macroSheetOpen
+        if (macroSheetOpen) managerSheetOpen = false
+    }
+
+    /**
+     * Plays [macro] into the field; one at a time, a new one replaces a running one. What it types
+     * feeds no candidates, and after random keys nothing is read back, as after a filled password.
+     */
+    fun runMacro(macro: Macro) {
+        val scope = scope ?: return
+        stopMacro()
+        macroSheetOpen = false
+        clearCandidates()
+        val field = MacroField(terminal = terminalField, editingShortcuts = editingShortcutsInTextFields)
+        val runner = MacroRunner(dispatcher, clipboardText, macroRandom)
+        runningMacro = macro.id
+        if (macro.typesRandomKeys()) passwordTyped = true
+        val job = scope.launch(main ?: Dispatchers.Main.immediate) {
+            try {
+                runner.run(macro, field)
+            } catch (_: MacroTooLong) {
+                // The editor warns about it; the keyboard plays nothing.
+            }
+        }
+        macroJob = job
+        job.invokeOnCompletion {
+            if (macroJob === job) {
+                macroJob = null
+                runningMacro = null
+                refreshAutoCapital()
+            }
+        }
+    }
+
+    fun stopMacro() {
+        macroJob?.cancel()
+        macroJob = null
+        runningMacro = null
     }
 
     fun toggleDeveloperMode() {
@@ -813,3 +888,8 @@ private fun Int.isDpadArrow(): Boolean = when (this) {
     KeyEvent.KEYCODE_DPAD_RIGHT -> true
     else -> false
 }
+
+private fun Macro.typesRandomKeys(): Boolean = blocks.anyRandomKeys()
+
+private fun List<Block>.anyRandomKeys(): Boolean =
+    any { it is Block.RandomKeys || (it is Block.Repeat && it.blocks.anyRandomKeys()) }
