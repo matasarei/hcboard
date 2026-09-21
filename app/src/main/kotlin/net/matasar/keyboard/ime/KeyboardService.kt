@@ -190,6 +190,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
                 controller.glideEnabled = settings.glide
                 controller.suggestionsEnabled = settings.suggestions
                 controller.autoCorrect = settings.autoCorrect
+                controller.autoCapitalize = settings.autoCapitalize
                 autoBottomPadding = settings.bottomPaddingAuto
                 manualBottomPaddingDp = settings.bottomPaddingDp
                 controller.enabledLanguages = settings.enabledLanguages

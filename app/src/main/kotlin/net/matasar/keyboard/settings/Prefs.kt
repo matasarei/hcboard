@@ -34,6 +34,7 @@ data class Settings(
     val developerModePackages: Set<String> = emptySet(),
     val suggestions: Boolean = true,
     val autoCorrect: Boolean = true,
+    val autoCapitalize: Boolean = true,
     val glide: Boolean = true,
     val glideTrail: Boolean = true,
     /** Tags of the enabled languages; never empty. */
@@ -75,6 +76,7 @@ class Prefs(private val context: Context) {
             developerModePackages = p[DEV_MODE_PACKAGES] ?: emptySet(),
             suggestions = p[SUGGESTIONS] ?: true,
             autoCorrect = p[AUTO_CORRECT] ?: true,
+            autoCapitalize = p[AUTO_CAPITALIZE] ?: true,
             glide = p[GLIDE] ?: true,
             glideTrail = p[GLIDE_TRAIL] ?: true,
             enabledLanguages = p[ENABLED_LANGUAGES]?.takeIf { it.isNotEmpty() } ?: defaultEnabledLanguages(),
@@ -95,6 +97,7 @@ class Prefs(private val context: Context) {
     suspend fun setDoubleTapLock(value: Boolean) = context.dataStore.edit { it[DOUBLE_TAP_LOCK] = value }
     suspend fun setSuggestions(value: Boolean) = context.dataStore.edit { it[SUGGESTIONS] = value }
     suspend fun setAutoCorrect(value: Boolean) = context.dataStore.edit { it[AUTO_CORRECT] = value }
+    suspend fun setAutoCapitalize(value: Boolean) = context.dataStore.edit { it[AUTO_CAPITALIZE] = value }
     suspend fun setGlide(value: Boolean) = context.dataStore.edit { it[GLIDE] = value }
     suspend fun setGlideTrail(value: Boolean) = context.dataStore.edit { it[GLIDE_TRAIL] = value }
     suspend fun setCurrentLanguage(tag: String) = context.dataStore.edit { it[CURRENT_LANGUAGE] = tag }
@@ -138,6 +141,7 @@ class Prefs(private val context: Context) {
         val DEV_MODE_PACKAGES = stringSetPreferencesKey("developer_mode_packages")
         val SUGGESTIONS = booleanPreferencesKey("suggestions")
         val AUTO_CORRECT = booleanPreferencesKey("auto_correct")
+        val AUTO_CAPITALIZE = booleanPreferencesKey("auto_capitalize")
         val GLIDE = booleanPreferencesKey("glide")
         val GLIDE_TRAIL = booleanPreferencesKey("glide_trail")
         val ENABLED_LANGUAGES = stringSetPreferencesKey("enabled_languages")
