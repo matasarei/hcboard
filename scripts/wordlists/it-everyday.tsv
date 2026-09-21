@@ -1,0 +1,172 @@
+# Everyday and chat Italian for the glide and candidate engines: words a person types in a
+# message that the AOSP corpus lacks or under-rates (ok, emoji, whatsapp, chat abbreviations).
+# Merged into it.txt by
+#   scripts/build-wordlist.py app/src/main/assets/dictionaries/it.txt app/src/main/assets/dictionaries/it.txt --boost scripts/wordlists/it-everyday.tsv
+# A boost only raises or adds; tiers: 200 greetings and replies, 180 messaging verbs, time
+# words, chat, apps and tech, 165 colloquialisms and abbreviations (and any 2- or 3-letter
+# slang). Letters only, no names, no obscene words, lowercase.
+
+
+# greetings and replies
+ok	200
+okay	200
+ciao	200
+ciaone	200
+salve	200
+grazie	200
+prego	200
+sì	165
+no	200
+certo	200
+perfetto	200
+figo	165
+lol	200
+ahah	200
+ahahah	200
+baci	200
+bacio	200
+bacioni	200
+abbraccio	200
+
+# messaging verbs and time
+scrivi	180
+scrivimi	180
+scrivo	180
+chiama	180
+chiamami	180
+chiamo	180
+mandami	180
+manda	180
+mando	180
+arrivo	180
+arrivato	180
+vado	180
+andiamo	180
+adesso	180
+dopo	180
+domani	180
+ieri	180
+presto	180
+già	165
+ancora	180
+magari	180
+
+# chat, apps and tech
+app	165
+emoji	180
+selfie	180
+screenshot	180
+link	180
+messaggio	180
+messaggi	180
+vocale	180
+vocali	180
+wifi	180
+chat	180
+whatsapp	180
+insta	180
+instagram	180
+tiktok	180
+youtube	180
+zoom	180
+google	180
+update	180
+bug	165
+mail	165
+email	180
+cellulare	180
+telefonino	180
+portatile	180
+
+# colloquialisms and abbreviations
+boh	165
+vabbè	165
+cmq	165
+raga	165
+ragazzi	165
+tipo	165
+figata	165
+pazzesco	165
+dai	165
+beh	165
+mah	165
+uffa	165
+cavolo	165
+tvb	165
+tvtb	165
+nn	165
+xke	165
+anzi	165
+comunque	165
+
+# everyday words
+stasera	165
+domattina	165
+cena	165
+pranzo	165
+colazione	165
+caffè	165
+lavoro	165
+ufficio	165
+soldi	165
+amico	165
+amica	165
+amici	165
+famiglia	165
+vacanze	165
+compleanno	165
+auguri	165
+regalo	165
+spesa	165
+metro	165
+autobus	165
+taxi	165
+treno	165
+ritardo	165
+stanco	165
+stanca	165
+malato	165
+occupato	165
+occupata	165
+libero	165
+contento	165
+contenta	165
+scusa	165
+scusami	165
+scusate	165
+complimenti	165
+bravo	165
+brava	165
+buonanotte	165
+buongiorno	165
+buonasera	165
+perché	165
+come	165
+quando	165
+dove	165
+quanto	165
+davvero	165
+veramente	165
+tantissimo	165
+molto	165
+poco	165
+bene	165
+bello	165
+bella	165
+buonissimo	165
+divertente	165
+simpatico	165
+tranquillo	165
+weekend	165
+festa	165
+serata	165
+aperitivo	165
+birra	165
+pizza	165
+
+# more chat words
+cioè	165
+insomma	165
+scialla	165
+tranqui	165
+evvai	165
