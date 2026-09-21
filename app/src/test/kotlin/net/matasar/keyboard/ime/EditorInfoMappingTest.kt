@@ -142,4 +142,11 @@ class EditorInfoMappingTest {
         assertFalse(micAllowed(InputType.TYPE_CLASS_TEXT, "foo, com.google.android.inputmethod.latin.noMicrophoneKey"))
         assertTrue(micAllowed(InputType.TYPE_CLASS_TEXT, "nmx,other"))
     }
+
+    @Test
+    fun `the fill screen's username field gets no mic`() {
+        val username = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS
+        assertTrue(micAllowed(username, null))
+        assertFalse(micAllowed(username, net.matasar.keyboard.autofill.FILL_SCREEN_IME_OPTION))
+    }
 }
