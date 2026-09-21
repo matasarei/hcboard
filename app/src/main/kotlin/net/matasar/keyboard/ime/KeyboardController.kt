@@ -196,6 +196,19 @@ class KeyboardController(
     val glideAvailable: Boolean
         get() = glideEnabled && glideEngine != null && !passwordField && !terminalField && !modifiers.anyActive && !trackpad
 
+    /** Setting: the mic button in the strip, for handing dictation to a voice keyboard. */
+    var voiceInputEnabled: Boolean by mutableStateOf(true)
+
+    /** Whether an enabled keyboard offers a voice mode to hand off to; the service checks per field. */
+    var voiceAvailable: Boolean by mutableStateOf(false)
+
+    /** Whether the focused field may offer the mic: not a password, not an app that asked for none. */
+    private var fieldAllowsMic: Boolean by mutableStateOf(true)
+
+    /** Whether the strip shows the mic now. */
+    val showVoiceKey: Boolean
+        get() = voiceInputEnabled && voiceAvailable && fieldAllowsMic
+
     /** The candidate engine for the current language, once the service has loaded its word list. */
     var candidateEngine: Candidates? by mutableStateOf(null)
 
@@ -350,6 +363,7 @@ class KeyboardController(
         pendingLocks.clear()
         editorActionId = info?.let { editorActionFor(it.imeOptions, it.inputType) }
         fieldAllowsSuggestions = info?.let { suggestionsAllowed(it.inputType) } ?: true
+        fieldAllowsMic = info?.let { micAllowed(it.inputType, it.privateImeOptions) } ?: true
         capsModes = info?.let { capsModesOf(it.inputType) } ?: 0
         autoCancelledAtMs = null
         suggestions = emptyList()
