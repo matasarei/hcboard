@@ -57,8 +57,8 @@ interface ToolbarActions {
 /**
  * The 44 dp strip above the keys: settings, passwords and macros on the left, the chip or the
  * autofill suggestions in the middle, and the mic (when there is a voice keyboard to hand off to),
- * paste and hide on the right. While a word is being typed its [candidates] take the left buttons'
- * place behind a chevron that brings them back; the right ones stay. Where the strip is
+ * paste and hide on the right. While a word is being typed its [candidates] take the whole strip
+ * but the chevron that closes them, so the words get the width. Where the strip is
  * [collapsible] (the phone board) the left buttons sit behind a chevron of their own until
  * [expanded], leaving the middle their room.
  */
@@ -96,7 +96,7 @@ fun Toolbar(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         if (candidates != null) {
-            ToolbarButton(R.drawable.ic_arrow_left, "Show toolbar", haptics = haptics) { onCollapseCandidates() }
+            ToolbarButton(R.drawable.ic_arrow_left, "Close suggestions", haptics = haptics) { onCollapseCandidates() }
             CandidateStrip(candidates, onPickCandidate, modifier = Modifier.weight(1f))
         } else {
             val showButtons = !collapsible || expanded || sheetOpen || macroSheetOpen || settingsSheetOpen
@@ -117,13 +117,13 @@ fun Toolbar(
                     chipText != null -> ModifierChip(chipText)
                 }
             }
-        }
-        Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-            if (voice) {
-                ToolbarButton(R.drawable.ic_mic, "Voice input", haptics = haptics) { actions.startVoiceInput() }
+            Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                if (voice) {
+                    ToolbarButton(R.drawable.ic_mic, "Voice input", haptics = haptics) { actions.startVoiceInput() }
+                }
+                ToolbarButton(R.drawable.ic_clipboard, "Paste", haptics = haptics) { actions.pasteClipboard() }
+                ToolbarButton(R.drawable.ic_keyboard_hide, "Hide keyboard", haptics = haptics) { actions.hideKeyboard() }
             }
-            ToolbarButton(R.drawable.ic_clipboard, "Paste", haptics = haptics) { actions.pasteClipboard() }
-            ToolbarButton(R.drawable.ic_keyboard_hide, "Hide keyboard", haptics = haptics) { actions.hideKeyboard() }
         }
     }
 }

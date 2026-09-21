@@ -198,9 +198,9 @@ class KeyboardControllerTest {
     }
 
     @Test
-    fun `folding the candidates away opens the strip`() {
+    fun `folding the candidates away leaves the strip folded`() {
         controller.collapseCandidates()
-        assertTrue(controller.toolbarExpanded)
+        assertFalse(controller.toolbarExpanded)
     }
 }
 

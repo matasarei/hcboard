@@ -835,8 +835,6 @@ class KeyboardController(
     /** The chevron: fold the strip away so the toolbar's buttons show until the next key. */
     fun collapseCandidates() {
         candidatesCollapsed = true
-        // The chevron asked for the buttons, so they show unfolded rather than behind a second one.
-        expandToolbar()
     }
 
     /**
