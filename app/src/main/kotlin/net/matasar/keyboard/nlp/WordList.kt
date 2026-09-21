@@ -23,13 +23,16 @@ class WordList private constructor(private val frequencies: Map<String, Int>) {
 
     /**
      * This list with the user's own words applied: a frequency above 0 adds the word or sets its
-     * frequency, 0 takes it out, so it is never suggested nor used as a correction.
+     * frequency, 0 takes it out in every case (blocking "Tube" takes out the list's "tube"), so
+     * it is never suggested nor used as a correction. Blocks go first, so an added word stays.
      */
     fun withOverrides(overrides: Map<String, Int>): WordList {
         if (overrides.isEmpty()) return this
         val map = LinkedHashMap(frequencies)
+        val blocked = overrides.filterValues { it <= 0 }.keys.mapTo(HashSet()) { it.lowercase() }
+        if (blocked.isNotEmpty()) map.keys.removeAll { it.lowercase() in blocked }
         for ((word, frequency) in overrides) {
-            if (frequency <= 0) map.remove(word) else map[word] = frequency.coerceAtMost(255)
+            if (frequency > 0) map[word] = frequency.coerceAtMost(255)
         }
         return WordList(map)
     }

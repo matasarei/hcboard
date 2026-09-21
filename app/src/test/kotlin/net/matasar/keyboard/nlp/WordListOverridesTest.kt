@@ -50,4 +50,12 @@ class WordListOverridesTest {
         val result = Candidates(list.withOverrides(mapOf("duck" to 0))).forWord("duxk")
         assertTrue(result == null || "duck" !in result.words)
     }
+
+    @Test
+    fun `a block takes the word out whatever its case`() {
+        val over = list.withOverrides(mapOf("Duck" to 0, "THE" to 0))
+        assertFalse(over.contains("duck"))
+        assertFalse(over.contains("the"))
+        assertTrue(over.contains("ducks"))
+    }
 }
