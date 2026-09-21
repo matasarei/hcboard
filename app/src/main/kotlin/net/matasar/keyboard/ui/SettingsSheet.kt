@@ -98,7 +98,7 @@ fun SettingsSheet(
             SheetRow(
                 icon = R.drawable.ic_tune,
                 title = "Always show toolbar buttons",
-                subtitle = "Settings, passwords and macros stay beside the words",
+                subtitle = "Never fold them behind ›",
                 onClick = onToggleToolbarAlwaysShown,
             ) {
                 StateSwitch(toolbarAlwaysShown)
