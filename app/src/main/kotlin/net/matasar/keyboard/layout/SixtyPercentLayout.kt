@@ -69,7 +69,7 @@ private fun wideShiftRow(language: Language): Row {
     require(letters.length <= 9) { "${language.tag} bottom row has ${letters.length} letters; at most 9 fit" }
     if (letters.length < 9) return row(shift(2.75f), *wideRow(language, 2).toTypedArray(), shift(2.25f))
     val onSlots = wideRow(language, 2).take(letters.length)
-    val period = dual(".", ",", fnLegend = "<", fnAction = KeyAction.Text("<", ">"))
+    val period = dual(".", ",", fnLegend = "<>", fnAction = KeyAction.Text("<", ">"))
     return row(shift(2.25f), *onSlots.toTypedArray(), period, punctuation('/'), shift(1.75f))
 }
 
@@ -104,7 +104,7 @@ fun sixtyPercentLayer(language: Language, withGlobe: Boolean) = Layer(
     units = 15f,
     rows = listOf(
         row(
-            fn("Esc", KeyAction.KeyCode(KeyEvent.KEYCODE_ESCAPE), 1.5f, fnLegend = "`", fnAction = KeyAction.Text("`", "~")),
+            fn("Esc", KeyAction.KeyCode(KeyEvent.KEYCODE_ESCAPE), 1.5f, fnLegend = "`~", fnAction = KeyAction.Text("`", "~")),
             *digitRow,
             dual("-", "_", fnLegend = "F11", fnAction = fkey(10)),
             dual("=", "+", fnLegend = "F12", fnAction = fkey(11)),

@@ -102,8 +102,9 @@ emulator profile is `medium_phone`; boot it headless with
   androidx.window, or a landscape window under 480 dp high) and sizes the unit so no key lands on
   a hinge.
 - **A key is a legend line and a glyph** (`ui/KeyButton.kt`), never a stack of paddings: the
-  shifted symbol sits top-left (the wide board prints no Fn meaning: while Fn is active the glyph
-  is the Fn meaning, so `Key.fnLegend` stays in the data), and the glyph fills what is left.
+  shifted symbol sits top-left, the Fn meaning top-right only when it is a symbol, both of the pair
+  (`[{`, `` `~ ``; `printedFnLegend`) — named meanings (F1, arrows, Home, Del) show as the glyph
+  while Fn is active — and the glyph fills what is left.
   Nothing is dropped on a short key — both zones are sized from the key's own height by the
   functions in `ui/Dimens.kt`, because the height setting starts at 80% (a 36.8 dp key) and a
   landscape window squeezes it further. The glyph is always **what the key would type now**:
