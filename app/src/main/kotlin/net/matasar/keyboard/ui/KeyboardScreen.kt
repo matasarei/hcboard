@@ -43,6 +43,7 @@ import net.matasar.keyboard.layout.KeyAction
 import net.matasar.keyboard.layout.KeyIcon
 import net.matasar.keyboard.layout.KeyStyle
 import net.matasar.keyboard.layout.LayerId
+import net.matasar.keyboard.macro.Macro
 import net.matasar.keyboard.settings.SplitMode
 import net.matasar.keyboard.ui.theme.KeyboardColors
 import net.matasar.keyboard.ui.theme.LocalKeyboardColors
@@ -80,6 +81,8 @@ fun KeyboardScreen(
      * edge, or null. No key is drawn on it: the wide board splits around it.
      */
     hinge: ClosedFloatingPointRange<Float>? = null,
+    /** What the macro sheet lists. */
+    macros: List<Macro> = emptyList(),
 ) {
     val colors = LocalKeyboardColors.current
     val popups = remember { PopupState() }
@@ -117,6 +120,7 @@ fun KeyboardScreen(
                     chipText = chipText,
                     actions = actions,
                     sheetOpen = controller.managerSheetOpen,
+                    macroSheetOpen = controller.macroSheetOpen,
                     haptics = feel.haptics,
                     // The password manager's chips win the toolbar; word candidates take it next.
                     center = if (controller.suggestions.isNotEmpty()) ({ SuggestionStrip(controller.suggestions) }) else null,
@@ -152,6 +156,23 @@ fun KeyboardScreen(
                     .padding(horizontal = effectiveSidePadding),
             ) {
                 ManagerSheet(autofill, onDismiss = { controller.managerSheetOpen = false })
+            }
+        }
+        if (controller.macroSheetOpen) {
+            Box(
+                modifier = Modifier
+                    .matchParentSize()
+                    .padding(top = PopupMetrics.overhang + Dimens.toolbarHeight)
+                    .padding(horizontal = effectiveSidePadding),
+            ) {
+                MacroSheet(
+                    macros = macros,
+                    running = controller.runningMacro,
+                    onRun = controller::runMacro,
+                    onStop = controller::stopMacro,
+                    onEdit = actions::openMacros,
+                    onDismiss = { controller.macroSheetOpen = false },
+                )
             }
         }
     }

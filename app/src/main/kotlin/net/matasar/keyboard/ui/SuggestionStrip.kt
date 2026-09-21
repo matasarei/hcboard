@@ -136,7 +136,7 @@ fun ManagerSheet(actions: AutofillActions, onDismiss: () -> Unit) {
 }
 
 @Composable
-private fun SheetRow(icon: Int, title: String, subtitle: String, onClick: () -> Unit) {
+internal fun SheetRow(icon: Int, title: String, subtitle: String, onClick: () -> Unit) {
     val colors = LocalKeyboardColors.current
     Row(
         modifier = Modifier

@@ -44,6 +44,8 @@ import net.matasar.keyboard.ui.theme.LocalKeyboardColors
 /** What the toolbar buttons do; the service implements it. */
 interface ToolbarActions {
     fun toggleManagerSheet()
+    fun toggleMacroSheet()
+    fun openMacros()
     fun toggleDeveloperMode()
     fun pasteClipboard()
     fun openSettings()
@@ -51,7 +53,7 @@ interface ToolbarActions {
 }
 
 /**
- * The 44 dp strip above the keys: developer-mode toggle, clipboard, settings on the left, the
+ * The 44 dp strip above the keys: developer-mode toggle, clipboard, macros on the left, the
  * chip or the autofill suggestions in the middle, hide on the right. While a word is being
  * typed its [candidates] take the buttons' place behind a chevron that brings them back.
  */
@@ -62,6 +64,7 @@ fun Toolbar(
     actions: ToolbarActions,
     modifier: Modifier = Modifier,
     sheetOpen: Boolean = false,
+    macroSheetOpen: Boolean = false,
     /** The 60% board carries its modifiers itself, so the strip toggle has nothing to do there. */
     showDeveloperToggle: Boolean = true,
     center: (@Composable () -> Unit)? = null,
@@ -85,6 +88,7 @@ fun Toolbar(
                 ToolbarButton(R.drawable.ic_key, "Password manager", active = sheetOpen, haptics = haptics) { actions.toggleManagerSheet() }
                 if (showDeveloperToggle) ToolbarButton(R.drawable.ic_code, "Developer mode", active = developerMode, haptics = haptics) { actions.toggleDeveloperMode() }
                 ToolbarButton(R.drawable.ic_clipboard, "Paste", haptics = haptics) { actions.pasteClipboard() }
+                ToolbarButton(R.drawable.ic_macro, "Macros", active = macroSheetOpen, haptics = haptics) { actions.toggleMacroSheet() }
             }
             Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
                 when {
