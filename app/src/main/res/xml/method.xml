@@ -13,6 +13,11 @@
     android:supportsInlineSuggestions="true"
     android:supportsSwitchingToNextInputMethod="true">
 
+    <!--
+        A fixed subtypeId: Android otherwise hashes one from the locale, mode and flags, and a later
+        change to any of them would make this a different subtype to enable again. The label is not
+        part of that hash, so rewording it is free either way.
+    -->
     <subtype
         android:label="@string/ime_description"
         android:subtypeId="0x68630001"
