@@ -9,13 +9,15 @@ import kotlin.test.assertTrue
  * A curated overlay in `scripts/wordlists/` and the asset it is merged into by
  * `scripts/build-wordlist.py --boost`. The test working directory is the `app` module, as in
  * the glide tests. [tiers] are the overlay's allowed frequencies, which differ per asset
- * because each corpus has its own scale.
+ * because each corpus has its own scale. [capitalisedNouns] lets a word start with a capital, as
+ * German nouns do in their list; a lowercase copy would never be offered in its right case.
  */
 abstract class DictionaryOverlayTest(
     overlay: String,
     asset: String,
     private val tiers: Set<Int>,
     private val minEntries: Int,
+    private val capitalisedNouns: Boolean = false,
 ) {
 
     private val overlay = File("../scripts/wordlists/$overlay")
@@ -35,7 +37,8 @@ abstract class DictionaryOverlayTest(
         val entries = entries()
         assertTrue(entries.size >= minEntries, "only ${entries.size} entries")
         for ((word, frequency) in entries) {
-            assertTrue(word.all { it.isLetter() && it.isLowerCase() }, "'$word' is not lowercase letters")
+            val cased = word.drop(1).all { it.isLowerCase() } && (capitalisedNouns || word.first().isLowerCase())
+            assertTrue(word.all { it.isLetter() } && cased, "'$word' is not lowercase letters")
             assertTrue(frequency in tiers, "'$word' has tier $frequency")
         }
         assertEquals(entries.size, entries.map { it.first }.toSet().size, "duplicate words")
