@@ -78,7 +78,6 @@ Laptop	180
 Like	180
 Likes	180
 Link	180
-Links	180
 Login	180
 Meeting	180
 Meetings	180
@@ -213,6 +212,7 @@ gechillt	165
 gibt	165
 hab	165
 hast	165
+hdgdl	165
 hdl	165
 hey	165
 hi	165
@@ -223,7 +223,6 @@ jep	165
 jo	165
 krass	165
 lg	165
-lost	165
 läuft	165
 mega	165
 mfg	165
@@ -239,6 +238,7 @@ passt	165
 ruf	165
 sehr	165
 thx	165
+tschüssi	165
 vg	165
 voll	165
 wo	165
@@ -51200,6 +51200,7 @@ logischerweise	73
 lohnendes	73
 loses	73
 losgesagt	73
+lost	73
 lähmte	73
 längliches	73
 lüften	73
@@ -79997,4 +79998,3 @@ Tulpen	64
 Tunnelstrecke	64
 Turban	64
 Turbulenz	64
-Turek	64
