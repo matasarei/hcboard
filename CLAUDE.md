@@ -33,7 +33,8 @@ emulator profile is `medium_phone`; boot it headless with
 - **Where things live:** `ime/` service and controller; `layout/` key data and the layers
   (`Layers.kt` phone, `SixtyPercentLayout.kt` wide, `DeveloperStrip.kt`); `input/` the editor
   port, dispatcher, latch and modifier state, key codes; `ui/` composables; `settings/` DataStore
-  prefs and the settings screen (and the Custom words screen); `nlp/` word lists, candidates and
+  prefs and the settings screen (and the Custom words screen and Backup section); `backup/` the
+  backup file, its codec and passphrase box; `nlp/` word lists, candidates and
   custom words; `autofill/` inline suggestions and the manager sheet; `macro/` macros (model, JSON,
   runner, store, the block editor screen).
 - **`input/EditorPort.kt` is the only code that touches `InputConnection`.** Everything else goes
@@ -95,6 +96,16 @@ emulator profile is `medium_phone`; boot it headless with
   tag so `ru` words reach `ru_bg` too, never written into the assets. The service clears its
   engine cache and reloads the current language when they change; a version counter drops a
   list that was still loading with the old words.
+- **Backup** (`backup/`, UI in `settings/BackupSection.kt`): one JSON file (`"format":
+  "hcboard-backup"`, version 1) with `Settings` (serializable; `Settings.sanitized()` clamps a
+  restored one), custom words and macros, through the system file picker only. Secret texts are
+  sealed with `PassphraseSecretBox` (PBKDF2-SHA256 210 000 rounds, AES-GCM, JDK classes so the JVM
+  tests run it) behind a sealed check value, so a wrong passphrase refuses the import before
+  anything is written; `keptSealed` never crosses between the Keystore and the passphrase (such a
+  secret travels empty). Import is capped at 5 MB and at 10 000 000 KDF rounds, replaces all three
+  after a confirmation, and writes macros first (the only write that can refuse), then words, then
+  settings. The passphrase and opened secrets live in `remember`, never `rememberSaveable`, and the
+  passphrase is a `CharArray` wiped after use.
 - **Languages** are data in `layout/Languages.kt`: rows, accents, native name. A layer sizes itself to
   its widest row. The globe key exists only with two or more languages enabled; the persisted
   current language is authoritative and the service follows changes to it. The enabled set is the

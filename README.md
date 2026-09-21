@@ -106,6 +106,9 @@ from the password manager you already use, and the keyboard never shows or keeps
   macro button (Settings → Macros). The editor has a field
   to try a macro in before you use it. One comes built in: a password generator that types 16
   random letters, digits and symbols.
+- **Backup to one file** (Settings → Backup): export your settings, custom words and macros to a
+  file you save where you like, and import it on this phone or another. Import replaces all three,
+  after asking.
 
 ## Privacy
 
@@ -136,6 +139,11 @@ from the password manager you already use, and the keyboard never shows or keeps
   the field's text on the clipboard when the macro plays it, and does nothing in a password field.
   When the macro also types a secret or random keys, the copy is marked sensitive, so Android
   hides it in its clipboard preview.
+- **A backup file goes only where you save it.** Export uses Android's own file picker; the
+  keyboard still has no network access. The file is readable JSON, except the secret texts in your
+  macros: those are encrypted with a passphrase you choose when you export (PBKDF2 and AES-GCM),
+  which is not stored anywhere, so without it they cannot be restored. A secret this phone can no
+  longer open (restored from Android's backup onto another phone) is exported empty.
 - **Everything is on the phone**, which is also why there is nothing to sign in to.
 
 ## Install
