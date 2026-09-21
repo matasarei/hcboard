@@ -3,6 +3,7 @@ package net.matasar.keyboard.input
 import android.os.SystemClock
 import android.view.KeyCharacterMap
 import android.view.KeyEvent
+import android.view.inputmethod.ExtractedTextRequest
 import android.view.inputmethod.InputConnection
 
 /**
@@ -15,6 +16,9 @@ interface EditorPort {
     fun textBeforeCursor(length: Int): CharSequence?
     fun textAfterCursor(length: Int): CharSequence?
     fun selectedText(): CharSequence?
+
+    /** The field's whole text, for a macro's copy block; null when the field will not say. */
+    fun fieldText(): CharSequence?
     fun sendKey(keyCode: Int, metaState: Int)
     fun performEditorAction(actionId: Int): Boolean
     fun performContextMenuAction(id: Int): Boolean
@@ -43,6 +47,15 @@ class AndroidEditorPort(private val connection: () -> InputConnection?) : Editor
 
     override fun selectedText(): CharSequence? = connection()?.getSelectedText(0)
 
+    override fun fieldText(): CharSequence? {
+        val ic = connection() ?: return null
+        ic.getExtractedText(ExtractedTextRequest(), 0)?.text?.let { return it }
+        // Not every editor extracts; the text around the cursor is the same text, read in parts.
+        val before = ic.getTextBeforeCursor(FIELD_TEXT_MAX, 0) ?: return null
+        val after = ic.getTextAfterCursor(FIELD_TEXT_MAX, 0) ?: return null
+        return buildString { append(before); append(ic.getSelectedText(0) ?: ""); append(after) }
+    }
+
     override fun sendKey(keyCode: Int, metaState: Int) {
         val ic = connection() ?: return
         val now = SystemClock.uptimeMillis()
@@ -63,4 +76,9 @@ class AndroidEditorPort(private val connection: () -> InputConnection?) : Editor
         KeyCharacterMap.VIRTUAL_KEYBOARD, 0,
         KeyEvent.FLAG_SOFT_KEYBOARD or KeyEvent.FLAG_KEEP_TOUCH_MODE,
     )
+
+    private companion object {
+        /** Each side of the cursor read at most this far, well under what one Binder call carries. */
+        const val FIELD_TEXT_MAX = 64_000
+    }
 }

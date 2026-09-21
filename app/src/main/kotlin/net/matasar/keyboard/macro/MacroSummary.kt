@@ -11,6 +11,7 @@ fun Block.summary(): String = when (this) {
     is Block.Repeat -> "Repeat $count×"
     is Block.Wait -> "Wait $duration ms"
     Block.PasteClipboard -> "Paste clipboard"
+    Block.CopyField -> "Copy field"
 }
 
 /** The key with its modifiers in the usual order: "Ctrl+Shift+F1". */

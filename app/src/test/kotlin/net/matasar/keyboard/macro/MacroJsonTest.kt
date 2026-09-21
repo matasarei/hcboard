@@ -19,6 +19,7 @@ class MacroJsonTest {
             Block.Repeat(3, listOf(Block.PressKey("Tab"), Block.Repeat(2, listOf(Block.Wait(100))))),
             Block.Wait(250),
             Block.PasteClipboard,
+            Block.CopyField,
         ),
     )
 
@@ -34,6 +35,7 @@ class MacroJsonTest {
         assertTrue("\"type\":\"key\"" in text, text)
         assertTrue("\"key\":\"F1\"" in text, text)
         assertTrue("\"type\":\"paste\"" in text, text)
+        assertTrue("\"type\":\"copy\"" in text, text)
     }
 
     @Test

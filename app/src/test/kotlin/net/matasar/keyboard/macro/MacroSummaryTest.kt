@@ -18,6 +18,7 @@ class MacroSummaryTest {
         assertEquals("Repeat 3×", Block.Repeat(3).summary())
         assertEquals("Wait 250 ms", Block.Wait(250).summary())
         assertEquals("Paste clipboard", Block.PasteClipboard.summary())
+        assertEquals("Copy field", Block.CopyField.summary())
     }
 
     @Test

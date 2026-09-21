@@ -60,7 +60,8 @@ import kotlin.math.roundToInt
 
 /**
  * The kinds of block the palette offers, each with its colour, like the blocks of a children's
- * programming app: text blue, keys orange, random green, repeat purple, wait and paste teal.
+ * programming app: text blue, keys orange, random green, repeat purple, wait and paste teal,
+ * copy cyan.
  */
 enum class BlockKind(val title: Int, val color: Color, val make: () -> Block) {
     TEXT(R.string.block_text, Color(0xFF3B82F6), { Block.TypeText("") }),
@@ -69,6 +70,7 @@ enum class BlockKind(val title: Int, val color: Color, val make: () -> Block) {
     REPEAT(R.string.block_repeat, Color(0xFF8B5CF6), { Block.Repeat(2) }),
     WAIT(R.string.block_wait, Color(0xFF14B8A6), { Block.Wait(500) }),
     PASTE(R.string.block_paste, Color(0xFF0EA5A4), { Block.PasteClipboard }),
+    COPY(R.string.block_copy, Color(0xFF0891B2), { Block.CopyField }),
 }
 
 val Block.kind: BlockKind
@@ -79,6 +81,7 @@ val Block.kind: BlockKind
         is Block.Repeat -> BlockKind.REPEAT
         is Block.Wait -> BlockKind.WAIT
         Block.PasteClipboard -> BlockKind.PASTE
+        Block.CopyField -> BlockKind.COPY
     }
 
 /** The palette pinned under the script: one chip per kind, each appends its block. */
@@ -269,6 +272,7 @@ private fun BlockFields(block: Block, onReplace: (Block) -> Unit) {
             onPlus = { onReplace(block.copy(millis = (block.duration + WAIT_STEP).coerceAtMost(Block.Wait.MAX_MILLIS))) },
         )
         Block.PasteClipboard -> Text(stringResource(R.string.block_paste_hint), style = MaterialTheme.typography.bodyMedium)
+        Block.CopyField -> Text(stringResource(R.string.block_copy_hint), style = MaterialTheme.typography.bodyMedium)
     }
 }
 

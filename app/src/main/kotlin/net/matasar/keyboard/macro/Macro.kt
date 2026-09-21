@@ -81,4 +81,9 @@ sealed interface Block {
     @Serializable
     @SerialName("paste")
     data object PasteClipboard : Block
+
+    /** Puts the field's whole text on the clipboard, as it is at this step; nothing from a password field. */
+    @Serializable
+    @SerialName("copy")
+    data object CopyField : Block
 }
