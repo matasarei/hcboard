@@ -1,0 +1,166 @@
+# Everyday and chat German for the glide and candidate engines: words a person types in a
+# message that the AOSP corpus lacks or under-rates (ok, emoji, whatsapp, chat abbreviations).
+# Merged into de.txt by
+#   scripts/build-wordlist.py app/src/main/assets/dictionaries/de.txt app/src/main/assets/dictionaries/de.txt --boost scripts/wordlists/de-everyday.tsv
+# A boost only raises or adds; tiers: 200 greetings and replies, 180 messaging verbs, time
+# words, chat, apps and tech, 165 colloquialisms and abbreviations (and any 2- or 3-letter
+# slang). Letters only, no names, no obscene words; nouns keep the capital the list gives them.
+
+
+# greetings and replies
+ok	200
+okay	200
+hallo	200
+hi	165
+hey	165
+servus	200
+moin	200
+tschüss	200
+tschau	200
+ciao	200
+danke	200
+dankeschön	200
+bitte	200
+ja	200
+nein	165
+jo	165
+jep	165
+nee	165
+nö	165
+klar	200
+gerne	200
+gern	200
+sorry	200
+super	200
+cool	200
+genau	200
+lol	200
+
+# messaging verbs and time
+schreib	180
+schreibe	180
+schreibst	180
+geschrieben	180
+schick	180
+schicke	180
+schickst	180
+geschickt	180
+anrufen	180
+angerufen	180
+ruf	165
+melde	180
+meld	180
+meldest	180
+gemeldet	180
+komme	180
+kommst	180
+gleich	180
+später	180
+heute	180
+gestern	180
+bald	180
+jetzt	180
+grad	180
+gerade	180
+schon	180
+nochmal	180
+vielleicht	180
+bestimmt	180
+weiß	180
+weißt	180
+glaube	180
+hab	165
+habe	180
+hast	165
+bin	165
+bist	180
+chatten	180
+posten	180
+gepostet	180
+googeln	180
+gegoogelt	180
+liken	180
+geliked	180
+teilen	180
+geteilt	180
+online	180
+offline	180
+whatsapp	180
+zoom	180
+wlan	180
+
+# nouns of chat, apps and daily life
+Handy	180
+Chat	180
+App	165
+Apps	180
+Emoji	180
+Emojis	180
+Selfie	180
+Selfies	180
+Screenshot	180
+Screenshots	180
+Update	180
+Updates	180
+Meeting	180
+Meetings	180
+Homeoffice	180
+Bug	165
+Bugs	180
+Link	180
+Story	180
+Storys	180
+Post	180
+Posts	180
+Like	180
+Likes	180
+Spoiler	180
+Login	180
+Account	180
+Laptop	180
+Handynummer	180
+Sprachnachricht	180
+Sprachnachrichten	180
+Nachricht	180
+Nachrichten	180
+Termin	180
+Feierabend	180
+Wochenende	180
+Kaffee	180
+Mittagessen	180
+Abendessen	180
+Passwort	180
+Internet	180
+
+# colloquialisms and abbreviations
+omg	165
+btw	165
+thx	165
+hdl	165
+lg	165
+vg	165
+mfg	165
+digga	165
+alter	165
+krass	165
+nice	165
+mega	165
+cringe	165
+egal	165
+voll	165
+echt	165
+bock	165
+chillen	165
+chill	165
+gechillt	165
+zocken	165
+yolo	165
+läuft	165
+passt	165
+hä	165
+hm	165
+na	165
+naja	165
+okidoki	165
+hdgdl	165
+tschüssi	165

@@ -76,9 +76,10 @@ class RuBgDictionaryTest {
         val sovet = assertNotNull(candidates.forWord("совеь"))
         assertEquals("совет", sovet.correction)
 
-        // минутк is 1 edit from минут (RU, 139), минуты (RU, 124), минуту (RU, 120), and минути (BG, 75)
+        // минутк is 1 edit from минутку (RU, 155 from the everyday overlay), минут (RU, 139), минуты (RU, 124),
+        // минуту (RU, 120), and минути (BG, 75)
         val minutk = assertNotNull(candidates.forWord("минутк"))
-        assertEquals("минут", minutk.correction)
+        assertEquals("минутку", minutk.correction)
         assertTrue(minutk.correction != "минути", "Must never autocorrect to Bulgarian минути")
 
         // быыл is 1 edit from был (RU, 187)

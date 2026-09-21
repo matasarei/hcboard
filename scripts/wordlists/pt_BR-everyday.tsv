@@ -1,0 +1,172 @@
+# Everyday and chat Portuguese (Brazil) for the glide and candidate engines: words a person types in a
+# message that the AOSP corpus lacks or under-rates (ok, emoji, whatsapp, chat abbreviations).
+# Merged into pt_BR.txt by
+#   scripts/build-wordlist.py app/src/main/assets/dictionaries/pt_BR.txt app/src/main/assets/dictionaries/pt_BR.txt --boost scripts/wordlists/pt_BR-everyday.tsv
+# A boost only raises or adds; tiers: 200 greetings and replies, 180 messaging verbs, time
+# words, chat, apps and tech, 165 colloquialisms and abbreviations (and any 2- or 3-letter
+# slang). Letters only, no names, no obscene words, lowercase.
+
+
+# greetings and replies
+ok	200
+okay	200
+oi	200
+olá	165
+oie	165
+tchau	200
+valeu	200
+vlw	165
+obrigado	200
+obrigada	200
+obg	165
+não	165
+claro	200
+beleza	200
+blz	165
+legal	200
+show	200
+top	165
+lol	200
+kkk	165
+kkkk	200
+rs	165
+beijo	200
+beijos	200
+abraço	200
+abraços	200
+
+# messaging verbs and time
+escreve	180
+manda	180
+mandei	180
+mando	180
+liga	180
+ligo	180
+liguei	180
+chego	180
+cheguei	180
+vou	165
+vamos	180
+agora	180
+depois	180
+amanhã	180
+hoje	180
+ontem	180
+já	165
+ainda	180
+talvez	180
+
+# chat, apps and tech
+app	165
+apps	180
+emoji	180
+emojis	180
+selfie	180
+print	180
+link	180
+mensagem	180
+mensagens	180
+áudio	180
+áudios	180
+wifi	180
+chat	180
+whatsapp	180
+zap	165
+insta	180
+instagram	180
+tiktok	180
+youtube	180
+zoom	180
+google	180
+update	180
+bug	165
+email	180
+celular	180
+notebook	180
+
+# colloquialisms and abbreviations
+vc	165
+vcs	165
+tb	165
+tbm	165
+pq	165
+qdo	165
+cmg	165
+td	165
+mano	165
+véi	165
+mina	165
+galera	165
+gente	165
+sussa	165
+suave	165
+tranquilo	165
+massa	165
+bora	165
+partiu	165
+tipo	165
+nossa	165
+affs	165
+aff	165
+
+# everyday words
+noite	165
+jantar	165
+almoço	165
+café	165
+trabalho	165
+escritório	165
+grana	165
+dinheiro	165
+amigo	165
+amiga	165
+amigos	165
+família	165
+férias	165
+aniversário	165
+presente	165
+mercado	165
+metrô	165
+ônibus	165
+uber	165
+táxi	165
+atrasado	165
+atrasada	165
+cansado	165
+cansada	165
+doente	165
+ocupado	165
+ocupada	165
+livre	165
+feliz	165
+desculpa	165
+desculpe	165
+parabéns	165
+boa	165
+bom	165
+dia	165
+tarde	165
+porque	165
+como	165
+quando	165
+onde	165
+quanto	165
+sério	165
+verdade	165
+demais	165
+muito	165
+pouco	165
+gostoso	165
+engraçado	165
+fds	165
+rolê	165
+festa	165
+cerveja	165
+
+# more chat words
+falou	165
+flw	165
+tmj	165
+sdds	165
+saudade	165
+bjs	165

@@ -8,6 +8,29 @@ a	206
 del	204
 los	203
 se	201
+abrazo	200
+abrazos	200
+adiós	200
+besitos	200
+besos	200
+buenas	200
+chao	200
+chau	200
+claro	200
+genial	200
+gracias	200
+hola	200
+holi	200
+jaja	200
+jajaja	200
+lol	200
+no	200
+ok	200
+okay	200
+perfecto	200
+porfa	200
+saludos	200
+vale	200
 por	199
 un	199
 con	198
@@ -20,10 +43,67 @@ como	192
 para	192
 fue	188
 más	186
-no	185
 o	184
 sus	183
 lo	182
+ahora	180
+ahorita	180
+apps	180
+audio	180
+audios	180
+aviso	180
+avisé	180
+avísame	180
+ayer	180
+bugs	180
+captura	180
+celular	180
+chat	180
+chatear	180
+correo	180
+email	180
+emoji	180
+emojis	180
+enlace	180
+escribe	180
+escribo	180
+escribí	180
+escríbeme	180
+google	180
+insta	180
+instagram	180
+link	180
+llama	180
+llamo	180
+llamé	180
+llego	180
+llegué	180
+llámame	180
+luego	180
+mail	180
+manda	180
+mando	180
+mandé	180
+mañana	180
+mensaje	180
+mensajes	180
+mándame	180
+móvil	180
+portátil	180
+pronto	180
+quizás	180
+selfie	180
+selfies	180
+tiktok	180
+todavía	180
+update	180
+vamos	180
+voy	180
+wasap	180
+whatsapp	180
+wifi	180
+youtube	180
+zoom	180
 entre	179
 son	177
 años	176
@@ -70,11 +150,88 @@ población	166
 todo	166
 tres	166
 vez	166
+almuerzo	165
+amiga	165
+amigo	165
+amigos	165
+app	165
+bien	165
+bro	165
+buah	165
+bueno	165
+bug	165
+bus	165
+café	165
+cansada	165
+cansado	165
+cena	165
+chaval	165
+chido	165
+colega	165
+comida	165
+compras	165
+contenta	165
+contento	165
+crack	165
+cumple	165
+cumpleaños	165
+curro	165
+cuándo	165
+cuánto	165
+cómo	165
+desayuno	165
+dinero	165
+divertido	165
+días	165
+dónde	165
+enfermo	165
+familia	165
+felicidades	165
+finde	165
+flipar	165
+flipo	165
+gracioso	165
+guay	165
+güey	165
 han	165
+jeje	165
+jo	165
+libre	165
 lugar	165
 mayor	165
+metro	165
+mucho	165
+noches	165
+ocupada	165
+ocupado	165
+oficina	165
+onda	165
+ostras	165
+pasta	165
+perdona	165
+perdón	165
+poco	165
+porque	165
+pues	165
+qué	165
+regalo	165
 sido	165
+siento	165
+súper	165
+tarde	165
+tardes	165
+taxi	165
 tiempo	165
+tipo	165
+totalmente	165
+trabajo	165
+tren	165
+uff	165
+vacaciones	165
+vaya	165
+verdad	165
+xd	165
+ánimo	165
 aunque	164
 contra	164
 embargo	164
@@ -97,7 +254,6 @@ algunos	161
 antes	161
 día	161
 equipo	161
-familia	161
 mundo	161
 nuevo	161
 país	161
@@ -130,7 +286,6 @@ río	159
 tuvo	159
 zona	159
 álbum	159
-bien	158
 cuatro	158
 cuenta	158
 ella	158
@@ -142,7 +297,6 @@ guerra	158
 habitantes	158
 hace	158
 hay	158
-luego	158
 muchos	158
 principal	158
 sur	158
@@ -160,9 +314,7 @@ otra	157
 partido	157
 partir	157
 personas	157
-poco	157
 poder	157
-tipo	157
 través	157
 algunas	156
 caso	156
@@ -191,10 +343,8 @@ segundo	156
 según	156
 septiembre	156
 siguiente	156
-tarde	156
 temporada	156
 tienen	156
-trabajo	156
 varias	156
 abril	155
 actual	155
@@ -229,7 +379,6 @@ cerca	154
 departamento	154
 desarrollo	154
 disco	154
-días	154
 febrero	154
 hacer	154
 les	154
@@ -253,7 +402,6 @@ juego	153
 lado	153
 mediante	153
 miembros	153
-mucho	153
 nacional	153
 países	153
 pesar	153
@@ -285,7 +433,6 @@ llamada	152
 metros	152
 millones	152
 muchas	152
-porque	152
 puesto	152
 siguientes	152
 tal	152
@@ -319,7 +466,6 @@ militar	151
 proceso	151
 propio	151
 proyecto	151
-pues	151
 relación	151
 área	151
 actualmente	150
@@ -430,7 +576,6 @@ temas	148
 trata	148
 zonas	148
 Juan	147
-ahora	147
 algo	147
 allí	147
 alta	147
@@ -447,7 +592,6 @@ especial	147
 estar	147
 formación	147
 fuerza	147
-gracias	147
 hija	147
 local	147
 modelo	147
@@ -543,11 +687,9 @@ incluye	145
 influencia	145
 interés	145
 lengua	145
-libre	145
 libros	145
 lleva	145
 lugares	145
-mando	145
 mercado	145
 mitad	145
 noche	145
@@ -734,7 +876,6 @@ representa	142
 sencillo	142
 templo	142
 tipos	142
-todavía	142
 tradicional	142
 tradición	142
 van	142
@@ -742,7 +883,6 @@ viaje	142
 Carlos	141
 acerca	141
 ambas	141
-amigo	141
 anteriores	141
 cambios	141
 castillo	141
@@ -774,7 +914,6 @@ incluyen	141
 inició	141
 italiano	141
 juegos	141
-llama	141
 llegada	141
 locales	141
 líder	141
@@ -827,7 +966,6 @@ cuarto	140
 deben	140
 decide	140
 dijo	140
-dinero	140
 dirigida	140
 edificios	140
 episodio	140
@@ -888,7 +1026,6 @@ vía	140
 Francisco	139
 Luis	139
 acciones	139
-amigos	139
 aparición	139
 artículo	139
 atención	139
@@ -949,7 +1086,6 @@ piezas	139
 pintura	139
 políticas	139
 posterior	139
-pronto	139
 provincias	139
 prueba	139
 rápidamente	139
@@ -992,7 +1128,6 @@ contrato	138
 convierte	138
 crisis	138
 crítica	138
-cómo	138
 dando	138
 destaca	138
 destacan	138
@@ -1058,7 +1193,6 @@ terreno	138
 territorios	138
 torno	138
 torre	138
-totalmente	138
 técnicas	138
 términos	138
 títulos	138
@@ -1147,7 +1281,6 @@ producido	137
 protección	137
 pruebas	137
 publicación	137
-qué	137
 reconocimiento	137
 reina	137
 resistencia	137
@@ -1274,7 +1407,6 @@ candidato	135
 capilla	135
 característica	135
 carta	135
-claro	135
 clasificación	135
 comandante	135
 complejo	135
@@ -1691,7 +1823,6 @@ jardín	132
 juntos	132
 llamadas	132
 marco	132
-mañana	132
 miles	132
 moderno	132
 motores	132
@@ -1751,7 +1882,6 @@ trabajando	132
 usan	132
 usuario	132
 vehículos	132
-verdad	132
 álbumes	132
 Castilla	131
 Japón	131
@@ -1771,7 +1901,6 @@ categorías	131
 cercana	131
 cola	131
 columnas	131
-comida	131
 compañero	131
 competición	131
 consideran	131
@@ -1877,7 +2006,6 @@ te	131
 tendencia	131
 totalidad	131
 tramo	131
-tren	131
 turismo	131
 técnico	131
 ubica	131
@@ -2227,7 +2355,6 @@ audiencia	128
 aumentar	128
 bahía	128
 baile	128
-buenas	128
 caja	128
 cambia	128
 caminos	128
@@ -2282,7 +2409,6 @@ empezaron	128
 encontraron	128
 entrenamiento	128
 entrevista	128
-escribe	128
 escultura	128
 espacial	128
 espectadores	128
@@ -2322,8 +2448,6 @@ logrando	128
 lograron	128
 mantenimiento	128
 menciona	128
-mensaje	128
-metro	128
 misiones	128
 moneda	128
 moral	128
@@ -2419,7 +2543,6 @@ brazo	127
 brillante	127
 buenos	127
 caballos	127
-café	127
 cantidades	127
 casado	127
 cañones	127
@@ -2466,7 +2589,6 @@ emplea	127
 empleado	127
 encontramos	127
 encontrarse	127
-enlace	127
 esclavos	127
 espada	127
 estima	127
@@ -2533,7 +2655,6 @@ notables	127
 noticia	127
 obtenido	127
 obteniendo	127
-ocupado	127
 oferta	127
 oficinas	127
 once	127
@@ -2755,9 +2876,7 @@ nobleza	126
 notas	126
 núcleos	126
 océano	126
-oficina	126
 ofreció	126
-onda	126
 organizó	126
 otoño	126
 pan	126
@@ -2777,7 +2896,6 @@ precios	126
 presidencial	126
 prestigio	126
 procedente	126
-quizás	126
 reconocida	126
 reducción	126
 registros	126
@@ -2850,7 +2968,6 @@ cae	125
 candidatura	125
 característico	125
 causó	125
-celular	125
 cercanos	125
 cercanías	125
 cifra	125
@@ -3120,7 +3237,6 @@ descubrir	124
 dientes	124
 dificultad	124
 diseños	124
-dónde	124
 dúo	124
 ecuación	124
 ejerció	124
@@ -3287,7 +3403,6 @@ adoptó	123
 altamente	123
 amante	123
 americanos	123
-amiga	123
 animación	123
 anualmente	123
 apariciones	123
@@ -3312,7 +3427,6 @@ calendario	123
 campeonatos	123
 cantantes	123
 capas	123
-captura	123
 celebran	123
 cerrado	123
 civilización	123
@@ -3434,7 +3548,6 @@ norma	123
 novia	123
 obligó	123
 ochenta	123
-ocupada	123
 ofensiva	123
 otorgó	123
 paralelo	123
@@ -3545,7 +3658,6 @@ atribuye	122
 auge	122
 automóvil	122
 bancos	122
-bueno	122
 caliente	122
 capturado	122
 carbón	122
@@ -3663,14 +3775,12 @@ marqués	122
 matriz	122
 medir	122
 mejoras	122
-mensajes	122
 mental	122
 minerales	122
 minuto	122
 mostrando	122
 muralla	122
 mármol	122
-móvil	122
 nacionalidad	122
 narra	122
 nieve	122
@@ -3797,7 +3907,6 @@ armamento	121
 asamblea	121
 asistió	121
 atracción	121
-audio	121
 autobuses	121
 bacterias	121
 bloques	121
@@ -3833,7 +3942,6 @@ contratado	121
 conversión	121
 copa	121
 corre	121
-correo	121
 cortas	121
 cristal	121
 cruce	121
@@ -4131,7 +4239,6 @@ crecer	120
 cruzar	120
 crímenes	120
 cubiertas	120
-cumple	120
 datan	120
 deberá	120
 dedicados	120
@@ -4555,7 +4662,6 @@ mostrado	119
 muertes	119
 musulmana	119
 móviles	119
-noches	119
 normales	119
 noventa	119
 nucleares	119
@@ -4572,7 +4678,6 @@ pedir	119
 pelota	119
 pendiente	119
 perdida	119
-perfecto	119
 periodistas	119
 pescado	119
 plataformas	119
@@ -4763,7 +4868,6 @@ electrónicos	118
 elevación	118
 emitida	118
 emplazamiento	118
-enfermo	118
 enfrenta	118
 enfrentaron	118
 enseñanzas	118
@@ -5264,7 +5368,6 @@ ubicadas	117
 unida	117
 unir	117
 usaban	117
-vacaciones	117
 vencedor	117
 vendidos	117
 vestigios	117
@@ -5636,7 +5739,6 @@ visibles	116
 vivieron	116
 ámbitos	116
 ángeles	116
-ánimo	116
 óptica	116
 Bilbao	115
 Bolívar	115
@@ -5848,7 +5950,6 @@ libremente	115
 ligado	115
 ligas	115
 limitaciones	115
-llego	115
 llevaría	115
 luminosidad	115
 macizo	115
@@ -5923,7 +6024,6 @@ recoger	115
 recomienda	115
 recopilación	115
 redujo	115
-regalo	115
 regente	115
 remontan	115
 repercusión	115
@@ -6095,7 +6195,6 @@ cotidiana	114
 crecido	114
 cristales	114
 cubren	114
-cumpleaños	114
 curiosidad	114
 curioso	114
 curvas	114
@@ -6282,7 +6381,6 @@ paneles	114
 parar	114
 partícula	114
 pasajes	114
-pasta	114
 pastos	114
 percusión	114
 perdidos	114
@@ -6863,7 +6961,6 @@ automático	112
 autos	112
 auténtica	112
 autónomo	112
-aviso	112
 ayudan	112
 azar	112
 bailarina	112
@@ -6878,7 +6975,6 @@ bello	112
 biológico	112
 bolas	112
 brigada	112
-bus	112
 cables	112
 cadáveres	112
 caen	112
@@ -6892,7 +6988,6 @@ cazadores	112
 celeste	112
 celta	112
 celulares	112
-cena	112
 centrado	112
 ciclismo	112
 cilindro	112
@@ -7235,10 +7330,8 @@ tripulantes	112
 tus	112
 túneles	112
 unía	112
-vale	112
 vampiros	112
 variado	112
-vaya	112
 vencido	112
 vendiendo	112
 venían	112
@@ -7512,7 +7605,6 @@ llaves	111
 lobos	111
 logotipo	111
 malo	111
-manda	111
 manipulación	111
 mantenían	111
 marcados	111
@@ -8016,7 +8108,6 @@ particularidad	110
 patatas	110
 patrocinio	110
 peores	110
-perdón	110
 permanecido	110
 perseguido	110
 pertenencia	110
@@ -8237,7 +8328,6 @@ clasifica	109
 climáticas	109
 coeficiente	109
 colaborando	109
-colega	109
 colocados	109
 colombianos	109
 comicios	109
@@ -8741,7 +8831,6 @@ comercialmente	108
 cometa	108
 cometidos	108
 compartida	108
-compras	108
 comprendida	108
 compás	108
 concilio	108
@@ -8775,7 +8864,6 @@ crudo	108
 cruzan	108
 cumpliendo	108
 cuáles	108
-cuándo	108
 cómica	108
 dañado	108
 deberes	108
@@ -10149,7 +10237,6 @@ polos	106
 polémicas	106
 porciones	106
 porte	106
-portátil	106
 potencialmente	106
 precursores	106
 preferencias	106
@@ -10265,7 +10352,6 @@ unanimidad	106
 unitarios	106
 valiente	106
 valiosa	106
-vamos	106
 vasallos	106
 vena	106
 vendría	106
@@ -10837,7 +10923,6 @@ virtualmente	105
 visigodo	105
 viste	105
 votado	105
-voy	105
 yerno	105
 zinc	105
 ático	105
@@ -12005,7 +12090,6 @@ susceptibles	103
 sustantivo	103
 sílaba	103
 tallado	103
-tardes	103
 taxones	103
 telefónicas	103
 temático	103
@@ -12248,7 +12332,6 @@ derivar	102
 derrocó	102
 desafíos	102
 desagradable	102
-desayuno	102
 descendiendo	102
 describía	102
 desembocan	102
@@ -12268,7 +12351,6 @@ diría	102
 disolver	102
 distantes	102
 disuelve	102
-divertido	102
 dividieron	102
 divorciaron	102
 dominicos	102
@@ -12761,7 +12843,6 @@ cajón	101
 caldera	101
 cambiaría	101
 canela	101
-cansado	101
 capitular	101
 captación	101
 caracterizados	101
@@ -12964,7 +13045,6 @@ funerarios	101
 fusilados	101
 gallina	101
 generalización	101
-genial	101
 genérica	101
 genéticamente	101
 gesta	101
@@ -13269,7 +13349,6 @@ suprimir	101
 suscripción	101
 sólidas	101
 tacto	101
-taxi	101
 teja	101
 telefónico	101
 temía	101
@@ -13550,7 +13629,6 @@ cruda	100
 cuervo	100
 culminando	100
 cuántico	100
-cuánto	100
 cárceles	100
 cómodo	100
 cómputo	100
@@ -14100,7 +14178,6 @@ acumula	99
 acumular	99
 acusaron	99
 adelanto	99
-adiós	99
 admirado	99
 adorno	99
 adosadas	99
@@ -14164,7 +14241,6 @@ autoritario	99
 autoriza	99
 aventurero	99
 avisos	99
-ayer	99
 ayudaba	99
 ayudarle	99
 azúcares	99
@@ -14502,7 +14578,6 @@ liberarse	99
 libertario	99
 limítrofe	99
 listos	99
-llamo	99
 llamándose	99
 llevarla	99
 lombardos	99
@@ -14720,7 +14795,6 @@ sepa	99
 sepulcros	99
 serial	99
 señalaba	99
-siento	99
 significando	99
 simétrica	99
 sinagoga	99
@@ -15595,7 +15669,6 @@ alegó	97
 alfombra	97
 almacenada	97
 almendras	97
-almuerzo	97
 alpina	97
 alpino	97
 alquería	97
@@ -15761,7 +15834,6 @@ contactó	97
 contadas	97
 contemplación	97
 contenga	97
-contento	97
 contrapartida	97
 contrincante	97
 convección	97
@@ -17922,7 +17994,6 @@ suscrito	95
 sustanciales	95
 sustentación	95
 sífilis	95
-súper	95
 tableros	95
 taifas	95
 talentoso	95
@@ -18893,7 +18964,6 @@ Villegas	93
 abadesa	93
 abdicar	93
 abertzale	93
-abrazo	93
 abrigos	93
 abriéndose	93
 abstinencia	93
@@ -20221,7 +20291,6 @@ gladiadores	92
 globosa	92
 grabaría	92
 grabo	92
-gracioso	92
 grandioso	92
 gritó	92
 guano	92
@@ -21451,7 +21520,6 @@ penalti	91
 pentagrama	91
 perderá	91
 perdices	91
-perdona	91
 perdonó	91
 perejil	91
 permitidas	91
@@ -22931,7 +22999,6 @@ cambiaban	89
 camello	89
 caminaba	89
 cancelados	89
-cansada	89
 cansados	89
 cantares	89
 cantata	89
@@ -24617,7 +24684,6 @@ ordenamientos	88
 orientan	88
 orientarse	88
 ostracismo	88
-ostras	88
 otorgaban	88
 otorgarle	88
 ovinos	88
@@ -26159,7 +26225,6 @@ yugoslavos	87
 zanjas	87
 zapatista	87
 zen	87
-zoom	87
 álamo	87
 ésteres	87
 APWeb	86
@@ -26348,7 +26413,6 @@ beatificado	86
 beben	86
 bendijo	86
 beneficiosos	86
-besos	86
 bibliotecarios	86
 bicentenario	86
 bienio	86
@@ -26465,7 +26529,6 @@ consumían	86
 consumó	86
 contemplada	86
 contendrá	86
-contenta	86
 contiendas	86
 contrabandistas	86
 contrapone	86
@@ -26806,7 +26869,6 @@ inmobiliarias	86
 inmóviles	86
 inscribieron	86
 insoluble	86
-insta	86
 instaura	86
 instaurada	86
 insurrecciones	86
@@ -28341,7 +28403,6 @@ sajona	85
 salmantino	85
 salpicada	85
 salpicado	85
-saludos	85
 salvarle	85
 sanguíneas	85
 sarcástico	85
@@ -35941,7 +36002,6 @@ escita	79
 escribanos	79
 escribirla	79
 escribirlo	79
-escribí	79
 escáneres	79
 esfínter	79
 espaciados	79
@@ -37508,7 +37568,6 @@ hipotéticos	78
 historiados	78
 historiográficas	78
 hojaldre	78
-hola	78
 homónimas	78
 hondureños	78
 honestos	78
@@ -39853,7 +39912,6 @@ abarcado	76
 abdica	76
 abnegación	76
 abogar	76
-abrazos	76
 abridor	76
 acabamos	76
 acanaladas	76
@@ -40497,7 +40555,6 @@ escasean	76
 escollera	76
 escolásticos	76
 escondites	76
-escribo	76
 escuadrillas	76
 escupir	76
 escusón	76
@@ -42425,7 +42482,6 @@ linfomas	75
 litera	75
 literariamente	75
 llamarlos	75
-llegué	75
 llorona	75
 lucio	75
 lucrativas	75
@@ -46658,7 +46714,6 @@ cesante	72
 cetros	72
 charros	72
 charrúa	72
-chaval	72
 choferes	72
 chupar	72
 chupete	72
@@ -49267,7 +49322,6 @@ jaleas	71
 jaripeos	71
 javanés	71
 jazzístico	71
-jo	71
 jordana	71
 jornales	71
 juliana	71
@@ -49319,7 +49373,6 @@ mamario	71
 mamparas	71
 mampuesto	71
 mandaría	71
-mandé	71
 manejaron	71
 manifestante	71
 manija	71
@@ -53885,7 +53938,6 @@ atestado	68
 atraparlos	68
 atrincheradas	68
 atropelló	68
-audios	68
 augures	68
 aumentarían	68
 auras	68
@@ -56142,7 +56194,6 @@ cervantino	67
 cesará	67
 chancaca	67
 chapado	67
-chatear	67
 chic	67
 chihuahuense	67
 chiquillos	67
@@ -68682,7 +68733,6 @@ fallezca	61
 faluchos	61
 fauvista	61
 fedayines	61
-felicidades	61
 fenecido	61
 fervorosos	61
 feudalización	61
@@ -71394,7 +71444,6 @@ lixiviado	60
 llamarlas	60
 llamarme	60
 llameante	60
-llamé	60
 llenadas	60
 llenarla	60
 llenaría	60

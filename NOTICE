@@ -14,10 +14,11 @@ This product includes software and data from other Apache-2.0 projects:
   Bulgarian word lists (app/src/main/assets/dictionaries/{en_US,ru,fr,es,de,it,pt_BR,pl,bg}.txt) are derived from
   the *_wordlist.combined files in the Android Open Source Project
   (packages/inputmethods/LatinIME/dictionaries), Copyright (C) The Android Open Source Project,
-  Apache License 2.0. The English list was filtered by scripts/build-wordlist.py and merged with
-  the project's own modern-word overlay (scripts/wordlists/en-modern.tsv, Apache-2.0). The combined
-  Russian+Bulgarian word list (app/src/main/assets/dictionaries/ru_bg.txt) is generated from the Russian
-  and Bulgarian AOSP LatinIME word lists via scripts/build-ru-bg-wordlist.py.
+  Apache License 2.0. Each list was filtered by scripts/build-wordlist.py and merged with the
+  project's own everyday-word overlay (scripts/wordlists/en-modern.tsv for English and
+  scripts/wordlists/<language>-everyday.tsv for the others, Apache-2.0). The combined
+  Russian+Bulgarian word list (app/src/main/assets/dictionaries/ru_bg.txt) is generated from the
+  Russian and Bulgarian lists via scripts/build-ru-bg-wordlist.py.
 
 - The globe and hide-keyboard icons (app/src/main/res/drawable/ic_globe.xml and
   ic_keyboard_hide.xml) are derived from ic_ime_switcher_new.xml and ic_ime_switcher.xml in the
