@@ -20,6 +20,12 @@
     <string name="settings_title">hcboard settings</string>
     <string name="settings_section_look">Look</string>
     <string name="settings_section_feel">Feel</string>
+    <string name="settings_section_wide">Wide keyboard</string>
+    <string name="settings_split">Split keyboard</string>
+    <string name="settings_split_off">Off</string>
+    <string name="settings_split_auto">Auto</string>
+    <string name="settings_split_always">Always</string>
+    <string name="settings_split_hint">Auto splits the keys into a left and a right half when a hinge runs across the screen, and on a phone turned sideways. Always splits every board wider than 600 dp. The gap follows the hinge, or is about two keys wide.</string>
     <string name="settings_section_developer">Developer mode</string>
     <string name="settings_section_diagnostics">Diagnostics</string>
     <string name="settings_diagnostics_hint">What the keyboard last learned about the field it was typing into and about the system\'s bottom bar, and which build is installed. Type in the app that misbehaves, come back here, show the diagnostics, then copy them into a bug report. They hold the version, an input type, a package name and sizes — never anything typed.</string>

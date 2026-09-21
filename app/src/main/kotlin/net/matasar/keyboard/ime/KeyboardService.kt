@@ -293,6 +293,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
                             widthScale = settings.widthScale,
                             glide = settings.glide,
                             glideTrail = settings.glideTrail,
+                            split = settings.splitKeyboard,
                         ),
                     )
                 }

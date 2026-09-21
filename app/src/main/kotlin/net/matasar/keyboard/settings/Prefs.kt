@@ -31,6 +31,7 @@ data class Settings(
     val keyBorders: Boolean = true,
     val previews: Boolean = true,
     val theme: ThemeChoice = ThemeChoice.SYSTEM,
+    val splitKeyboard: SplitMode = SplitMode.AUTO,
     val editingShortcuts: Boolean = true,
     val doubleTapLock: Boolean = true,
     /** Packages in which developer mode was left on. */
@@ -74,6 +75,7 @@ class Prefs(private val context: Context) {
             keyBorders = p[KEY_BORDERS] ?: true,
             previews = p[PREVIEWS] ?: true,
             theme = p[THEME]?.let { runCatching { ThemeChoice.valueOf(it) }.getOrNull() } ?: ThemeChoice.SYSTEM,
+            splitKeyboard = p[SPLIT_KEYBOARD]?.let { runCatching { SplitMode.valueOf(it) }.getOrNull() } ?: SplitMode.AUTO,
             editingShortcuts = p[EDITING_SHORTCUTS] ?: true,
             doubleTapLock = p[DOUBLE_TAP_LOCK] ?: true,
             developerModePackages = p[DEV_MODE_PACKAGES] ?: emptySet(),
@@ -96,6 +98,7 @@ class Prefs(private val context: Context) {
     suspend fun setKeyBorders(value: Boolean) = context.dataStore.edit { it[KEY_BORDERS] = value }
     suspend fun setPreviews(value: Boolean) = context.dataStore.edit { it[PREVIEWS] = value }
     suspend fun setTheme(value: ThemeChoice) = context.dataStore.edit { it[THEME] = value.name }
+    suspend fun setSplitKeyboard(value: SplitMode) = context.dataStore.edit { it[SPLIT_KEYBOARD] = value.name }
     suspend fun setEditingShortcuts(value: Boolean) = context.dataStore.edit { it[EDITING_SHORTCUTS] = value }
     suspend fun setDoubleTapLock(value: Boolean) = context.dataStore.edit { it[DOUBLE_TAP_LOCK] = value }
     suspend fun setSuggestions(value: Boolean) = context.dataStore.edit { it[SUGGESTIONS] = value }
@@ -139,6 +142,7 @@ class Prefs(private val context: Context) {
         val KEY_BORDERS = booleanPreferencesKey("key_borders")
         val PREVIEWS = booleanPreferencesKey("previews")
         val THEME = stringPreferencesKey("theme")
+        val SPLIT_KEYBOARD = stringPreferencesKey("split_keyboard")
         val EDITING_SHORTCUTS = booleanPreferencesKey("editing_shortcuts")
         val DOUBLE_TAP_LOCK = booleanPreferencesKey("double_tap_lock")
         val DEV_MODE_PACKAGES = stringSetPreferencesKey("developer_mode_packages")
