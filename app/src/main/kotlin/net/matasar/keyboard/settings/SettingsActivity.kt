@@ -306,7 +306,8 @@ private fun VoiceKeyboardPicker(selected: String?, onPick: (String?) -> Unit) {
     // Read now, not only on resume: an empty first frame would claim no voice keyboard is on.
     var keyboards by remember { mutableStateOf(listVoiceKeyboards(context)) }
     LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { keyboards = listVoiceKeyboards(context) }
-    val openKeyboardSettings = { context.startActivity(Intent(ACTION_INPUT_METHOD_SETTINGS)) }
+    // Some builds ship no screen for this action; the button then does nothing rather than crash.
+    val openKeyboardSettings = { runCatching { context.startActivity(Intent(ACTION_INPUT_METHOD_SETTINGS)) }; Unit }
 
     when {
         keyboards.isEmpty() -> {
