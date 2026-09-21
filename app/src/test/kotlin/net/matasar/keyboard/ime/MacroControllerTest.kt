@@ -77,6 +77,17 @@ class MacroControllerTest {
     }
 
     @Test
+    fun `after a secret text nothing is read back for the strip`() {
+        controller.runMacro(macro(Block.TypeText("hunter2", secret = true)))
+        test.advanceUntilIdle()
+        assertEquals(listOf("hunter2"), port.committed)
+        val reads = port.textReads
+        controller.onSelectionChanged()
+        assertNull(controller.candidates)
+        assertEquals(reads, port.textReads)
+    }
+
+    @Test
     fun `leaving the field stops a running macro`() {
         controller.runMacro(macro(Block.TypeText("a"), Block.Wait(1_000), Block.TypeText("b")))
         test.runCurrent()
