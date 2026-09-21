@@ -243,7 +243,9 @@ class KeyboardController(
     private val fnActive: Boolean get() = modifiers.isActive(ModifierKey.FN)
 
     /** A letter tapped now goes in uppercase: Shift, or the field's capital outside a combination. */
-    private val letterUpper: Boolean get() = shiftActive || (autoCapital && !modifiers.anyMetaActive)
+    private val letterUpper: Boolean get() = letterUpper(shiftActive)
+
+    private fun letterUpper(shift: Boolean): Boolean = shift || (autoCapital && !modifiers.anyMetaActive)
 
     /**
      * What a key shows right now, which is always what it would type if it were tapped. Shift
@@ -269,7 +271,7 @@ class KeyboardController(
         if (modifiers.anyMetaActive && key.action is KeyAction.Letter && key.slot != null) return key.slot.uppercase()
         fnLabel(key, shift, fn)?.let { return it }
         return when (val action = key.action) {
-            is KeyAction.Letter -> if (shift || (autoCapital && !modifiers.anyMetaActive)) action.upper else action.lower
+            is KeyAction.Letter -> if (letterUpper(shift)) action.upper else action.lower
             is KeyAction.Text -> if (shift && action.shifted != null) action.shifted else key.label
             else -> key.label
         }
