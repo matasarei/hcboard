@@ -12,10 +12,13 @@ class MacroSummaryTest {
         assertEquals("Press Esc", Block.PressKey("Esc").summary())
         assertEquals("Type “:wq↵”", Block.TypeText(":wq\n").summary())
         assertEquals("Type “abcdefghijklmnop…”", Block.TypeText("abcdefghijklmnopq").summary())
+        assertEquals("Type ••••••", Block.TypeText("hunter2", secret = true).summary())
+        assertEquals("Type ••••••", Block.TypeText("a much longer secret than six", secret = true).summary())
         assertEquals("Random keys · 16", Block.RandomKeys().summary())
         assertEquals("Repeat 3×", Block.Repeat(3).summary())
         assertEquals("Wait 250 ms", Block.Wait(250).summary())
         assertEquals("Paste clipboard", Block.PasteClipboard.summary())
+        assertEquals("Copy field", Block.CopyField.summary())
     }
 
     @Test

@@ -1,5 +1,7 @@
 package net.matasar.keyboard.ime
 
+import android.content.ClipData
+import android.content.ClipDescription
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
@@ -7,6 +9,7 @@ import android.content.res.Configuration
 import android.inputmethodservice.InputMethodService
 import android.os.Build
 import android.os.Bundle
+import android.os.PersistableBundle
 import android.view.inputmethod.InlineSuggestionsRequest
 import android.view.inputmethod.InlineSuggestionsResponse
 import androidx.compose.ui.graphics.luminance
@@ -193,6 +196,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
         controller.systemActions = this
         controller.scope = lifecycleScope
         controller.clipboardText = ::clipboardText
+        controller.copyToClipboard = ::copyToClipboard
         macroStore = MacroStore(applicationContext)
         savedStateController.performRestore(null)
         controller.onLanguageChanged = { language ->
@@ -617,6 +621,15 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
     private fun clipboardText(): String? {
         val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
         return clipboard.primaryClip?.getItemAt(0)?.coerceToText(this)?.toString()
+    }
+
+    /** A macro's copy of the field; a sensitive one is hidden in Android's clipboard preview (13 and later). */
+    private fun copyToClipboard(text: String, sensitive: Boolean) {
+        val clip = ClipData.newPlainText("", text)
+        if (sensitive && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            clip.description.extras = PersistableBundle().apply { putBoolean(ClipDescription.EXTRA_IS_SENSITIVE, true) }
+        }
+        (getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager).setPrimaryClip(clip)
     }
 
     /** The fill screen's own form never asks for another fill screen. */

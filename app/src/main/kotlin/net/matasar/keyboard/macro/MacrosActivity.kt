@@ -3,6 +3,7 @@ package net.matasar.keyboard.macro
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
@@ -44,6 +45,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
@@ -86,26 +88,30 @@ private fun MacrosScreen(store: MacroStore) {
     val macros = store.macros.collectAsState(initial = null).value ?: return
     // The screen outlives an edit: a save still in flight when the editor closes must finish.
     val scope = rememberCoroutineScope()
+    val context = LocalContext.current
+    // A write refused because a secret could not be sealed: say so, as nothing was saved.
+    val saved: (Boolean) -> Unit = { ok -> if (!ok) Toast.makeText(context, R.string.macros_secret_not_saved, Toast.LENGTH_LONG).show() }
     var editing by rememberSaveable { mutableStateOf<String?>(null) }
     val open = macros.firstOrNull { it.id == editing }
     if (open != null) {
         MacroEditor(
             macro = open,
-            onSave = { scope.launch { store.upsert(it) } },
-            onClose = { last -> scope.launch { store.upsert(last) }; editing = null },
+            onSave = { scope.launch { saved(store.upsert(it)) } },
+            onClose = { last -> scope.launch { saved(store.upsert(last)) }; editing = null },
         )
     } else {
         MacroList(
             macros = macros,
             scope = scope,
             store = store,
+            saved = saved,
             onOpen = { editing = it.id },
         )
     }
 }
 
 @Composable
-private fun MacroList(macros: List<Macro>, scope: CoroutineScope, store: MacroStore, onOpen: (Macro) -> Unit) {
+private fun MacroList(macros: List<Macro>, scope: CoroutineScope, store: MacroStore, saved: (Boolean) -> Unit, onOpen: (Macro) -> Unit) {
     val snackbar = remember { SnackbarHostState() }
     val newName = stringResource(R.string.macros_new_name)
     val undo = stringResource(R.string.macros_undo)
@@ -132,9 +138,9 @@ private fun MacroList(macros: List<Macro>, scope: CoroutineScope, store: MacroSt
                         IconButton(onClick = {
                             val index = macros.indexOf(macro)
                             scope.launch {
-                                store.delete(macro.id)
+                                if (!store.delete(macro.id)) return@launch saved(false)
                                 val result = snackbar.showSnackbar(deletedFormat.format(macro.name), actionLabel = undo, withDismissAction = true)
-                                if (result == SnackbarResult.ActionPerformed) store.restore(macro, index)
+                                if (result == SnackbarResult.ActionPerformed) saved(store.restore(macro, index))
                             }
                         }) {
                             Icon(painterResource(R.drawable.ic_close), stringResource(R.string.macros_delete), modifier = Modifier.size(20.dp))
@@ -145,8 +151,7 @@ private fun MacroList(macros: List<Macro>, scope: CoroutineScope, store: MacroSt
             Button(onClick = {
                 val macro = Macro(id = UUID.randomUUID().toString(), name = newName, blocks = emptyList())
                 scope.launch {
-                    store.upsert(macro)
-                    onOpen(macro)
+                    if (store.upsert(macro)) onOpen(macro) else saved(false)
                 }
             }) { Text("+ " + stringResource(R.string.macros_new)) }
         }

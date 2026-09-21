@@ -12,6 +12,8 @@ class FakeEditorPort(
     var selected: String = "",
     var acceptsEditorAction: Boolean = true,
     var acceptsSetSelection: Boolean = true,
+    /** False for a field that will not give its text, as a terminal. */
+    var tellsFieldText: Boolean = true,
 ) : EditorPort {
     val committed = mutableListOf<String>()
     val deletions = mutableListOf<Pair<Int, Int>>()
@@ -32,6 +34,7 @@ class FakeEditorPort(
     override fun textBeforeCursor(length: Int): CharSequence { textReads++; return before.takeLast(length) }
     override fun textAfterCursor(length: Int): CharSequence { textReads++; return after.take(length) }
     override fun selectedText(): CharSequence = selected
+    override fun fieldText(): CharSequence? { textReads++; return if (tellsFieldText) before + selected + after else null }
     override fun sendKey(keyCode: Int, metaState: Int) { keys += keyCode to metaState }
     override fun performEditorAction(actionId: Int): Boolean { editorActions += actionId; return acceptsEditorAction }
     override fun performContextMenuAction(id: Int): Boolean { contextActions += id; return true }

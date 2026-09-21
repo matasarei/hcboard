@@ -13,11 +13,13 @@ class MacroJsonTest {
         name = "Everything",
         blocks = listOf(
             Block.TypeText("hello\n"),
+            Block.TypeText("sealed", secret = true),
             Block.PressKey("F1", setOf(ModifierKey.CTRL, ModifierKey.SHIFT)),
             Block.RandomKeys(length = 8, letters = false, digits = true, symbols = false),
             Block.Repeat(3, listOf(Block.PressKey("Tab"), Block.Repeat(2, listOf(Block.Wait(100))))),
             Block.Wait(250),
             Block.PasteClipboard,
+            Block.CopyField,
         ),
     )
 
@@ -33,6 +35,19 @@ class MacroJsonTest {
         assertTrue("\"type\":\"key\"" in text, text)
         assertTrue("\"key\":\"F1\"" in text, text)
         assertTrue("\"type\":\"paste\"" in text, text)
+        assertTrue("\"type\":\"copy\"" in text, text)
+    }
+
+    @Test
+    fun `a text saved before secrets existed is not secret`() {
+        val text = """{"version":1,"macros":[{"id":"a","name":"A","blocks":[{"type":"text","text":"hi"}]}]}"""
+        assertEquals(listOf(Macro("a", "A", listOf(Block.TypeText("hi", secret = false)))), MacroJson.decode(text))
+    }
+
+    @Test
+    fun `what this phone could not open is never written as a field of its own`() {
+        val text = MacroJson.encode(listOf(Macro("a", "A", listOf(Block.TypeText("", secret = true, keptSealed = "x")))))
+        assertTrue("keptSealed" !in text, text)
     }
 
     @Test

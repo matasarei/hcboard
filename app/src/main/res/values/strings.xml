@@ -97,8 +97,13 @@
     <string name="macros_move_up">Move up</string>
     <string name="macros_move_down">Move down</string>
     <string name="macros_remove">Remove block</string>
+    <string name="macros_secret_not_saved">Not saved: the phone could not lock away a secret text. Try again.</string>
     <string name="block_text">Type text</string>
     <string name="block_text_field">Text</string>
+    <string name="block_text_secret">Secret</string>
+    <string name="block_text_show">Show</string>
+    <string name="block_text_hide">Hide</string>
+    <string name="block_text_unreadable">Saved on another phone. Type it again.</string>
     <string name="block_key">Press key</string>
     <string name="block_key_choose">Choose a key</string>
     <string name="block_key_character">Or one character</string>
@@ -117,6 +122,8 @@
     <string name="block_wait_millis">%1$d ms</string>
     <string name="block_paste">Paste clipboard</string>
     <string name="block_paste_hint">Types whatever text the clipboard holds.</string>
+    <string name="block_copy">Copy field</string>
+    <string name="block_copy_hint">Puts everything in the field on the clipboard, as it is at this step. Nothing in a password field.</string>
     <string name="key_group_editing">Editing</string>
     <string name="key_group_movement">Movement</string>
     <string name="key_group_function">Function keys</string>

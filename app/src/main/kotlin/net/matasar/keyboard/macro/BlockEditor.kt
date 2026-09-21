@@ -16,11 +16,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.AssistChipDefaults
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FilledTonalButton
@@ -44,7 +47,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import net.matasar.keyboard.R
 import net.matasar.keyboard.input.label
@@ -53,7 +60,8 @@ import kotlin.math.roundToInt
 
 /**
  * The kinds of block the palette offers, each with its colour, like the blocks of a children's
- * programming app: text blue, keys orange, random green, repeat purple, wait and paste teal.
+ * programming app: text blue, keys orange, random green, repeat purple, wait and paste teal,
+ * copy cyan.
  */
 enum class BlockKind(val title: Int, val color: Color, val make: () -> Block) {
     TEXT(R.string.block_text, Color(0xFF3B82F6), { Block.TypeText("") }),
@@ -62,6 +70,7 @@ enum class BlockKind(val title: Int, val color: Color, val make: () -> Block) {
     REPEAT(R.string.block_repeat, Color(0xFF8B5CF6), { Block.Repeat(2) }),
     WAIT(R.string.block_wait, Color(0xFF14B8A6), { Block.Wait(500) }),
     PASTE(R.string.block_paste, Color(0xFF0EA5A4), { Block.PasteClipboard }),
+    COPY(R.string.block_copy, Color(0xFF0891B2), { Block.CopyField }),
 }
 
 val Block.kind: BlockKind
@@ -72,6 +81,7 @@ val Block.kind: BlockKind
         is Block.Repeat -> BlockKind.REPEAT
         is Block.Wait -> BlockKind.WAIT
         Block.PasteClipboard -> BlockKind.PASTE
+        Block.CopyField -> BlockKind.COPY
     }
 
 /** The palette pinned under the script: one chip per kind, each appends its block. */
@@ -98,6 +108,20 @@ fun BlockPalette(onAdd: (Block) -> Unit, modifier: Modifier = Modifier) {
  */
 @Composable
 fun BlockStack(root: List<Block>, container: List<Int>, onChange: (List<Block>) -> Unit) {
+    // The secret texts shown, by path. A card's own state would stay with its place when blocks
+    // move or go, and show another block's secret, so every move or removal hides them all.
+    var revealed by remember { mutableStateOf(emptySet<List<Int>>()) }
+    BlockStack(root, container, onChange, revealed) { revealed = it }
+}
+
+@Composable
+private fun BlockStack(
+    root: List<Block>,
+    container: List<Int>,
+    onChange: (List<Block>) -> Unit,
+    revealed: Set<List<Int>>,
+    onReveal: (Set<List<Int>>) -> Unit,
+) {
     val blocks = if (container.isEmpty()) root else (MacroEdits.blockAt(root, container) as? Block.Repeat)?.blocks ?: return
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         blocks.forEachIndexed { i, block ->
@@ -106,12 +130,14 @@ fun BlockStack(root: List<Block>, container: List<Int>, onChange: (List<Block>) 
                 block = block,
                 first = i == 0,
                 last = i == blocks.lastIndex,
-                onMove = { delta -> onChange(MacroEdits.move(root, path, delta)) },
-                onRemove = { onChange(MacroEdits.remove(root, path)) },
+                revealed = path in revealed,
+                onRevealChange = { on -> onReveal(if (on) revealed + setOf(path) else revealed - setOf(path)) },
+                onMove = { delta -> onReveal(emptySet()); onChange(MacroEdits.move(root, path, delta)) },
+                onRemove = { onReveal(emptySet()); onChange(MacroEdits.remove(root, path)) },
                 onReplace = { onChange(MacroEdits.replace(root, path, it)) },
             ) {
                 if (block is Block.Repeat) {
-                    BlockStack(root, path, onChange)
+                    BlockStack(root, path, onChange, revealed, onReveal)
                     AddInside { onChange(MacroEdits.insert(root, path, it)) }
                 }
             }
@@ -124,6 +150,8 @@ private fun BlockCard(
     block: Block,
     first: Boolean,
     last: Boolean,
+    revealed: Boolean,
+    onRevealChange: (Boolean) -> Unit,
     onMove: (Int) -> Unit,
     onRemove: () -> Unit,
     onReplace: (Block) -> Unit,
@@ -160,7 +188,7 @@ private fun BlockCard(
                 }
             }
             Column(modifier = Modifier.padding(end = 8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                BlockFields(block, onReplace)
+                BlockFields(block, revealed, onRevealChange, onReplace)
                 inner()
             }
         }
@@ -169,14 +197,50 @@ private fun BlockCard(
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun BlockFields(block: Block, onReplace: (Block) -> Unit) {
+private fun BlockFields(block: Block, revealed: Boolean, onRevealChange: (Boolean) -> Unit, onReplace: (Block) -> Unit) {
     when (block) {
-        is Block.TypeText -> OutlinedTextField(
-            value = block.text,
-            onValueChange = { onReplace(block.copy(text = it)) },
-            label = { Text(stringResource(R.string.block_text_field)) },
-            modifier = Modifier.fillMaxWidth(),
-        )
+        is Block.TypeText -> {
+            // Shown only while the eye is open on this card; never saved.
+            val masked = block.secret && !revealed
+            OutlinedTextField(
+                value = block.text,
+                onValueChange = { onReplace(block.copy(text = it)) },
+                label = { Text(stringResource(R.string.block_text_field)) },
+                visualTransformation = if (masked) PasswordVisualTransformation() else VisualTransformation.None,
+                // A password field to the keyboard too, so nothing suggests from or learns the secret.
+                keyboardOptions = if (block.secret) KeyboardOptions(keyboardType = KeyboardType.Password, autoCorrectEnabled = false) else KeyboardOptions.Default,
+                trailingIcon = if (block.secret) {
+                    {
+                        IconButton(onClick = { onRevealChange(!revealed) }) {
+                            Icon(
+                                painterResource(if (masked) R.drawable.ic_visibility else R.drawable.ic_visibility_off),
+                                stringResource(if (masked) R.string.block_text_show else R.string.block_text_hide),
+                                modifier = Modifier.size(20.dp),
+                            )
+                        }
+                    }
+                } else {
+                    null
+                },
+                supportingText = if (block.secret && block.keptSealed != null && block.text.isEmpty()) {
+                    { Text(stringResource(R.string.block_text_unreadable)) }
+                } else {
+                    null
+                },
+                modifier = Modifier.fillMaxWidth(),
+            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.clip(RoundedCornerShape(8.dp)).toggleable(
+                    value = block.secret,
+                    role = Role.Checkbox,
+                    onValueChange = { onReplace(block.copy(secret = it)); onRevealChange(false) },
+                ),
+            ) {
+                Checkbox(checked = block.secret, onCheckedChange = null)
+                Text(stringResource(R.string.block_text_secret), modifier = Modifier.padding(end = 8.dp))
+            }
+        }
         is Block.PressKey -> {
             var picking by remember { mutableStateOf(false) }
             FilledTonalButton(onClick = { picking = true }) { Text(block.keyCombination()) }
@@ -225,6 +289,7 @@ private fun BlockFields(block: Block, onReplace: (Block) -> Unit) {
             onPlus = { onReplace(block.copy(millis = (block.duration + WAIT_STEP).coerceAtMost(Block.Wait.MAX_MILLIS))) },
         )
         Block.PasteClipboard -> Text(stringResource(R.string.block_paste_hint), style = MaterialTheme.typography.bodyMedium)
+        Block.CopyField -> Text(stringResource(R.string.block_copy_hint), style = MaterialTheme.typography.bodyMedium)
     }
 }
 

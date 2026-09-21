@@ -8,8 +8,11 @@ import net.matasar.keyboard.input.metaStateOf
 import net.matasar.keyboard.layout.ModifierKey
 import kotlin.random.Random
 
-/** What the runner needs to know about the focused field: the same two facts a typed combination uses. */
-data class MacroField(val terminal: Boolean, val editingShortcuts: Boolean)
+/**
+ * What the runner needs to know about the focused field: the two facts a typed combination uses,
+ * and whether it is a password field, which a copy block never reads.
+ */
+data class MacroField(val terminal: Boolean, val editingShortcuts: Boolean, val password: Boolean = false)
 
 /** A macro whose repeats add up to more than [MacroRunner.MAX_STEPS] steps; none of it is played. */
 class MacroTooLong(val steps: Int) : IllegalArgumentException("macro expands to more than ${MacroRunner.MAX_STEPS} steps")
@@ -29,6 +32,8 @@ class MacroRunner(
      * arrives, so what follows would reach the old field unless the run waits for the new one.
      */
     private val awaitFocusMove: suspend () -> Unit = {},
+    /** Puts text on the clipboard; [sensitive] asks Android to hide it in the clipboard's preview. */
+    private val copyToClipboard: (text: String, sensitive: Boolean) -> Unit = { _, _ -> },
 ) {
 
     suspend fun run(macro: Macro, field: MacroField) = run(macro) { field }
@@ -37,16 +42,21 @@ class MacroRunner(
     suspend fun run(macro: Macro, field: () -> MacroField) {
         val steps = expand(macro.blocks)
         val random = random()
+        // What a macro with a secret or random keys copies may hold them.
+        val sensitive = macro.typesSecrets()
         for (step in steps) {
             yield()
-            play(step, field(), random)
+            play(step, field(), random, sensitive)
         }
     }
 
-    private suspend fun play(step: Block, field: MacroField, random: Random) {
+    private suspend fun play(step: Block, field: MacroField, random: Random, sensitive: Boolean) {
         when (step) {
             is Block.TypeText -> if (step.text.isNotEmpty()) dispatcher.commitText(step.text)
             is Block.PasteClipboard -> clipboardText()?.takeIf { it.isNotEmpty() }?.let { dispatcher.commitText(it) }
+            is Block.CopyField -> if (!field.password) {
+                dispatcher.fieldText()?.takeIf { it.isNotEmpty() }?.let { copyToClipboard(it, sensitive) }
+            }
             is Block.Wait -> delay(step.duration)
             is Block.PressKey -> {
                 pressKey(step, field)

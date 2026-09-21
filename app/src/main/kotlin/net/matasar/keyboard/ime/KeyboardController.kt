@@ -37,11 +37,11 @@ import net.matasar.keyboard.layout.LayerId
 import net.matasar.keyboard.layout.ModifierKey
 import net.matasar.keyboard.layout.PhoneLayout
 import net.matasar.keyboard.layout.wideLayout
-import net.matasar.keyboard.macro.Block
 import net.matasar.keyboard.macro.Macro
 import net.matasar.keyboard.macro.MacroField
 import net.matasar.keyboard.macro.MacroRunner
 import net.matasar.keyboard.macro.MacroTooLong
+import net.matasar.keyboard.macro.typesSecrets
 import java.security.SecureRandom
 import kotlin.random.Random
 import kotlin.random.asKotlinRandom
@@ -312,8 +312,8 @@ class KeyboardController(
     /** The app the running macro was started in; a field in another app stops it. */
     private var macroPackage: String? = null
 
-    /** Whether the running macro types random keys, so a field it moves into is not read back either. */
-    private var macroTypesRandom = false
+    /** Whether the running macro types random keys or a secret text, so a field it moves into is not read back either. */
+    private var macroTypesSecrets = false
 
     /** The app of the focused field, as the last [onStartInput] reported it. */
     private var fieldPackage: String? = null
@@ -326,6 +326,9 @@ class KeyboardController(
 
     /** The clipboard's text for a macro's paste block; the service plugs it in. */
     var clipboardText: () -> String? = { null }
+
+    /** Puts a macro's copy on the clipboard, marked sensitive when asked; the service plugs it in. */
+    var copyToClipboard: (text: String, sensitive: Boolean) -> Unit = { _, _ -> }
 
     /** Where a run's random keys come from: a fresh SecureRandom per run. Tests seed it. */
     internal var macroRandom: () -> Random = { SecureRandom().asKotlinRandom() }
@@ -413,7 +416,7 @@ class KeyboardController(
         languageSheetOpen = false
         clearCandidates()
         refreshAutoCapital()
-        if (macroJob != null && macroTypesRandom) passwordTyped = true
+        if (macroJob != null && macroTypesSecrets) passwordTyped = true
     }
 
     fun onFinishInput() {
@@ -464,21 +467,21 @@ class KeyboardController(
 
     /**
      * Plays [macro] into the field; one at a time, a new one replaces a running one. What it types
-     * feeds no candidates, and after random keys nothing is read back, as after a filled password.
+     * feeds no candidates, and after random keys or a secret text nothing is read back, as after a filled password.
      */
     fun runMacro(macro: Macro) {
         val scope = scope ?: return
         stopMacro()
         macroSheetOpen = false
         clearCandidates()
-        val runner = MacroRunner(dispatcher, clipboardText, macroRandom, awaitFocusMove = ::awaitFocusMove)
+        val runner = MacroRunner(dispatcher, clipboardText, macroRandom, awaitFocusMove = ::awaitFocusMove, copyToClipboard = copyToClipboard)
         runningMacro = macro.id
         macroPackage = fieldPackage
-        macroTypesRandom = macro.typesRandomKeys()
-        if (macroTypesRandom) passwordTyped = true
+        macroTypesSecrets = macro.typesSecrets()
+        if (macroTypesSecrets) passwordTyped = true
         val job = scope.launch(main ?: Dispatchers.Main.immediate) {
             try {
-                runner.run(macro) { MacroField(terminal = terminalField, editingShortcuts = editingShortcutsInTextFields) }
+                runner.run(macro) { MacroField(terminal = terminalField, editingShortcuts = editingShortcutsInTextFields, password = passwordField) }
             } catch (_: MacroTooLong) {
                 // The editor warns about it; the keyboard plays nothing.
             }
@@ -1011,8 +1014,3 @@ private fun Int.isDpadArrow(): Boolean = when (this) {
     KeyEvent.KEYCODE_DPAD_RIGHT -> true
     else -> false
 }
-
-private fun Macro.typesRandomKeys(): Boolean = blocks.anyRandomKeys()
-
-private fun List<Block>.anyRandomKeys(): Boolean =
-    any { it is Block.RandomKeys || (it is Block.Repeat && it.blocks.anyRandomKeys()) }

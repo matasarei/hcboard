@@ -118,6 +118,9 @@ class InputDispatcher(private val port: EditorPort) {
         return before.isEmpty() && after.isEmpty() && port.selectedText().isNullOrEmpty()
     }
 
+    /** The field's whole text as it is now, or null when the field will not say (a terminal, a lost connection). */
+    fun fieldText(): String? = port.fieldText()?.toString()
+
     /** A key event down/up pair with the given meta state. */
     fun sendKey(keyCode: Int, metaState: Int = 0) = port.sendKey(keyCode, metaState)
 

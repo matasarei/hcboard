@@ -97,9 +97,10 @@ from the password manager you already use, and the keyboard never shows or keeps
   Ctrl+A/C/V/X are select, copy, paste and cut.
 - **Positional shortcuts.** Ctrl+С on a Cyrillic board is Ctrl+C, as on a PC, and while a modifier
   is armed the keys show the Latin letters they will send.
-- **Macros built from blocks.** Snap together coloured blocks — type text, press a key such as Esc,
-  F1 or Shift, a combination like Ctrl+Shift+T, random keys, repeat, wait, paste — then play the
-  macro into any field from the toolbar's macro button (Settings → Macros). The editor has a field
+- **Macros built from blocks.** Snap together coloured blocks — type text (tick Secret to hide it),
+  press a key such as Esc, F1 or Shift, a combination like Ctrl+Shift+T, random keys, repeat, wait,
+  paste, copy the field to the clipboard — then play the macro into any field from the toolbar's
+  macro button (Settings → Macros). The editor has a field
   to try a macro in before you use it. One comes built in: a password generator that types 16
   random letters, digits and symbols.
 
@@ -121,9 +122,15 @@ from the password manager you already use, and the keyboard never shows or keeps
   each run and go straight into the field as key presses; they are not stored, logged or shown by
   the keyboard, and word suggestions do not read them back.
 - **Macros are saved like your settings.** They stay on the phone, and like the settings they are
-  part of Android's own backup of the app when you have backup turned on. The text in a macro's
-  blocks is saved as you wrote it, so keep passwords out of it; the password generator makes
-  new ones each time and saves none.
+  part of Android's own backup of the app when you have backup turned on. A text marked Secret is
+  hidden on screen and saved encrypted, with a key kept in the phone's own keystore that never
+  leaves it: a backup carries only the encrypted form, so after restoring onto another phone you
+  type the secret again. Any other text is saved as you wrote it. The password generator makes new
+  passwords each time and saves none.
+- **Copying a field is your macro's doing, and never a password field's.** A Copy field block puts
+  the field's text on the clipboard when the macro plays it, and does nothing in a password field.
+  When the macro also types a secret or random keys, the copy is marked sensitive, so Android
+  hides it in its clipboard preview.
 - **Everything is on the phone**, which is also why there is nothing to sign in to.
 
 ## Install

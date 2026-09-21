@@ -26,7 +26,10 @@ class MacroRunnerTest {
     private val shift = KeyEvent.META_SHIFT_ON or KeyEvent.META_SHIFT_LEFT_ON
     private val ctrl = KeyEvent.META_CTRL_ON or KeyEvent.META_CTRL_LEFT_ON
 
-    private fun runner() = MacroRunner(InputDispatcher(port), { clipboard }, { Random(7) })
+    private val copies = mutableListOf<Pair<String, Boolean>>()
+    private val passwordField = MacroField(terminal = false, editingShortcuts = true, password = true)
+
+    private fun runner() = MacroRunner(InputDispatcher(port), { clipboard }, { Random(7) }, copyToClipboard = { text, sensitive -> copies += text to sensitive })
 
     private fun macro(vararg blocks: Block) = Macro("t", "Test", blocks.toList())
 
@@ -159,5 +162,51 @@ class MacroRunnerTest {
         runner().run(macro(Block.PressKey("C", setOf(ModifierKey.CTRL))), textField)
         assertEquals(emptyList(), port.contextActions)
         assertEquals(listOf(KeyEvent.KEYCODE_C to (ctrl or shift)), port.keys)
+    }
+
+    @Test
+    fun `copy takes the whole field, with what earlier steps typed`() = runTest {
+        port.before = "Dear "
+        port.after = " team"
+        runner().run(macro(Block.TypeText("all"), Block.CopyField, Block.TypeText("!")), textField)
+        assertEquals(listOf("Dear all team" to false), copies)
+    }
+
+    @Test
+    fun `copy reads nothing from a password field`() = runTest {
+        port.before = "hunter2"
+        val reads = port.textReads
+        runner().run(macro(Block.CopyField), passwordField)
+        assertEquals(emptyList(), copies)
+        assertEquals(reads, port.textReads)
+    }
+
+    @Test
+    fun `copy leaves the clipboard alone for an empty field or one that will not say`() = runTest {
+        runner().run(macro(Block.CopyField), textField)
+        port.before = "text"
+        port.tellsFieldText = false
+        runner().run(macro(Block.CopyField), terminal)
+        assertEquals(emptyList(), copies)
+    }
+
+    @Test
+    fun `a copy is sensitive when the macro has a secret or random keys`() = runTest {
+        runner().run(macro(Block.TypeText("pin", secret = true), Block.CopyField), textField)
+        runner().run(macro(Block.Repeat(1, listOf(Block.RandomKeys(length = 4))), Block.CopyField), textField)
+        runner().run(macro(Block.TypeText("x"), Block.CopyField), textField)
+        assertEquals(listOf(true, true, false), copies.map { it.second })
+        assertEquals("pin", copies.first().first)
+    }
+
+    @Test
+    fun `a secret text is typed as it is`() = runTest {
+        runner().run(macro(Block.TypeText("p@ss w0rd", secret = true)), textField)
+        assertEquals(listOf("p@ss w0rd"), port.committed)
+    }
+
+    @Test
+    fun `a copy is one step`() {
+        assertEquals(3, MacroRunner.stepCount(listOf(Block.Repeat(2, listOf(Block.CopyField)), Block.CopyField)))
     }
 }
