@@ -260,6 +260,13 @@ class KeyboardController(
     /** Setting: whether the phone strip folds its buttons at all; off keeps them always in sight. */
     var foldToolbar: Boolean by mutableStateOf(true)
 
+    /**
+     * The same setting as the screens show it, "Always show toolbar buttons": on means no folding.
+     * Both the settings screen and the gear sheet read it here, so the flip is written once.
+     */
+    val toolbarAlwaysShown: Boolean
+        get() = !foldToolbar
+
     /** Whether the strip may fold its buttons: on the phone board, while the setting allows it. */
     fun toolbarFolds(wide: Boolean): Boolean = foldToolbar && !wide
 
