@@ -38,6 +38,8 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.window.layout.FoldingFeature
+import androidx.window.layout.WindowInfoTracker
 import java.io.FileDescriptor
 import java.io.PrintWriter
 import androidx.compose.ui.platform.ComposeView
@@ -54,6 +56,7 @@ import androidx.savedstate.SavedStateRegistry
 import androidx.savedstate.SavedStateRegistryController
 import androidx.savedstate.SavedStateRegistryOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import net.matasar.keyboard.input.AndroidEditorPort
@@ -146,6 +149,15 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
      */
     private var sideCutoutOverlapPx by mutableIntStateOf(0)
 
+    /** A separating vertical fold's bounds in the IME window, as the window manager reports it; null for none. */
+    private var hingeInWindow: android.graphics.Rect? = null
+
+    /** Where the hinge answer came from, for the diagnostics: the window, or why it is unavailable. */
+    private var hingeSource = "not reported yet"
+
+    /** The hinge in px from the keyboard view's left edge; the wide board splits around it. */
+    private var hingePx by mutableStateOf<ClosedFloatingPointRange<Float>?>(null)
+
     /** The last configuration seen, so a change can be told apart from a change that matters. */
     private lateinit var lastConfiguration: Configuration
 
@@ -181,6 +193,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
         }
         loadLanguage(controller.language.tag)
         lifecycleRegistry.currentState = Lifecycle.State.CREATED
+        watchHinge()
         lifecycleScope.launch {
             prefs.settings.collect { settings ->
                 val ruBgChanged = ruBulgarianVocabulary != settings.ruBulgarianVocabulary
@@ -271,6 +284,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
                         autofill = autofillActions,
                         bottomInset = if (autoBottomPadding) with(LocalDensity.current) { bottomBarOverlapPx.toDp() } else manualBottomPaddingDp.dp,
                         sideInset = with(LocalDensity.current) { sideCutoutOverlapPx.toDp() },
+                        hinge = hingePx,
                         feel = KeyboardFeel(
                             haptics = settings.haptics,
                             previews = settings.previews,
@@ -279,10 +293,59 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
                             widthScale = settings.widthScale,
                             glide = settings.glide,
                             glideTrail = settings.glideTrail,
+                            split = settings.splitKeyboard,
                         ),
                     )
                 }
             }
+        }
+    }
+
+    /**
+     * Follows the window's folds: a fold or hinge that separates the screen top to bottom is where
+     * no key may sit. The IME's service is a UI context, which is what the window library reports
+     * folds to; where it will not, the keyboard carries on as if there were no hinge, and the
+     * diagnostics say why.
+     */
+    private fun watchHinge() {
+        val layoutInfo = try {
+            WindowInfoTracker.getOrCreate(this).windowLayoutInfo(this)
+        } catch (e: RuntimeException) {
+            hingeSource = "unavailable: ${e.javaClass.simpleName}"
+            KeyboardDiagnostics.insets = insetReport()
+            return
+        }
+        lifecycleScope.launch {
+            layoutInfo
+                .catch { e ->
+                    hingeSource = "unavailable: ${e.javaClass.simpleName}"
+                    KeyboardDiagnostics.insets = insetReport()
+                }
+                .collect { info ->
+                    val fold = info.displayFeatures.filterIsInstance<FoldingFeature>()
+                        .firstOrNull { it.isSeparating && it.orientation == FoldingFeature.Orientation.VERTICAL }
+                    hingeInWindow = fold?.bounds
+                    hingeSource = "window, ${info.displayFeatures.size} feature(s)"
+                    // The source changed even when the hinge did not (none before, none now).
+                    KeyboardDiagnostics.insets = insetReport()
+                    updateHinge()
+                }
+        }
+    }
+
+    /** Re-reads the hinge against where the input view sits now; the view moves on rotation and unfolding. */
+    private fun updateHinge() {
+        val bounds = hingeInWindow
+        val view = inputView
+        val hinge = if (bounds == null || view == null) {
+            null
+        } else {
+            val location = IntArray(2).also { view.getLocationInWindow(it) }
+            hingeInView(bounds.left, bounds.right, location[0], view.width)
+        }
+        if (hinge != hingePx) {
+            hingePx = hinge
+            KeyboardDiagnostics.insets = insetReport()
         }
     }
 
@@ -322,6 +385,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
             "spaceBelow=$spaceBelowView overlap=$overlap sideOverlap=$sideOverlap gestureNav=${gestureNavigation()} systemBarHeight=${systemNavigationBarHeightPx()}"
         if (overlap != bottomBarOverlapPx) bottomBarOverlapPx = overlap
         if (sideOverlap != sideCutoutOverlapPx) sideCutoutOverlapPx = sideOverlap
+        updateHinge()
         // Layout passes are frequent; the report is only worth rebuilding when the numbers moved.
         if (measurement != lastMeasurement) {
             lastMeasurement = measurement
@@ -348,6 +412,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
     private fun insetReport(): String {
         val lines = mutableListOf("measurement: $lastMeasurement auto=$autoBottomPadding manualPaddingDp=$manualBottomPaddingDp")
         lines += "computed insets: $lastComputedInsets"
+        lines += hingeLine(hingePx, hingeSource)
         lines += "configuration: ${resources.configuration.screenWidthDp}x${resources.configuration.screenHeightDp}dp density=${resources.configuration.densityDpi} rebuilds=$inputViewRebuilds"
         lines += "device: ${android.os.Build.MANUFACTURER} ${android.os.Build.MODEL}, Android ${android.os.Build.VERSION.RELEASE} (API ${android.os.Build.VERSION.SDK_INT}), navigation_mode=${runCatching { android.provider.Settings.Secure.getInt(contentResolver, "navigation_mode", -1) }.getOrDefault(-1)}, locales=${resources.configuration.locales.toLanguageTags()}"
         val decor = window?.window?.decorView ?: return (lines + "window: none").joinToString("\n")

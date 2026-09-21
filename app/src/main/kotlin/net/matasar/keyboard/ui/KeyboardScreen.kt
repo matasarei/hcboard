@@ -6,10 +6,12 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.SideEffect
@@ -41,6 +43,7 @@ import net.matasar.keyboard.layout.KeyAction
 import net.matasar.keyboard.layout.KeyIcon
 import net.matasar.keyboard.layout.KeyStyle
 import net.matasar.keyboard.layout.LayerId
+import net.matasar.keyboard.settings.SplitMode
 import net.matasar.keyboard.ui.theme.KeyboardColors
 import net.matasar.keyboard.ui.theme.LocalKeyboardColors
 
@@ -54,6 +57,8 @@ data class KeyboardFeel(
     val widthScale: Float = 1f,
     val glide: Boolean = true,
     val glideTrail: Boolean = true,
+    /** Whether the wide board splits into halves. */
+    val split: SplitMode = SplitMode.AUTO,
 )
 
 /**
@@ -70,6 +75,11 @@ fun KeyboardScreen(
     bottomInset: Dp = 0.dp,
     /** Room to leave on the sides for display cutouts (camera punch holes in landscape). */
     sideInset: Dp = 0.dp,
+    /**
+     * A hinge running down the window, its left and right edge in px from the keyboard's left
+     * edge, or null. No key is drawn on it: the wide board splits around it.
+     */
+    hinge: ClosedFloatingPointRange<Float>? = null,
 ) {
     val colors = LocalKeyboardColors.current
     val popups = remember { PopupState() }
@@ -114,7 +124,7 @@ fun KeyboardScreen(
                     onPickCandidate = controller::pickCandidate,
                     onCollapseCandidates = controller::collapseCandidates,
                 )
-                LayerGrid(controller, feel, popups, effectiveSidePadding)
+                LayerGrid(controller, feel, popups, effectiveSidePadding, hinge)
             }
         }
         PopupLayer(popups)
@@ -153,6 +163,7 @@ private fun LayerGrid(
     feel: KeyboardFeel,
     popups: PopupState,
     extraSidePadding: Dp = 0.dp,
+    hinge: ClosedFloatingPointRange<Float>? = null,
 ) {
     val colors = LocalKeyboardColors.current
     val density = LocalDensity.current
@@ -196,6 +207,12 @@ private fun LayerGrid(
             }
         }
         val layer = layout.layers[controller.layer] ?: layout.layers.values.first()
+        val configuration = LocalConfiguration.current
+        // The halves replace the whole board where a hinge or two thumbs ask for them.
+        val split = layout.split.takeIf {
+            controller.layer == LayerId.LETTERS &&
+                shouldSplit(feel.split, wide, hingeSeparating = hinge != null, phoneLandscape = isPhoneLandscape(configuration.screenWidthDp, configuration.screenHeightDp))
+        }
         val sidePadding = (if (wide) Dimens.wideSidePadding else Dimens.sidePadding) + extraSidePadding
         // The gaps follow the height setting too: keys shrunk to 80% under full-size gaps read as
         // small keys floating in space.
@@ -205,7 +222,22 @@ private fun LayerGrid(
         val budget = LocalConfiguration.current.screenHeightDp.dp * Dimens.maxHeightFraction -
             Dimens.toolbarHeight - Dimens.topPadding - Dimens.bottomPadding - rowGap * (rows - 1)
         val keyHeight = minOf((if (wide) Dimens.wideKeyHeight else Dimens.keyHeight) * feel.heightScale, budget / rows)
-        val unitWidth = (maxWidth - sidePadding * 2 - Dimens.keyGap * (layer.units.toInt() - 1)) / layer.units
+        val unitWidth = if (split == null) {
+            (maxWidth - sidePadding * 2 - Dimens.keyGap * (layer.units.toInt() - 1)) / layer.units
+        } else {
+            with(density) {
+                splitUnit(
+                    width = maxWidth.toPx(),
+                    sidePadding = sidePadding.toPx(),
+                    gap = Dimens.keyGap.toPx(),
+                    leftUnits = split.left.units,
+                    rightUnits = split.right.units,
+                    hinge = hinge,
+                    hingeMargin = Dimens.hingeMargin.toPx(),
+                    gapUnits = Dimens.splitGapUnits,
+                ).toDp()
+            }
+        }
         // Glide lives on the letters layer of either board; the symbols and code pages tap only.
         // The detector is always attached and asks this at each touch: swapping the modifier in
         // and out would cancel the gestures under it, which is how a trackpad started by a long
@@ -229,28 +261,46 @@ private fun LayerGrid(
             if (controller.developerMode && !wide) {
                 ModifierStrip(controller, feel, callbacks, unitWidth, keyHeight = keyHeight, sidePadding = sidePadding)
             }
-            for (row in layer.rows) {
-                KeyRow(row = row, unitWidth = unitWidth, gap = Dimens.keyGap, modifier = Modifier.padding(horizontal = sidePadding)) { key ->
-                    KeyButton(
-                        key = key,
-                        label = controller.displayLabel(key),
-                        icon = iconFor(key, controller),
-                        visual = visualFor(key, controller, colors),
-                        height = keyHeight,
-                        callbacks = callbacks,
-                        haptics = feel.haptics,
-                        keyBorders = feel.keyBorders,
-                        showLabel = !controller.trackpad,
-                        legendBand = wide,
-                        // The legends stay where they are; the one that is live tints, and the
-                        // glyph below already says what the key would type. Live means this
-                        // modifier is what makes the glyph what it is: Shift with Fn does nothing
-                        // to a digit, so `!` stays subtle while `F1` lights up.
-                        legendColor = if (controller.fnLive(key)) colors.armedRing else null,
-                        topLegendColor = if (controller.shiftLive(key)) colors.armedRing else null,
-                        onBounds = if (key.action is KeyAction.Letter) ({ k, rect -> letterBounds[(k.action as KeyAction.Letter).lower[0]] = rect }) else null,
-                        repeats = controller.repeats(key),
-                    )
+            val keyButton: @Composable (Key) -> Unit = { key ->
+                KeyButton(
+                    key = key,
+                    label = controller.displayLabel(key),
+                    icon = iconFor(key, controller),
+                    visual = visualFor(key, controller, colors),
+                    height = keyHeight,
+                    callbacks = callbacks,
+                    haptics = feel.haptics,
+                    keyBorders = feel.keyBorders,
+                    showLabel = !controller.trackpad,
+                    legendBand = wide,
+                    // No Fn legend: while Fn is active the glyph itself is the Fn meaning
+                    // (F1, Home, an arrow, Del), so printing it in the corner too only crowds
+                    // the key. The shifted symbol stays, and tints while Shift is what makes
+                    // the glyph what it is: Shift with Fn does nothing to a digit, so `!`
+                    // stays subtle then.
+                    legend = null,
+                    topLegendColor = if (controller.shiftLive(key)) colors.armedRing else null,
+                    onBounds = if (key.action is KeyAction.Letter) ({ k, rect -> letterBounds[(k.action as KeyAction.Letter).lower[0]] = rect }) else null,
+                    repeats = controller.repeats(key),
+                )
+            }
+            if (split == null) {
+                for (row in layer.rows) {
+                    KeyRow(row = row, unitWidth = unitWidth, gap = Dimens.keyGap, modifier = Modifier.padding(horizontal = sidePadding), content = keyButton)
+                }
+            } else {
+                val gap = Dimens.keyGap
+                val leftWidth = unitWidth * split.left.units + gap * (split.left.units - 1f)
+                val rightWidth = unitWidth * split.right.units + gap * (split.right.units - 1f)
+                // Each half against its outer edge; the room between them is the thumbs', or the hinge's.
+                for ((leftRow, rightRow) in split.left.rows.zip(split.right.rows)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = sidePadding),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                    ) {
+                        KeyRow(row = leftRow, unitWidth = unitWidth, gap = gap, modifier = Modifier.width(leftWidth), content = keyButton)
+                        KeyRow(row = rightRow, unitWidth = unitWidth, gap = gap, modifier = Modifier.width(rightWidth), content = keyButton)
+                    }
                 }
             }
         }

@@ -77,4 +77,8 @@ object Dimens {
     /** At 100% height, like [rowGap]. */
     val wideRowGap = 10.dp
     val wideSidePadding = 8.dp
+    /** Between the split halves when no hinge decides it, in key units: room for both thumbs. */
+    const val splitGapUnits = 2f
+    /** The least room between a key and a hinge. */
+    val hingeMargin = 12.dp
 }

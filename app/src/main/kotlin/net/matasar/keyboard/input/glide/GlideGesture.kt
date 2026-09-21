@@ -7,8 +7,10 @@ import kotlin.math.sqrt
  * path once it has. Pure Kotlin: the screen feeds it positions, it answers with a state.
  *
  * A press becomes a glide when the finger has travelled at least three quarters of a key
- * width and is over a different letter key. A press that stays on its key past the
- * long-press timeout is abandoned, so accents and the trackpad keep working.
+ * width and is over a different letter key. A press that has not travelled that far by the
+ * long-press timeout is abandoned, so accents and the trackpad keep working. A finger that has
+ * travelled is never a long press, even over no key at all: crossing the gap between the split
+ * board's halves takes a moment.
  */
 class GlideGesture(
     private val startKey: Char,
@@ -36,11 +38,11 @@ class GlideGesture(
             State.PENDING -> {
                 points += GlidePoint(x, y)
                 val first = points.first()
-                val travelled = distance(first.x, first.y, x, y)
+                val travelledFar = distance(first.x, first.y, x, y) >= keyWidthPx * START_FRACTION
                 val leftStartKey = keyUnder != null && keyUnder != startKey
                 state = when {
-                    travelled >= keyWidthPx * START_FRACTION && leftStartKey -> State.GLIDING
-                    timeMs - downTimeMs > longPressMs && !leftStartKey -> State.ABANDONED
+                    travelledFar && leftStartKey -> State.GLIDING
+                    timeMs - downTimeMs > longPressMs && !travelledFar -> State.ABANDONED
                     else -> State.PENDING
                 }
             }

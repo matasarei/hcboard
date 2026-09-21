@@ -75,16 +75,16 @@ private fun wideShiftRow(language: Language): Row {
 
 /**
  * Modifiers around the space bar, which names the language. The globe sits left of Space when
- * there is more than one language to switch to.
+ * there is more than one language to switch to. No hide key: the toolbar has one, and so does
+ * the system's navigation bar.
  */
 private fun wideBottomRow(spaceLabel: String, withGlobe: Boolean): Row {
     val keys = mutableListOf(mod("Ctrl", ModifierKey.CTRL, 1.25f), mod("Meta", ModifierKey.META, 1.25f), mod("Alt", ModifierKey.ALT, 1.25f))
     if (withGlobe) keys += Key("globe", KeyAction.SwitchLanguage, 1.25f, KeyStyle.FUNCTION, KeyIcon.GLOBE)
-    keys += Key(spaceLabel, KeyAction.Space, if (withGlobe) 5f else 6.25f, KeyStyle.SPACE)
+    keys += Key(spaceLabel, KeyAction.Space, if (withGlobe) 6.25f else 7.5f, KeyStyle.SPACE)
     keys += mod("Alt", ModifierKey.ALT, 1.25f)
     keys += mod("Fn", ModifierKey.FN, 1.25f)
     keys += mod("Ctrl", ModifierKey.CTRL, 1.25f)
-    keys += Key("hide", KeyAction.HideKeyboard, 1.25f, KeyStyle.FUNCTION, KeyIcon.KEYBOARD_HIDE)
     return Row(keys)
 }
 
@@ -93,39 +93,45 @@ private val digitRow: Array<Key> = "1234567890".mapIndexed { i, c ->
 }.toTypedArray()
 
 /**
- * A standard 60% ANSI board for one language, 15 units per row, for windows 600 dp and wider:
- * every key visible, shifted symbols printed above the digits and punctuation, F1–F12 and
- * navigation as Fn legends, the letters and accents of [language] on the ANSI slots.
+ * A 60% ANSI board for one language, 15 units per row, for windows 600 dp and wider: every key
+ * visible, shifted symbols printed above the digits and punctuation, F1–F12 and navigation on
+ * Fn, the letters and accents of [language] on the ANSI slots. The edges are balanced rather than
+ * standard: Esc, Tab and Caps are wider and Backspace, `\` and Enter narrower, so the split
+ * between the hands (T|Y 7, G|H 7.25 of 15) sits nearer the middle of the screen. No key moves.
  */
 fun sixtyPercentLayer(language: Language, withGlobe: Boolean) = Layer(
     id = LayerId.LETTERS,
     units = 15f,
     rows = listOf(
         row(
-            fn("Esc", KeyAction.KeyCode(KeyEvent.KEYCODE_ESCAPE), fnLegend = "`", fnAction = KeyAction.Text("`", "~")),
+            fn("Esc", KeyAction.KeyCode(KeyEvent.KEYCODE_ESCAPE), 1.5f, fnLegend = "`", fnAction = KeyAction.Text("`", "~")),
             *digitRow,
             dual("-", "_", fnLegend = "F11", fnAction = fkey(10)),
             dual("=", "+", fnLegend = "F12", fnAction = fkey(11)),
-            Key("backspace", KeyAction.Backspace, 2f, KeyStyle.FUNCTION, KeyIcon.BACKSPACE, fnLegend = "Del", repeats = true),
+            Key("backspace", KeyAction.Backspace, 1.5f, KeyStyle.FUNCTION, KeyIcon.BACKSPACE, fnLegend = "Del", repeats = true),
         ),
         row(
-            fn("Tab", KeyAction.KeyCode(KeyEvent.KEYCODE_TAB), 1.5f),
+            fn("Tab", KeyAction.KeyCode(KeyEvent.KEYCODE_TAB), 2f),
             *wideRow(language, 0).toTypedArray(),
-            dual("\\", "|", width = 1.5f),
+            dual("\\", "|"),
         ),
         row(
-            Key("Caps", KeyAction.CapsLock, 1.75f, KeyStyle.MODIFIER),
+            Key("Caps", KeyAction.CapsLock, 2.25f, KeyStyle.MODIFIER),
             *wideRow(language, 1).toTypedArray(),
-            enterKey(2.25f),
+            enterKey(1.75f),
         ),
         wideShiftRow(language),
         wideBottomRow(language.nativeName, withGlobe),
     ),
 )
 
-/** The layout for wide windows: one board carries letters, symbols and modifiers. */
+/** The layout for wide windows: one board carries letters, symbols and modifiers, whole or split. */
 fun wideLayout(language: Language, withGlobe: Boolean): KeyboardLayout =
-    KeyboardLayout(layers = mapOf(LayerId.LETTERS to sixtyPercentLayer(language, withGlobe)), units = 15f)
+    KeyboardLayout(
+        layers = mapOf(LayerId.LETTERS to sixtyPercentLayer(language, withGlobe)),
+        units = 15f,
+        split = splitLayer(language, withGlobe),
+    )
 
 /** The English board with no globe, as in the Fold mocks. */
 val SixtyPercentLayer: Layer = sixtyPercentLayer(Languages.english, withGlobe = false)

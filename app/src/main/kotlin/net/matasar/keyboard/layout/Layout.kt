@@ -52,7 +52,7 @@ data class Key(
     val icon: KeyIcon? = null,
     /** Printed above the main glyph on the 60% board and sent when Shift is active. */
     val shiftedLabel: String? = null,
-    /** Printed top-right in small type; what the key means while Fn is active. */
+    /** What the key means while Fn is active, shown as its glyph then (F1, Home, an arrow, Del). */
     val fnLegend: String? = null,
     /** Long-press alternatives (accents). */
     val longPress: List<String> = emptyList(),
@@ -86,7 +86,8 @@ data class Row(
 /** A page of rows; every row adds up to [units]. */
 data class Layer(val id: LayerId, val rows: List<Row>, val units: Float = 10f)
 
-data class KeyboardLayout(val layers: Map<LayerId, Layer>, val units: Float = 10f) {
+/** The layers of a board; the wide board also carries its [split] halves, drawn when the window asks for them. */
+data class KeyboardLayout(val layers: Map<LayerId, Layer>, val units: Float = 10f, val split: SplitLayer? = null) {
     fun layer(id: LayerId): Layer = layers.getValue(id)
 }
 

@@ -66,7 +66,10 @@ from the password manager you already use, and the keyboard never shows or keeps
 
 - **A 60% board on wide screens.** Foldables and tablets get every key of a standard 60% layout:
   the letters sit on the ANSI slots of the current language, punctuation that a long alphabet
-  displaces stays reachable through Fn, and both Cyrillic layouts fill the top row (ї, ъ).
+  displaces stays reachable through Fn, and both Cyrillic layouts fill the top row (ї, ъ). Its
+  edges are balanced so the letters sit nearer the middle of the screen, and it can split into a
+  left and a right half: by itself where a hinge crosses the screen and on a phone turned sideways,
+  or always, or never (Settings → Wide keyboard).
 - **A developer strip on phones.** One tap on `</>` puts Esc, Tab, Ctrl, Alt, Shift, arrows and Fn
   above any layer, and the keyboard remembers which apps you use it in.
 - **Modifiers that latch the way you expect.** Tap one to arm it for the next key, double-tap or

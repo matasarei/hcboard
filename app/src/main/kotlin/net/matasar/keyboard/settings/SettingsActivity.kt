@@ -158,6 +158,19 @@ private fun SettingsScreen(settings: Settings, prefs: Prefs) {
         SwitchRow(stringResource(R.string.settings_haptics), settings.haptics) { scope.launch { prefs.setHaptics(it) } }
         SwitchRow(stringResource(R.string.settings_previews), settings.previews) { scope.launch { prefs.setPreviews(it) } }
 
+        Section(stringResource(R.string.settings_section_wide))
+        Text(stringResource(R.string.settings_split), style = MaterialTheme.typography.bodyLarge)
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            SplitMode.entries.forEach { mode ->
+                FilterChip(
+                    selected = settings.splitKeyboard == mode,
+                    onClick = { scope.launch { prefs.setSplitKeyboard(mode) } },
+                    label = { Text(mode.label()) },
+                )
+            }
+        }
+        Text(stringResource(R.string.settings_split_hint), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+
         Section(stringResource(R.string.settings_section_languages))
         Text(stringResource(R.string.settings_languages_hint), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         for (language in Languages.all.filter { it != Languages.english }) {
@@ -252,6 +265,15 @@ private fun ThemeChoice.label(): String = stringResource(
         ThemeChoice.LIGHT -> R.string.settings_theme_light
         ThemeChoice.DARK -> R.string.settings_theme_dark
         ThemeChoice.BLACK -> R.string.settings_theme_black
+    },
+)
+
+@Composable
+private fun SplitMode.label(): String = stringResource(
+    when (this) {
+        SplitMode.OFF -> R.string.settings_split_off
+        SplitMode.AUTO -> R.string.settings_split_auto
+        SplitMode.ALWAYS -> R.string.settings_split_always
     },
 )
 
