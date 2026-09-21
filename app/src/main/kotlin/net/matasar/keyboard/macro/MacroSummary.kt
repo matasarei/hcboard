@@ -5,7 +5,7 @@ import net.matasar.keyboard.layout.ModifierKey
 
 /** A block in a few words, as the sheet and the editor print it: "Press Ctrl+Shift+F1". */
 fun Block.summary(): String = when (this) {
-    is Block.TypeText -> "Type “${text.replace('\n', '↵').take(SUMMARY_TEXT)}${if (text.length > SUMMARY_TEXT) "…" else ""}”"
+    is Block.TypeText -> if (secret) "Type $SECRET_MASK" else "Type “${text.replace('\n', '↵').take(SUMMARY_TEXT)}${if (text.length > SUMMARY_TEXT) "…" else ""}”"
     is Block.PressKey -> "Press ${keyCombination()}"
     is Block.RandomKeys -> "Random keys · $size"
     is Block.Repeat -> "Repeat $count×"
@@ -25,3 +25,6 @@ fun Macro.summary(): String = when {
 }
 
 private const val SUMMARY_TEXT = 16
+
+/** A secret's stand-in, always the same length so the secret's own does not show. */
+const val SECRET_MASK = "••••••"

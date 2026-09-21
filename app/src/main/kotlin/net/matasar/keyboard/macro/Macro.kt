@@ -2,6 +2,7 @@ package net.matasar.keyboard.macro
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 import net.matasar.keyboard.layout.ModifierKey
 
 /** A named script the keyboard plays into the field: a stack of [Block]s, run top to bottom. */
@@ -15,10 +16,18 @@ data class Macro(val id: String, val name: String, val blocks: List<Block>)
 @Serializable
 sealed interface Block {
 
-    /** Commits [text] as it is. */
+    /**
+     * Commits [text] as it is. A [secret] text is masked wherever it is shown and kept sealed on
+     * disk (see [sealSecrets]); in memory [text] is always the plain text. [keptSealed] is a sealed
+     * text this phone could not open, written back unchanged until a new one is typed.
+     */
     @Serializable
     @SerialName("text")
-    data class TypeText(val text: String) : Block
+    data class TypeText(
+        val text: String,
+        val secret: Boolean = false,
+        @Transient val keptSealed: String? = null,
+    ) : Block
 
     /**
      * Presses one key, named as [MacroKeys] names it ("Esc", "F1", "Shift") or a single character,
