@@ -222,7 +222,7 @@ private fun BlockFields(block: Block, revealed: Boolean, onRevealChange: (Boolea
                 } else {
                     null
                 },
-                supportingText = if (block.keptSealed != null && block.text.isEmpty()) {
+                supportingText = if (block.secret && block.keptSealed != null && block.text.isEmpty()) {
                     { Text(stringResource(R.string.block_text_unreadable)) }
                 } else {
                     null
