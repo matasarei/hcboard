@@ -30,6 +30,8 @@ data class Settings(
     val haptics: Boolean = true,
     val keyBorders: Boolean = true,
     val previews: Boolean = true,
+    /** On a phone, the strip's settings, passwords and macros fold behind a chevron until tapped. */
+    val foldToolbar: Boolean = true,
     /** The strip's mic, which hands dictation to a voice keyboard; off for those who never want it. */
     val voiceInput: Boolean = true,
     /** The keyboard the mic hands off to, by input method id; null picks one automatically. */
@@ -78,6 +80,7 @@ class Prefs(private val context: Context) {
             haptics = p[HAPTICS] ?: true,
             keyBorders = p[KEY_BORDERS] ?: true,
             previews = p[PREVIEWS] ?: true,
+            foldToolbar = p[FOLD_TOOLBAR] ?: true,
             voiceInput = p[VOICE_INPUT] ?: true,
             voiceKeyboard = p[VOICE_KEYBOARD],
             theme = p[THEME]?.let { runCatching { ThemeChoice.valueOf(it) }.getOrNull() } ?: ThemeChoice.SYSTEM,
@@ -103,6 +106,7 @@ class Prefs(private val context: Context) {
     suspend fun setHaptics(value: Boolean) = context.dataStore.edit { it[HAPTICS] = value }
     suspend fun setKeyBorders(value: Boolean) = context.dataStore.edit { it[KEY_BORDERS] = value }
     suspend fun setPreviews(value: Boolean) = context.dataStore.edit { it[PREVIEWS] = value }
+    suspend fun setFoldToolbar(value: Boolean) = context.dataStore.edit { it[FOLD_TOOLBAR] = value }
     suspend fun setVoiceInput(value: Boolean) = context.dataStore.edit { it[VOICE_INPUT] = value }
     suspend fun setVoiceKeyboard(imeId: String?) = context.dataStore.edit { if (imeId == null) it.remove(VOICE_KEYBOARD) else it[VOICE_KEYBOARD] = imeId }
     suspend fun setTheme(value: ThemeChoice) = context.dataStore.edit { it[THEME] = value.name }
@@ -149,6 +153,7 @@ class Prefs(private val context: Context) {
         val HAPTICS = booleanPreferencesKey("haptics")
         val KEY_BORDERS = booleanPreferencesKey("key_borders")
         val PREVIEWS = booleanPreferencesKey("previews")
+        val FOLD_TOOLBAR = booleanPreferencesKey("fold_toolbar")
         val VOICE_INPUT = booleanPreferencesKey("voice_input")
         val VOICE_KEYBOARD = stringPreferencesKey("voice_keyboard")
         val THEME = stringPreferencesKey("theme")

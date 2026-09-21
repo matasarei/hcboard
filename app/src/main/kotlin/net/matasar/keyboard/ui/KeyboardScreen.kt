@@ -126,7 +126,7 @@ fun KeyboardScreen(
                     settingsSheetOpen = controller.settingsSheetOpen,
                     haptics = feel.haptics,
                     voice = controller.showVoiceKey,
-                    collapsible = !wide,
+                    collapsible = controller.toolbarFolds(wide),
                     expanded = controller.toolbarExpanded,
                     onExpand = controller::expandToolbar,
                     // The password manager's chips win the toolbar; word candidates take it next.

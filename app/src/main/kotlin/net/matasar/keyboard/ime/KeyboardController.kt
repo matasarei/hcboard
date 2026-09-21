@@ -257,6 +257,12 @@ class KeyboardController(
     var toolbarExpanded: Boolean by mutableStateOf(false)
         private set
 
+    /** Setting: whether the phone strip folds its buttons at all; off keeps them always in sight. */
+    var foldToolbar: Boolean by mutableStateOf(true)
+
+    /** Whether the strip may fold its buttons: on the phone board, while the setting allows it. */
+    fun toolbarFolds(wide: Boolean): Boolean = foldToolbar && !wide
+
     /** The strip's chevron: show its buttons until the keyboard hides. */
     fun expandToolbar() {
         toolbarExpanded = true

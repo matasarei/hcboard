@@ -46,6 +46,7 @@
     <string name="settings_bottom_padding_hint">Automatic keeps the keys clear of the system\'s bar and its buttons. Turn it off to set the space yourself, smaller or larger.</string>
     <string name="settings_haptics">Haptic tick on key press</string>
     <string name="settings_previews">Show key preview on press</string>
+    <string name="settings_fold_toolbar">Fold the toolbar\'s settings, passwords and macros buttons on phones</string>
     <string name="settings_voice_input">Microphone button for voice input</string>
     <string name="settings_voice_keyboard">Voice keyboard</string>
     <string name="settings_voice_keyboard_auto">Automatic</string>

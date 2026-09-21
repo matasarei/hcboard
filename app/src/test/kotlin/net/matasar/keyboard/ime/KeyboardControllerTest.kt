@@ -189,6 +189,15 @@ class KeyboardControllerTest {
     }
 
     @Test
+    fun `the strip folds only on the phone board, and never with the setting off`() {
+        assertTrue(controller.toolbarFolds(wide = false))
+        assertFalse(controller.toolbarFolds(wide = true))
+        controller.foldToolbar = false
+        assertFalse(controller.toolbarFolds(wide = false))
+        assertFalse(controller.toolbarFolds(wide = true))
+    }
+
+    @Test
     fun `folding the candidates away opens the strip`() {
         controller.collapseCandidates()
         assertTrue(controller.toolbarExpanded)
