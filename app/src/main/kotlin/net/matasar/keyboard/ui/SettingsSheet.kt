@@ -10,7 +10,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
@@ -56,7 +58,9 @@ fun SettingsSheet(
                 .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
                 .background(colors.popup)
                 .navigationBarsPadding()
-                .padding(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 16.dp),
+                .padding(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 16.dp)
+                // A short keyboard (the 80% height setting) has less room than the three rows need.
+                .verticalScroll(rememberScrollState()),
         ) {
             Box(
                 modifier = Modifier
