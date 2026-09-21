@@ -16,6 +16,9 @@ import kotlinx.coroutines.flow.map
 
 enum class ThemeChoice { SYSTEM, LIGHT, DARK, BLACK }
 
+/** Whether the wide board splits into halves: never, where a hinge or a sideways phone asks for it, or always. */
+enum class SplitMode { OFF, AUTO, ALWAYS }
+
 /** Everything the settings screen edits and the keyboard reads. */
 data class Settings(
     val heightScale: Float = 1f,
