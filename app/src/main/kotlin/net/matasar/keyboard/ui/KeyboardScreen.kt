@@ -354,17 +354,23 @@ private fun Key.showsPreview(): Boolean =
 private fun iconFor(key: Key, controller: KeyboardController): KeyIcon? = when {
     // Fn's meaning is drawn as the glyph, so the icon it replaces goes (backspace reads Del).
     !controller.showsIcon(key) -> null
-    key.action == KeyAction.Shift && key.icon != null && controller.shift.active -> KeyIcon.SHIFT_FILLED
+    key.action == KeyAction.Shift && key.icon != null && (controller.shift.active || controller.autoCapital) -> KeyIcon.SHIFT_FILLED
     key.action == KeyAction.Enter -> controller.enterIcon
     else -> key.icon
 }
 
-/** Background and foreground for a key, including the shift key's armed and locked looks. */
+/**
+ * Background and foreground for a key, including the shift key's armed and locked looks. An
+ * automatic capital makes Shift (not Caps Lock) look armed: the next letter is a capital, as
+ * after a tap on Shift.
+ */
 internal fun visualFor(key: Key, controller: KeyboardController, colors: KeyboardColors): KeyVisual {
     if (key.action is KeyAction.Modifier) return modifierVisual(key, controller, colors)
     if (key.action == KeyAction.Shift || key.action == KeyAction.CapsLock) {
         return when (controller.shift.state) {
-            LatchState.IDLE -> KeyVisual(colors.functionKey, colors.onFunctionKey)
+            LatchState.IDLE ->
+                if (controller.autoCapital && key.action == KeyAction.Shift) KeyVisual(colors.armed, colors.onArmed, ring = colors.armedRing)
+                else KeyVisual(colors.functionKey, colors.onFunctionKey)
             LatchState.ARMED -> KeyVisual(colors.armed, colors.onArmed, ring = colors.armedRing)
             LatchState.LOCKED -> KeyVisual(colors.locked, colors.onLocked)
         }

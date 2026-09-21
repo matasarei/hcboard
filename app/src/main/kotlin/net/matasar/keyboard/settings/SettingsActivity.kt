@@ -44,6 +44,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.autofill.ContentType
 import androidx.compose.ui.semantics.contentType
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import kotlinx.coroutines.launch
@@ -178,6 +179,7 @@ private fun SettingsScreen(settings: Settings, prefs: Prefs) {
 
         Section(stringResource(R.string.settings_section_suggestions))
         SwitchRow(stringResource(R.string.settings_suggestions), settings.suggestions) { scope.launch { prefs.setSuggestions(it) } }
+        SwitchRow(stringResource(R.string.settings_auto_capitalize), settings.autoCapitalize) { scope.launch { prefs.setAutoCapitalize(it) } }
         SwitchRow(stringResource(R.string.settings_auto_correct), settings.autoCorrect) { scope.launch { prefs.setAutoCorrect(it) } }
 
         Section(stringResource(R.string.settings_section_glide))
@@ -193,6 +195,8 @@ private fun SettingsScreen(settings: Settings, prefs: Prefs) {
             value = tryText,
             onValueChange = { tryText = it },
             label = { Text(stringResource(R.string.enable_try_label)) },
+            // Sentences, as a chat box asks, so the automatic capital can be tried here.
+            keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
             modifier = Modifier.fillMaxWidth(),
         )
         // A password field to try the keyboard's password behaviour on (no suggestions, no glide,

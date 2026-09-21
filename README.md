@@ -46,6 +46,9 @@ from the password manager you already use, and the keyboard never shows or keeps
   toolbar behind a chevron. Space applies the highlighted correction and one backspace takes it
   back. Both parts can be turned off, and neither runs in password, terminal, number, address or
   e-mail fields.
+- **Capitals where a sentence starts,** in fields that ask for them (chat boxes do): the Shift key
+  lights up, one tap on it cancels the capital, and terminals, addresses and code get none. It can
+  be turned off in Settings.
 - **Ten languages:** English, Ukrainian, Russian, Bulgarian, French, Spanish, German, Italian, Portuguese
   (Brazil) and Polish, each with its own layout and long-press accents. Until you change the set
   it follows your phone's languages, plus English; a globe key switches them, and holding it opens

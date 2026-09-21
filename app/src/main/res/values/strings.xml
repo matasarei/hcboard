@@ -48,6 +48,7 @@
     <string name="settings_ru_bg_vocabulary_hint">Suggestions and glide for Bulgarian words while using Russian layout</string>
     <string name="settings_section_suggestions">Suggestions</string>
     <string name="settings_suggestions">Word suggestions: the word you type, its correction and completions above the keys</string>
+    <string name="settings_auto_capitalize">Auto-capitalization: a capital at the start of a sentence, in fields that ask for one</string>
     <string name="settings_auto_correct">Autocorrect: space applies the highlighted correction; backspace takes it back</string>
     <string name="settings_section_glide">Glide typing</string>
     <string name="settings_glide">Glide typing: slide across the letters to type a word</string>
