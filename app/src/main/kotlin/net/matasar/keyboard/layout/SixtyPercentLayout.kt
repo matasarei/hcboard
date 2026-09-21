@@ -62,14 +62,15 @@ private fun wideRow(language: Language, index: Int): List<Key> {
  * The Shift row. The left Shift is the wider one on every board (the thumb's side of a held
  * phone); the right one takes what is left. Seven letters leave `, . /` as on the standard
  * board. Nine (Cyrillic) would leave only `/`, so the Shifts give up a unit between them and
- * the row ends with `.` (`,` shifted, `<` `>` on Fn) and `/`: the way Cyrillic PC keyboards do it.
+ * the row ends with `.` (`,` shifted) and `/`: the way Cyrillic PC keyboards do it. The `.` key
+ * has nothing on Fn: б and ю, on the `,` and `.` slots, already carry `,<` and `.>` there.
  */
 private fun wideShiftRow(language: Language): Row {
     val letters = language.rows[2]
     require(letters.length <= 9) { "${language.tag} bottom row has ${letters.length} letters; at most 9 fit" }
     if (letters.length < 9) return row(shift(2.75f), *wideRow(language, 2).toTypedArray(), shift(2.25f))
     val onSlots = wideRow(language, 2).take(letters.length)
-    val period = dual(".", ",", fnLegend = "<>", fnAction = KeyAction.Text("<", ">"))
+    val period = dual(".", ",")
     return row(shift(2.25f), *onSlots.toTypedArray(), period, punctuation('/'), shift(1.75f))
 }
 
