@@ -650,6 +650,9 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
                 @Suppress("DEPRECATION")
                 imm.setInputMethodAndSubtype(token, target.imeId, target.subtype)
             }
+        }.onFailure {
+            // The keyboard went away since the field opened: a mic that does nothing is worse than none.
+            controller.voiceAvailable = false
         }
     }
 
