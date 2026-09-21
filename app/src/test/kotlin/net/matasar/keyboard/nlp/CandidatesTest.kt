@@ -84,6 +84,16 @@ class CandidatesTest {
     }
 
     @Test
+    fun `the bundled russian list knows chat words and still corrects ordinary typos`() {
+        val russian = Candidates(File("src/main/assets/dictionaries/ru.txt").bufferedReader().useLines { WordList.parse(it) })
+        for (chat in listOf("окей", "ладно", "напиши", "щас", "лол", "мем", "баг", "логин")) {
+            assertNull(russian.forWord(chat)?.correction, "'$chat' should be known, got ${russian.forWord(chat)?.correction}")
+        }
+        assertEquals("спасибо", russian.forWord("спасиьо")!!.correction)
+        assertEquals("идёт", russian.forWord("идет")!!.correction)
+    }
+
+    @Test
     fun `the bundled english and ukrainian lists behave the same way`() {
         val english = Candidates(File("src/main/assets/dictionaries/en_US.txt").bufferedReader().useLines { WordList.parse(it) })
         assertEquals("check", english.forWord("chek")!!.correction)

@@ -74,6 +74,11 @@ class MultilingualGlideTest {
     fun `russian glides привет`() = assertGlides(Languages.russian, "привет", "привет")
 
     @Test
+    fun `russian commits everyday words first thanks to the overlay`() {
+        for (word in listOf("привет", "спасибо", "хорошо", "ладно", "окей")) assertGlidesFirst(Languages.russian, word)
+    }
+
+    @Test
     fun `french glides bonjour on azerty`() = assertGlides(Languages.french, "bonjour", "bonjour")
 
     @Test
