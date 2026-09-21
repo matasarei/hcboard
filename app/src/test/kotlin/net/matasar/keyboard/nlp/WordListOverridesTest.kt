@@ -58,4 +58,11 @@ class WordListOverridesTest {
         assertFalse(over.contains("the"))
         assertTrue(over.contains("ducks"))
     }
+
+    @Test
+    fun `adding a word the list ranks higher never lowers it`() {
+        val over = list.withOverrides(mapOf("the" to CustomWord.ADDED, "duck" to 210))
+        assertEquals(255, over.frequency("the"))
+        assertEquals(210, over.frequency("duck"))
+    }
 }
