@@ -115,12 +115,12 @@ fun KeyboardScreen(
                     modifier = Modifier
                         .background(colors.toolbar)
                         .padding(horizontal = effectiveSidePadding),
-                    developerMode = controller.developerMode,
-                    showDeveloperToggle = !wide,
+                    settingsMenu = !wide,
                     chipText = chipText,
                     actions = actions,
                     sheetOpen = controller.managerSheetOpen,
                     macroSheetOpen = controller.macroSheetOpen,
+                    settingsSheetOpen = controller.settingsSheetOpen,
                     haptics = feel.haptics,
                     // The password manager's chips win the toolbar; word candidates take it next.
                     center = if (controller.suggestions.isNotEmpty()) ({ SuggestionStrip(controller.suggestions) }) else null,
@@ -172,6 +172,21 @@ fun KeyboardScreen(
                     onStop = controller::stopMacro,
                     onEdit = actions::openMacros,
                     onDismiss = { controller.macroSheetOpen = false },
+                )
+            }
+        }
+        if (controller.settingsSheetOpen) {
+            Box(
+                modifier = Modifier
+                    .matchParentSize()
+                    .padding(top = PopupMetrics.overhang + Dimens.toolbarHeight)
+                    .padding(horizontal = effectiveSidePadding),
+            ) {
+                SettingsSheet(
+                    developerMode = controller.developerMode,
+                    onToggleDeveloperMode = actions::toggleDeveloperMode,
+                    onOpenSettings = actions::openSettings,
+                    onDismiss = { controller.settingsSheetOpen = false },
                 )
             }
         }
