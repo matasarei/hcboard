@@ -58,7 +58,9 @@ interface ToolbarActions {
  * The 44 dp strip above the keys: settings, passwords and macros on the left, the chip or the
  * autofill suggestions in the middle, and the mic (when there is a voice keyboard to hand off to),
  * paste and hide on the right. While a word is being typed its [candidates] take the left buttons'
- * place behind a chevron that brings them back; the right ones stay.
+ * place behind a chevron that brings them back; the right ones stay. Where the strip is
+ * [collapsible] (the phone board) the left buttons sit behind a chevron of their own until
+ * [expanded], leaving the middle their room.
  */
 @Composable
 fun Toolbar(
@@ -80,6 +82,11 @@ fun Toolbar(
     haptics: Boolean = true,
     /** Whether the mic shows, first of the right-hand buttons. */
     voice: Boolean = false,
+    /** Whether the left buttons may fold behind a chevron: on the phone board, never on the wide one. */
+    collapsible: Boolean = false,
+    /** Whether they are unfolded; an open sheet unfolds them too, so its button stays in sight. */
+    expanded: Boolean = true,
+    onExpand: () -> Unit = {},
 ) {
     Row(
         modifier = modifier
@@ -92,12 +99,17 @@ fun Toolbar(
             ToolbarButton(R.drawable.ic_arrow_left, "Show toolbar", haptics = haptics) { onCollapseCandidates() }
             CandidateStrip(candidates, onPickCandidate, modifier = Modifier.weight(1f))
         } else {
-            Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                ToolbarButton(R.drawable.ic_settings, "Settings", active = settingsSheetOpen, haptics = haptics) {
-                    if (settingsMenu) actions.toggleSettingsSheet() else actions.openSettings()
+            val showButtons = !collapsible || expanded || sheetOpen || macroSheetOpen || settingsSheetOpen
+            if (showButtons) {
+                Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                    ToolbarButton(R.drawable.ic_settings, "Settings", active = settingsSheetOpen, haptics = haptics) {
+                        if (settingsMenu) actions.toggleSettingsSheet() else actions.openSettings()
+                    }
+                    ToolbarButton(R.drawable.ic_key, "Password manager", active = sheetOpen, haptics = haptics) { actions.toggleManagerSheet() }
+                    ToolbarButton(R.drawable.ic_macro, "Macros", active = macroSheetOpen, haptics = haptics) { actions.toggleMacroSheet() }
                 }
-                ToolbarButton(R.drawable.ic_key, "Password manager", active = sheetOpen, haptics = haptics) { actions.toggleManagerSheet() }
-                ToolbarButton(R.drawable.ic_macro, "Macros", active = macroSheetOpen, haptics = haptics) { actions.toggleMacroSheet() }
+            } else {
+                ToolbarButton(R.drawable.ic_arrow_right, "Show toolbar buttons", haptics = haptics) { onExpand() }
             }
             Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
                 when {
