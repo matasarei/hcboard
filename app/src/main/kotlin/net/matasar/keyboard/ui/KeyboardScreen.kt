@@ -126,6 +126,9 @@ fun KeyboardScreen(
                     settingsSheetOpen = controller.settingsSheetOpen,
                     haptics = feel.haptics,
                     voice = controller.showVoiceKey,
+                    collapsible = controller.toolbarFolds(wide),
+                    expanded = controller.toolbarExpanded,
+                    onExpand = controller::expandToolbar,
                     // The password manager's chips win the toolbar; word candidates take it next.
                     center = if (controller.suggestions.isNotEmpty()) ({ SuggestionStrip(controller.suggestions) }) else null,
                     candidates = controller.candidates.takeIf { controller.suggestions.isEmpty() && chipText == null && !controller.candidatesCollapsed },

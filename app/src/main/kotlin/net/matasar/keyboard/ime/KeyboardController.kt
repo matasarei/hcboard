@@ -249,6 +249,30 @@ class KeyboardController(
     var candidatesCollapsed: Boolean by mutableStateOf(false)
         private set
 
+    /**
+     * Whether the phone strip shows its settings, passwords and macros buttons rather than the
+     * chevron that opens them. It opens on a tap and stays open across fields; hiding the keyboard
+     * folds it again. The wide board ignores it and always shows them.
+     */
+    var toolbarExpanded: Boolean by mutableStateOf(false)
+        private set
+
+    /** Setting: whether the phone strip folds its buttons at all; off keeps them always in sight. */
+    var foldToolbar: Boolean by mutableStateOf(true)
+
+    /** Whether the strip may fold its buttons: on the phone board, while the setting allows it. */
+    fun toolbarFolds(wide: Boolean): Boolean = foldToolbar && !wide
+
+    /** The strip's chevron: show its buttons until the keyboard hides. */
+    fun expandToolbar() {
+        toolbarExpanded = true
+    }
+
+    /** The keyboard went away: the next time it shows, the strip is folded. */
+    fun onKeyboardHidden() {
+        toolbarExpanded = false
+    }
+
     private var lastGlideWord: String? = null
     private var lastGlideCommit: String? = null
 
@@ -811,6 +835,8 @@ class KeyboardController(
     /** The chevron: fold the strip away so the toolbar's buttons show until the next key. */
     fun collapseCandidates() {
         candidatesCollapsed = true
+        // The chevron asked for the buttons, so they show unfolded rather than behind a second one.
+        expandToolbar()
     }
 
     /**

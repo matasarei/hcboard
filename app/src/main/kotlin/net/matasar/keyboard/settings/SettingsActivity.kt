@@ -166,6 +166,7 @@ private fun SettingsScreen(settings: Settings, prefs: Prefs) {
         Section(stringResource(R.string.settings_section_feel))
         SwitchRow(stringResource(R.string.settings_haptics), settings.haptics) { scope.launch { prefs.setHaptics(it) } }
         SwitchRow(stringResource(R.string.settings_previews), settings.previews) { scope.launch { prefs.setPreviews(it) } }
+        SwitchRow(stringResource(R.string.settings_fold_toolbar), settings.foldToolbar) { scope.launch { prefs.setFoldToolbar(it) } }
         SwitchRow(stringResource(R.string.settings_voice_input), settings.voiceInput) { scope.launch { prefs.setVoiceInput(it) } }
         if (settings.voiceInput) {
             VoiceKeyboardPicker(settings.voiceKeyboard) { scope.launch { prefs.setVoiceKeyboard(it) } }
