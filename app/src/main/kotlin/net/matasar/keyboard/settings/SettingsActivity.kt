@@ -226,6 +226,9 @@ private fun SettingsScreen(settings: Settings, prefs: Prefs) {
             Text(stringResource(R.string.settings_macros_open))
         }
 
+        Section(stringResource(R.string.settings_section_backup))
+        BackupSection(prefs)
+
         HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
         OutlinedTextField(
             value = tryText,
