@@ -224,12 +224,18 @@ fun KeyButton(
                     maxLines = 1,
                     // A word wider than its key (Home, PgUp, Shift on a one-unit key) shrinks to
                     // fit rather than wrapping, which with one line would clip its last letters.
-                    autoSize = TextAutoSize.StepBased(
-                        minFontSize = Dimens.minWordSize,
-                        maxFontSize = size,
-                        stepSize = 0.5.sp,
-                    ),
-                    modifier = Modifier.padding(horizontal = 3.dp),
+                    // Only words: a single glyph always fits, and sizing it would cost layouts
+                    // on every key each time Shift or a layer changes.
+                    autoSize = if (word) {
+                        TextAutoSize.StepBased(
+                            minFontSize = Dimens.minWordSize,
+                            maxFontSize = size,
+                            stepSize = 0.5.sp,
+                        )
+                    } else {
+                        null
+                    },
+                    modifier = if (word) Modifier.padding(horizontal = 3.dp) else Modifier,
                 )
             }
         }
