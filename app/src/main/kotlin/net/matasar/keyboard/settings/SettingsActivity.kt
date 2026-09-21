@@ -1,8 +1,10 @@
 package net.matasar.keyboard.settings
 
 import android.content.ClipData
+import android.content.Intent
 import android.os.Build
 import android.os.Bundle
+import android.provider.Settings.ACTION_INPUT_METHOD_SETTINGS
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -21,6 +23,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
@@ -50,6 +53,10 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import kotlinx.coroutines.launch
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.ui.text.font.FontFamily
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
+import net.matasar.keyboard.ime.VoiceKeyboard
+import net.matasar.keyboard.ime.listVoiceKeyboards
 import net.matasar.keyboard.R
 import net.matasar.keyboard.ime.KeyboardDiagnostics
 import net.matasar.keyboard.layout.Languages
@@ -159,6 +166,9 @@ private fun SettingsScreen(settings: Settings, prefs: Prefs) {
         SwitchRow(stringResource(R.string.settings_haptics), settings.haptics) { scope.launch { prefs.setHaptics(it) } }
         SwitchRow(stringResource(R.string.settings_previews), settings.previews) { scope.launch { prefs.setPreviews(it) } }
         SwitchRow(stringResource(R.string.settings_voice_input), settings.voiceInput) { scope.launch { prefs.setVoiceInput(it) } }
+        if (settings.voiceInput) {
+            VoiceKeyboardPicker(settings.voiceKeyboard) { scope.launch { prefs.setVoiceKeyboard(it) } }
+        }
 
         Section(stringResource(R.string.settings_section_wide))
         Text(stringResource(R.string.settings_split), style = MaterialTheme.typography.bodyLarge)
@@ -283,6 +293,49 @@ private fun SplitMode.label(): String = stringResource(
         SplitMode.ALWAYS -> R.string.settings_split_always
     },
 )
+
+/**
+ * Which keyboard the mic hands off to. The list is re-read on every return to this screen, since
+ * keyboards are turned on and off in Android's settings; with one keyboard there is nothing to pick,
+ * and with none the screen says why the mic is hidden. A pick that is no longer on reads as Automatic.
+ */
+@Composable
+private fun VoiceKeyboardPicker(selected: String?, onPick: (String?) -> Unit) {
+    val context = LocalContext.current
+    var keyboards by remember { mutableStateOf(emptyList<VoiceKeyboard>()) }
+    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { keyboards = listVoiceKeyboards(context) }
+    val openKeyboardSettings = { context.startActivity(Intent(ACTION_INPUT_METHOD_SETTINGS)) }
+
+    when {
+        keyboards.isEmpty() -> {
+            Hint(stringResource(R.string.settings_voice_keyboard_none))
+            OutlinedButton(onClick = openKeyboardSettings) { Text(stringResource(R.string.settings_voice_keyboard_open)) }
+        }
+        keyboards.size > 1 -> {
+            val current = selected?.takeIf { id -> keyboards.any { it.imeId == id } }
+            Text(stringResource(R.string.settings_voice_keyboard), style = MaterialTheme.typography.bodyLarge)
+            RadioRow(stringResource(R.string.settings_voice_keyboard_auto), current == null) { onPick(null) }
+            keyboards.forEach { keyboard ->
+                RadioRow(keyboard.label, current == keyboard.imeId) { onPick(keyboard.imeId) }
+            }
+            Hint(stringResource(R.string.settings_voice_keyboard_hint))
+            OutlinedButton(onClick = openKeyboardSettings) { Text(stringResource(R.string.settings_voice_keyboard_open)) }
+        }
+    }
+}
+
+@Composable
+private fun RadioRow(label: String, selected: Boolean, onClick: () -> Unit) {
+    Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+        RadioButton(selected = selected, onClick = onClick)
+        Text(label, style = MaterialTheme.typography.bodyLarge)
+    }
+}
+
+@Composable
+private fun Hint(text: String) {
+    Text(text, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+}
 
 @Composable
 private fun Section(title: String) {

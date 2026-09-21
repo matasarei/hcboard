@@ -110,6 +110,9 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
 
     private var ruBulgarianVocabulary = false
 
+    /** The voice keyboard picked in settings, or null for the automatic choice. */
+    private var preferredVoiceKeyboard: String? = null
+
     /** Points the controller at [tag]'s engines, loading the word list off the main thread if needed. */
     private fun loadLanguage(tag: String) {
         val assetTag = if (tag == "ru" && ruBulgarianVocabulary) "ru_bg" else tag
@@ -207,6 +210,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
                 controller.doubleTapLock = settings.doubleTapLock
                 controller.glideEnabled = settings.glide
                 controller.voiceInputEnabled = settings.voiceInput
+                preferredVoiceKeyboard = settings.voiceKeyboard
                 controller.suggestionsEnabled = settings.suggestions
                 controller.autoCorrect = settings.autoCorrect
                 controller.autoCapitalize = settings.autoCapitalize
@@ -633,7 +637,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
     override fun startVoiceInput() {
         if (!controller.showVoiceKey) return
         val imm = inputMethodManager()
-        val target = findVoiceTarget(imm, packageName)
+        val target = findVoiceTarget(imm, packageName, preferredVoiceKeyboard)
         if (target == null) {
             controller.voiceAvailable = false
             return

@@ -35,6 +35,28 @@ class VoiceInputTest {
     }
 
     @Test
+    fun `the keyboard picked in settings wins over the shortcut`() {
+        val candidates = listOf(
+            VoiceCandidate(google, 0, shortcut = true),
+            VoiceCandidate(samsung, 1, shortcut = false),
+        )
+        assertEquals(samsung, chooseVoiceTarget(candidates, own, preferredId = samsung)?.imeId)
+    }
+
+    @Test
+    fun `a picked keyboard that is no longer enabled falls back to the automatic choice`() {
+        val candidates = listOf(VoiceCandidate(google, 0, shortcut = true))
+        assertEquals(google, chooseVoiceTarget(candidates, own, preferredId = samsung)?.imeId)
+    }
+
+    @Test
+    fun `picking this keyboard itself is ignored`() {
+        val self = "$own/.ime.KeyboardService"
+        val candidates = listOf(VoiceCandidate(self, 0, shortcut = false), VoiceCandidate(google, 1, shortcut = false))
+        assertEquals(google, chooseVoiceTarget(candidates, own, preferredId = self)?.imeId)
+    }
+
+    @Test
     fun `nothing to hand off to means no target`() {
         assertNull(chooseVoiceTarget(emptyList(), own))
     }
