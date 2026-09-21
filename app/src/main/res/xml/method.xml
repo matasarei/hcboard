@@ -1,10 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-    No subtypes on purpose: languages live in the keyboard's own settings and on its globe key.
-    Declaring them here too gave Android a second list, filled from the phone's languages, that
+    No language subtypes on purpose: languages live in the keyboard's own settings and on its globe
+    key. Declaring them here too gave Android a second list, filled from the phone's languages, that
     the keyboard's settings did not agree with, and a picker whose choice never reached the keys.
+
+    The one subtype below has no language. It exists because Android's keyboard list shows the
+    enabled subtypes' names as the line under a keyboard's name (android:description on the service
+    is never shown), and with no subtype that line stayed empty. Always on, so it needs no picker.
 -->
 <input-method xmlns:android="http://schemas.android.com/apk/res/android"
     android:settingsActivity="net.matasar.keyboard.settings.SettingsActivity"
     android:supportsInlineSuggestions="true"
-    android:supportsSwitchingToNextInputMethod="true" />
+    android:supportsSwitchingToNextInputMethod="true">
+
+    <subtype
+        android:label="@string/ime_description"
+        android:subtypeId="0x68630001"
+        android:imeSubtypeMode="keyboard"
+        android:isAsciiCapable="true"
+        android:overridesImplicitlyEnabledSubtype="true" />
+</input-method>
