@@ -4,6 +4,7 @@ import net.matasar.keyboard.input.FakeEditorPort
 import net.matasar.keyboard.input.InputDispatcher
 import net.matasar.keyboard.layout.Key
 import net.matasar.keyboard.layout.KeyAction
+import net.matasar.keyboard.layout.LayerId
 import net.matasar.keyboard.layout.Languages
 import net.matasar.keyboard.layout.ModifierKey
 import net.matasar.keyboard.layout.sixtyPercentLayer
@@ -144,5 +145,16 @@ class KeyLabelTest {
         controller.onKey(fnKey)
         assertTrue(controller.fnLive(key("1")))
         assertFalse(controller.shiftLive(key("1")))
+    }
+
+    @Test
+    fun `space names the language only when there is another one to switch to`() {
+        fun space() = controller.phoneLayout.layers.getValue(LayerId.LETTERS).rows.last().keys.first { it.action == KeyAction.Space }
+        assertEquals("", controller.displayLabel(space()))
+
+        controller.enabledLanguages = setOf(Languages.english.tag, Languages.ukrainian.tag)
+        assertEquals(Languages.english.nativeName, controller.displayLabel(space()))
+        // The key keeps its name for TalkBack and its id either way; only the glyph goes.
+        assertEquals(Languages.english.nativeName, space().label)
     }
 }

@@ -86,8 +86,10 @@ emulator profile is `medium_phone`; boot it headless with
 - **Languages** are data in `layout/Languages.kt`: rows, accents, native name. A layer sizes itself to
   its widest row. The globe key exists only with two or more languages enabled; the persisted
   current language is authoritative and the service follows changes to it. The enabled set is the
-  keyboard's own: `method.xml` declares no subtypes on purpose (Android's own per-language list
-  disagreed with ours and its picker never reached the keys), and the first-run default is English
+  keyboard's own: `method.xml` declares no language subtypes on purpose (Android's own per-language
+  list disagreed with ours and its picker never reached the keys), only one language-neutral subtype
+  whose label is the line Android's keyboard list shows under the name (it never shows the service's
+  `android:description`), and the first-run default is English
   only; additional languages are added by the user in settings (`Languages.defaultEnabled`).
   English is always on and not toggleable in settings. The 60% board is
   built from the same data (`layout/SixtyPercentLayout.kt`): letters fill the ANSI slots of

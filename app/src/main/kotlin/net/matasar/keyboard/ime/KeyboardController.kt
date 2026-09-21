@@ -314,6 +314,9 @@ class KeyboardController(
     fun fnLive(key: Key): Boolean = fnActive && labelFor(key, shift = shiftActive, fn = false) != displayLabel(key)
 
     private fun labelFor(key: Key, shift: Boolean, fn: Boolean): String {
+        // With English alone there is nothing to tell apart, so space stays blank. The key keeps
+        // its label, which is its id and what TalkBack reads.
+        if (key.action == KeyAction.Space && !withGlobe) return ""
         if (modifiers.anyMetaActive && key.action is KeyAction.Letter && key.slot != null) return key.slot.uppercase()
         fnLabel(key, shift, fn)?.let { return it }
         return when (val action = key.action) {
