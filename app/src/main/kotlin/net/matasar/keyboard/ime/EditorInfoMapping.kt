@@ -55,6 +55,37 @@ fun suggestionsAllowed(inputType: Int): Boolean {
 }
 
 /**
+ * The capitalization a field asks for (`TYPE_TEXT_FLAG_CAP_*`), or 0: only plain text can ask,
+ * so a terminal, a number, a password, an address or an e-mail field never gets a capital it did
+ * not type. A chat box asks for sentences; a code editor asks for nothing.
+ */
+fun capsModesOf(inputType: Int): Int {
+    if (inputType and InputType.TYPE_MASK_CLASS != InputType.TYPE_CLASS_TEXT) return 0
+    return when (inputType and InputType.TYPE_MASK_VARIATION) {
+        InputType.TYPE_TEXT_VARIATION_URI,
+        InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS,
+        InputType.TYPE_TEXT_VARIATION_WEB_EMAIL_ADDRESS,
+        InputType.TYPE_TEXT_VARIATION_PASSWORD,
+        InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD,
+        InputType.TYPE_TEXT_VARIATION_WEB_PASSWORD,
+        -> 0
+        else -> inputType and CAPS_MODES
+    }
+}
+
+private const val CAPS_MODES = InputType.TYPE_TEXT_FLAG_CAP_CHARACTERS or
+    InputType.TYPE_TEXT_FLAG_CAP_WORDS or
+    InputType.TYPE_TEXT_FLAG_CAP_SENTENCES
+
+/** How the field report names what [capsModesOf] found. */
+private fun capsName(modes: Int): String = when {
+    modes and InputType.TYPE_TEXT_FLAG_CAP_CHARACTERS != 0 -> "characters"
+    modes and InputType.TYPE_TEXT_FLAG_CAP_WORDS != 0 -> "words"
+    modes and InputType.TYPE_TEXT_FLAG_CAP_SENTENCES != 0 -> "sentences"
+    else -> "none"
+}
+
+/**
  * Whether the field says there is another field after it: its action is Next, or it carries the
  * navigate-next flag beside another action (a web form's username field often shows Go).
  */
@@ -75,7 +106,7 @@ fun fieldReport(info: EditorInfo): String {
     return listOf(
         "app: ${info.packageName} fieldId=${info.fieldId}",
         "inputType=0x${Integer.toHexString(info.inputType)} imeOptions=0x${Integer.toHexString(info.imeOptions)} privateImeOptions=${info.privateImeOptions}",
-        "read as: $kind, suggestions ${if (suggestionsAllowed(info.inputType)) "allowed" else "off"}, glide ${if (kind == FieldKind.TEXT) "allowed" else "off"}",
+        "read as: $kind, suggestions ${if (suggestionsAllowed(info.inputType)) "allowed" else "off"}, glide ${if (kind == FieldKind.TEXT) "allowed" else "off"}, caps ${capsName(capsModesOf(info.inputType))}",
     ).joinToString("\n")
 }
 

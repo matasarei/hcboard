@@ -106,4 +106,25 @@ class EditorInfoMappingTest {
         assertFalse(suggestionsAllowed(InputType.TYPE_CLASS_PHONE))
         assertFalse(suggestionsAllowed(InputType.TYPE_NULL))
     }
+
+    @Test
+    fun `only plain text fields ask for capitals, and only the ones they name`() {
+        val sentences = InputType.TYPE_TEXT_FLAG_CAP_SENTENCES
+        assertEquals(sentences, capsModesOf(InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_SHORT_MESSAGE or sentences))
+        assertEquals(InputType.TYPE_TEXT_FLAG_CAP_WORDS, capsModesOf(InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PERSON_NAME or InputType.TYPE_TEXT_FLAG_CAP_WORDS))
+        assertEquals(0, capsModesOf(InputType.TYPE_CLASS_TEXT))
+        assertEquals(0, capsModesOf(InputType.TYPE_NULL))
+        assertEquals(0, capsModesOf(InputType.TYPE_CLASS_NUMBER or sentences))
+        assertEquals(0, capsModesOf(InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD or sentences))
+        assertEquals(0, capsModesOf(InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_URI or sentences))
+        assertEquals(0, capsModesOf(InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS or sentences))
+    }
+
+    @Test
+    fun `the field report says which capitals the field asks for`() {
+        val chat = EditorInfo().apply { inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_CAP_SENTENCES }
+        assertTrue(fieldReport(chat).contains("caps sentences"), fieldReport(chat))
+        val plain = EditorInfo().apply { inputType = InputType.TYPE_CLASS_TEXT }
+        assertTrue(fieldReport(plain).contains("caps none"), fieldReport(plain))
+    }
 }
