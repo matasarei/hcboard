@@ -125,9 +125,13 @@ fun sixtyPercentLayer(language: Language, withGlobe: Boolean) = Layer(
     ),
 )
 
-/** The layout for wide windows: one board carries letters, symbols and modifiers. */
+/** The layout for wide windows: one board carries letters, symbols and modifiers, whole or split. */
 fun wideLayout(language: Language, withGlobe: Boolean): KeyboardLayout =
-    KeyboardLayout(layers = mapOf(LayerId.LETTERS to sixtyPercentLayer(language, withGlobe)), units = 15f)
+    KeyboardLayout(
+        layers = mapOf(LayerId.LETTERS to sixtyPercentLayer(language, withGlobe)),
+        units = 15f,
+        split = splitLayer(language, withGlobe),
+    )
 
 /** The English board with no globe, as in the Fold mocks. */
 val SixtyPercentLayer: Layer = sixtyPercentLayer(Languages.english, withGlobe = false)
