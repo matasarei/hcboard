@@ -55,7 +55,6 @@ import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.ui.text.font.FontFamily
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
-import net.matasar.keyboard.ime.VoiceKeyboard
 import net.matasar.keyboard.ime.listVoiceKeyboards
 import net.matasar.keyboard.R
 import net.matasar.keyboard.ime.KeyboardDiagnostics
@@ -302,7 +301,8 @@ private fun SplitMode.label(): String = stringResource(
 @Composable
 private fun VoiceKeyboardPicker(selected: String?, onPick: (String?) -> Unit) {
     val context = LocalContext.current
-    var keyboards by remember { mutableStateOf(emptyList<VoiceKeyboard>()) }
+    // Read now, not only on resume: an empty first frame would claim no voice keyboard is on.
+    var keyboards by remember { mutableStateOf(listVoiceKeyboards(context)) }
     LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { keyboards = listVoiceKeyboards(context) }
     val openKeyboardSettings = { context.startActivity(Intent(ACTION_INPUT_METHOD_SETTINGS)) }
 
