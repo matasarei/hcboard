@@ -8,6 +8,22 @@ en	205
 les	204
 du	203
 est	202
+bises	200
+bisou	200
+bisous	200
+bonjour	200
+bonsoir	200
+cool	200
+coucou	200
+génial	200
+lol	200
+merci	200
+ok	200
+okay	200
+ouais	200
+parfait	200
+salut	200
+super	200
 un	198
 dans	197
 par	196
@@ -30,8 +46,60 @@ aux	181
 ce	181
 comme	181
 été	181
+appelle	180
+appelé	180
+appli	180
+applis	180
+arrive	180
+arrivé	180
+attends	180
+bientôt	180
+capture	180
+demain	180
+déjà	180
+emoji	180
+emojis	180
+encore	180
+envoie	180
+envoyé	180
+google	180
+googler	180
+hier	180
+insta	180
+instagram	180
+like	180
+liker	180
+likes	180
+login	180
+maintenant	180
+message	180
+messages	180
+ordi	180
 pas	180
+portable	180
+poster	180
+posté	180
+rappelle	180
+réponds	180
+screenshot	180
+selfie	180
+selfies	180
 ses	180
+snap	180
+snapchat	180
+stories	180
+story	180
+tard	180
+texto	180
+tiktok	180
+téléphone	180
+update	180
+whatsapp	180
+wifi	180
+youtube	180
+zoom	180
+écris	180
+écrit	180
 deux	179
 ne	179
 mais	177
@@ -78,13 +146,123 @@ commune	166
 fois	166
 français	166
 vers	166
+anniv	165
+anniversaire	165
+app	165
+appart	165
+argent	165
+askip	165
 autres	165
 avait	165
+bah	165
+ben	165
+bien	165
+bise	165
+bjr	165
+bof	165
+bon	165
+bonne	165
+boulot	165
+bravo	165
+bref	165
+bureau	165
+bus	165
+cadeau	165
+café	165
+carrément	165
+cc	165
+chelou	165
+chez	165
+chui	165
+combien	165
+comment	165
+content	165
+contente	165
+copain	165
+copine	165
+courage	165
+courses	165
+dac	165
+dej	165
+diner	165
+dis	165
+dispo	165
+drôle	165
+déj	165
+désolé	165
+désolée	165
+dîner	165
+email	165
+emails	165
+euh	165
+famille	165
+fatigué	165
+fatiguée	165
 fin	165
+franchement	165
+félicitations	165
+gars	165
+genre	165
+grave	165
+journée	165
+jpp	165
+jsp	165
+kiffe	165
+kiffer	165
+lien	165
+mail	165
+mails	165
+maison	165
+malade	165
+marrant	165
+mdr	165
+mec	165
+meuf	165
+métro	165
+nan	165
+nickel	165
+non	165
+nuit	165
 né	165
+occupé	165
+occupée	165
+osef	165
+ouf	165
+oui	165
+post	165
+pote	165
+potes	165
+pourquoi	165
+ptdr	165
+quand	165
+rdv	165
+relou	165
+resto	165
+retard	165
 sans	165
-bien	164
-encore	164
+slt	165
+sms	165
+soir	165
+stp	165
+svp	165
+taf	165
+taxi	165
+thune	165
+tkt	165
+top	165
+train	165
+tranquille	165
+tranquillou	165
+travail	165
+trop	165
+tôt	165
+vacances	165
+vois	165
+vrai	165
+vraiment	165
+week	165
+weekend	165
+wesh	165
 monde	164
 mort	164
 notamment	164
@@ -95,7 +273,6 @@ temps	164
 avoir	163
 donc	163
 faire	163
-famille	163
 leurs	163
 peu	163
 soit	163
@@ -123,7 +300,6 @@ située	161
 vie	161
 forme	160
 grand	160
-non	160
 population	160
 quatre	160
 si	160
@@ -134,7 +310,6 @@ fils	159
 nombreux	159
 roi	159
 souvent	159
-tard	159
 trouve	159
 cas	158
 dernier	158
@@ -152,7 +327,6 @@ autre	157
 celle	157
 celui	157
 chaque	157
-chez	157
 doit	157
 département	157
 exemple	157
@@ -226,7 +400,6 @@ personnes	154
 premiers	154
 prend	154
 service	154
-travail	154
 base	153
 beaucoup	153
 construction	153
@@ -254,7 +427,6 @@ américain	152
 but	152
 communes	152
 création	152
-déjà	152
 enfants	152
 espèce	152
 femme	152
@@ -292,7 +464,6 @@ homme	151
 jamais	151
 km	151
 loi	151
-maison	151
 milieu	151
 militaire	151
 ministre	151
@@ -312,7 +483,6 @@ seulement	151
 siècle	151
 travaux	151
 utilisé	151
-écrit	151
 anglais	150
 aurait	150
 autour	150
@@ -344,7 +514,6 @@ petite	150
 plan	150
 possède	150
 premières	150
-quand	150
 rapport	150
 recherche	150
 route	150
@@ -356,7 +525,6 @@ siège	150
 suivante	150
 zone	150
 équipe	150
-appelé	149
 certaines	149
 chanson	149
 commence	149
@@ -364,7 +532,6 @@ domaine	149
 elles	149
 espèces	149
 frère	149
-genre	149
 grandes	149
 lequel	149
 lorsque	149
@@ -481,7 +648,6 @@ services	146
 simple	146
 sort	146
 théâtre	146
-trop	146
 voix	146
 économique	146
 élections	146
@@ -599,7 +765,6 @@ longue	143
 meurt	143
 moitié	143
 naissance	143
-nuit	143
 passé	143
 personnages	143
 petits	143
@@ -635,8 +800,6 @@ anciens	142
 aucune	142
 bande	142
 blanc	142
-bon	142
-bonne	142
 bord	142
 buts	142
 catholique	142
@@ -766,7 +929,6 @@ voyage	141
 îles	141
 Louis	140
 ait	140
-arrive	140
 bas	140
 bassin	140
 belge	140
@@ -798,7 +960,6 @@ largement	140
 latin	140
 lieux	140
 littérature	140
-maintenant	140
 matière	140
 monuments	140
 nos	140
@@ -1001,7 +1162,6 @@ sélection	138
 sœur	138
 tableau	138
 température	138
-train	138
 traitement	138
 trouvent	138
 uniquement	138
@@ -1202,7 +1362,6 @@ biens	135
 bout	135
 branche	135
 bras	135
-bureau	135
 candidat	135
 cardinal	135
 chose	135
@@ -1244,7 +1403,6 @@ fête	135
 humaine	135
 héros	135
 informations	135
-journée	135
 langage	135
 littéraire	135
 locales	135
@@ -1291,13 +1449,11 @@ territoires	135
 totalement	135
 trains	135
 tué	135
-tôt	135
 unités	135
 vaste	135
 versions	135
 vieux	135
 vivre	135
-vrai	135
 écrite	135
 électrique	135
 épisode	135
@@ -1307,7 +1463,6 @@ York	134
 accueille	134
 acteur	134
 action	134
-appelle	134
 britanniques	134
 cartes	134
 commande	134
@@ -1329,7 +1484,6 @@ définitivement	134
 députés	134
 endémique	134
 entier	134
-envoyé	134
 espace	134
 exemplaires	134
 explique	134
@@ -1514,7 +1668,6 @@ score	133
 scènes	133
 servir	133
 sièges	133
-soir	133
 somme	133
 spectacle	133
 sujets	133
@@ -1593,7 +1746,6 @@ internationales	132
 laisser	132
 lecture	132
 libération	132
-lien	132
 liées	132
 machine	132
 marche	132
@@ -1670,7 +1822,6 @@ autonome	131
 autrefois	131
 baie	131
 bat	131
-bientôt	131
 cabinet	131
 candidats	131
 caractéristique	131
@@ -1746,7 +1897,6 @@ noblesse	131
 nucléaire	131
 nécessaires	131
 objectif	131
-occupé	131
 organisée	131
 original	131
 origine	131
@@ -1761,7 +1911,6 @@ pierres	131
 plaine	131
 plante	131
 populaires	131
-pourquoi	131
 poésie	131
 principes	131
 profondeur	131
@@ -1837,7 +1986,6 @@ battu	130
 blancs	130
 blessé	130
 bourg	130
-bus	130
 canons	130
 caractères	130
 catholiques	130
@@ -1850,7 +1998,6 @@ ciel	130
 citer	130
 civil	130
 col	130
-comment	130
 compagnies	130
 comprenant	130
 compétitions	130
@@ -1858,7 +2005,6 @@ conquête	130
 conservé	130
 construits	130
 contrairement	130
-courses	130
 culturelle	130
 cérémonie	130
 côtes	130
@@ -2072,7 +2218,6 @@ moindre	129
 mon	129
 montée	129
 métier	129
-métro	129
 noirs	129
 nul	129
 numérique	129
@@ -2193,7 +2338,6 @@ efficace	128
 efforts	128
 enfance	128
 entrer	128
-envoie	128
 espaces	128
 exposition	128
 faculté	128
@@ -2227,7 +2371,6 @@ maladies	128
 maîtrise	128
 meilleures	128
 mener	128
-message	128
 minimum	128
 ministres	128
 montrer	128
@@ -2262,7 +2405,6 @@ péninsule	128
 périodes	128
 quart	128
 québécois	128
-rappelle	128
 recensements	128
 relie	128
 remarquable	128
@@ -2304,7 +2446,6 @@ vigueur	128
 violence	128
 visiteurs	128
 voulait	128
-vraiment	128
 vécu	128
 âgé	128
 écrire	128
@@ -2400,7 +2541,6 @@ fournit	127
 franchise	127
 froid	127
 fêtes	127
-grave	127
 guitariste	127
 informatique	127
 installations	127
@@ -2541,7 +2681,6 @@ amateur	126
 amour	126
 amoureux	126
 anciennement	126
-anniversaire	126
 annuel	126
 appareil	126
 architecte	126
@@ -2864,7 +3003,6 @@ noble	125
 nobles	125
 nommés	125
 nécessite	125
-occupée	125
 parfaitement	125
 participants	125
 paysages	125
@@ -2975,7 +3113,6 @@ amie	124
 apparait	124
 apparu	124
 arrivent	124
-arrivé	124
 assassiné	124
 atelier	124
 auxquels	124
@@ -3066,7 +3203,6 @@ juif	124
 juridiction	124
 lait	124
 majoritairement	124
-malade	124
 manga	124
 manifeste	124
 marbre	124
@@ -3209,7 +3345,6 @@ blanches	123
 blessures	123
 breton	123
 béton	123
-café	123
 catalogue	123
 cents	123
 cheveux	123
@@ -3629,7 +3764,6 @@ témoigne	122
 témoin	122
 unies	122
 univers	122
-vacances	122
 variante	122
 vend	122
 vertu	122
@@ -3677,7 +3811,6 @@ apparitions	121
 appellation	121
 architectes	121
 archéologique	121
-argent	121
 armé	121
 assemblée	121
 athlète	121
@@ -3837,7 +3970,6 @@ remplacés	121
 remportent	121
 repas	121
 représentés	121
-retard	121
 revint	121
 reçoivent	121
 roches	121
@@ -3882,7 +4014,6 @@ trouva	121
 trouvant	121
 tue	121
 turc	121
-téléphone	121
 témoignages	121
 universel	121
 variantes	121
@@ -3947,7 +4078,6 @@ beaux	120
 bonheur	120
 byzantin	120
 calme	120
-capture	120
 chanter	120
 cite	120
 citoyen	120
@@ -4239,7 +4369,6 @@ contrainte	119
 coordonnées	119
 copies	119
 corruption	119
-courage	119
 croisade	119
 crédit	119
 cède	119
@@ -4329,7 +4458,6 @@ manager	119
 manches	119
 maritimes	119
 mes	119
-messages	119
 messe	119
 militant	119
 montage	119
@@ -4357,7 +4485,6 @@ paiement	119
 paire	119
 palmarès	119
 paramètres	119
-parfait	119
 parlementaires	119
 partagé	119
 partent	119
@@ -4441,7 +4568,6 @@ taxe	119
 tiennent	119
 tirage	119
 tombes	119
-top	119
 touché	119
 touristiques	119
 traitements	119
@@ -4507,11 +4633,9 @@ bactéries	118
 baies	118
 bassiste	118
 bec	118
-ben	118
 blues	118
 bombardements	118
 bourgeoisie	118
-bref	118
 briques	118
 brève	118
 caisse	118
@@ -5066,7 +5190,6 @@ répandue	117
 résidents	117
 révision	117
 saga	117
-salut	117
 semblables	117
 sensibles	117
 sexuel	117
@@ -7831,7 +7954,6 @@ soutenant	110
 souterraine	110
 stages	110
 suggéré	110
-super	110
 symétrique	110
 sédiments	110
 séjourne	110
@@ -7979,7 +8101,6 @@ brûlé	109
 bénéficiant	109
 bêtes	109
 cadavres	109
-cadeau	109
 calculé	109
 caméras	109
 canonique	109
@@ -8699,7 +8820,6 @@ orchestres	108
 org	108
 organiste	108
 orientations	108
-oui	108
 panne	108
 panorama	108
 parenthèses	108
@@ -8717,7 +8837,6 @@ pirate	108
 planétaire	108
 plate	108
 policière	108
-portable	108
 posent	108
 positionnement	108
 postale	108
@@ -8972,7 +9091,6 @@ collaborations	107
 collaborer	107
 collectionneurs	107
 comarque	107
-combien	107
 commençait	107
 commercialisée	107
 commerçant	107
@@ -8989,7 +9107,6 @@ considérations	107
 consommer	107
 consommé	107
 contamination	107
-contente	107
 contenter	107
 conteste	107
 continuera	107
@@ -9043,7 +9160,6 @@ désordre	107
 détaché	107
 détenue	107
 dévoile	107
-dîner	107
 empêchant	107
 encouragé	107
 engendre	107
@@ -9335,7 +9451,6 @@ toits	107
 tortue	107
 touches	107
 tourna	107
-tranquille	107
 transactions	107
 transparence	107
 travaillaient	107
@@ -10809,7 +10924,6 @@ naine	104
 navigable	104
 nefs	104
 niches	104
-nickel	104
 nommait	104
 normalisation	104
 nouveautés	104
@@ -11227,7 +11341,6 @@ célestes	103
 célibataire	103
 cônes	103
 côtier	103
-demain	103
 demandée	103
 demeurer	103
 dessinateurs	103
@@ -12188,7 +12301,6 @@ sédimentaires	102
 ségrégation	102
 sérieuses	102
 tardives	102
-taxi	102
 tendant	102
 tentait	102
 testé	102
@@ -12486,7 +12598,6 @@ douane	101
 douloureuse	101
 douloureux	101
 droitier	101
-drôle	101
 débiteur	101
 débutants	101
 déchéance	101
@@ -12639,7 +12750,6 @@ magnésium	101
 malais	101
 marginale	101
 marocains	101
-merci	101
 merveilles	101
 messager	101
 messieurs	101
@@ -14788,7 +14898,6 @@ pompage	98
 portance	98
 portugaises	98
 positionner	98
-post	98
 postaux	98
 praticiens	98
 pratiquaient	98
@@ -15247,7 +15356,6 @@ différentielles	97
 digestion	97
 diminuent	97
 diminuée	97
-dis	97
 disparaitre	97
 disparurent	97
 disputa	97
@@ -15771,7 +15879,6 @@ visitée	97
 visuelles	97
 vitamines	97
 viticoles	97
-vois	97
 volants	97
 voltigeur	97
 volumineux	97
@@ -16042,7 +16149,6 @@ constitutionnels	96
 constitutions	96
 contacter	96
 contenaient	96
-content	96
 contingents	96
 contour	96
 contourne	96
@@ -16147,7 +16253,6 @@ fabriquant	96
 faisabilité	96
 familièrement	96
 farce	96
-fatigué	96
 fauve	96
 feuillets	96
 flottante	96
@@ -16971,7 +17076,6 @@ formulées	95
 fortunes	95
 foudres	95
 fourrage	95
-franchement	95
 franchissent	95
 frappent	95
 friction	95
@@ -17805,7 +17909,6 @@ féodalité	94
 game	94
 gardés	94
 garni	94
-gars	94
 gauches	94
 gentilshommes	94
 girl	94
@@ -18698,7 +18801,6 @@ fugitifs	93
 fusionnées	93
 fédérative	93
 fédérer	93
-félicitations	93
 galicien	93
 galop	93
 gangster	93
@@ -19472,7 +19574,6 @@ contribuera	92
 controversés	92
 convertisseur	92
 convives	92
-copain	92
 copilote	92
 coproduction	92
 coqs	92
@@ -20824,7 +20925,6 @@ populiste	91
 pores	91
 portier	91
 possesseurs	91
-poster	91
 postuler	91
 postures	91
 postérieurement	91
@@ -21594,7 +21694,6 @@ heurta	90
 heurter	90
 hexagonal	90
 hexagonale	90
-hier	90
 humanoïde	90
 hydravions	90
 hébergement	90
@@ -21697,7 +21796,6 @@ lutta	90
 légation	90
 légionnaire	90
 macabre	90
-mail	90
 malformations	90
 maltaise	90
 mandoline	90
@@ -21816,7 +21914,6 @@ polo	90
 polygamie	90
 polygones	90
 ponctuels	90
-posté	90
 potion	90
 poulets	90
 pratiqua	90
@@ -22045,7 +22142,6 @@ voulais	90
 vécues	90
 vélodrome	90
 vénérée	90
-zoom	90
 zoos	90
 Édimbourg	90
 ânes	90
@@ -23388,8 +23484,6 @@ contrôlaient	88
 convaincant	88
 convainquit	88
 convertissent	88
-cool	88
-copine	88
 coquillage	88
 cordons	88
 corner	88
@@ -24093,7 +24187,6 @@ vécus	88
 végétative	88
 vérifient	88
 vésicules	88
-weekend	88
 wisigoth	88
 zoologiques	88
 çà	88
@@ -24492,7 +24585,6 @@ conçoivent	87
 coproduit	87
 corrompre	87
 cosaque	87
-coucou	87
 coupa	87
 courroie	87
 courtine	87
@@ -24666,7 +24758,6 @@ griefs	87
 grossiers	87
 groupé	87
 guirlandes	87
-génial	87
 généalogies	87
 généralisées	87
 généreusement	87
@@ -25497,7 +25588,6 @@ blue	86
 bob	86
 boréal	86
 boulangers	86
-boulot	86
 branché	86
 brick	86
 bricolage	86
@@ -25527,7 +25617,6 @@ caractérisait	86
 cardinalice	86
 cargaisons	86
 carrossier	86
-carrément	86
 cartographier	86
 cartésiennes	86
 castillane	86
@@ -30594,7 +30683,6 @@ déshonneur	82
 désinence	82
 désintègre	82
 désintéressé	82
-désolé	82
 désordonnée	82
 détacha	82
 détectable	82
@@ -34923,7 +35011,6 @@ fascinée	79
 fastueuse	79
 fatidique	79
 fatigues	79
-fatiguée	79
 fibreuse	79
 fibreux	79
 fibrillation	79
@@ -35167,7 +35254,6 @@ maths	79
 matinales	79
 mauricien	79
 mazout	79
-mec	79
 mensurations	79
 merchandising	79
 merveilleuses	79
@@ -38308,7 +38394,6 @@ madrasa	77
 mafieuse	77
 magnitudes	77
 magnétoscope	77
-mails	77
 maintenaient	77
 majorée	77
 maladive	77
@@ -39584,7 +39669,6 @@ désarme	76
 déshérence	76
 désignèrent	76
 désirés	76
-désolée	76
 déstabilisé	76
 déstalinisation	76
 détérioré	76
@@ -41012,7 +41096,6 @@ bondir	75
 bondit	75
 bonification	75
 bonifications	75
-bonjour	75
 borner	75
 bossages	75
 bouchères	75
@@ -43433,7 +43516,6 @@ pondu	74
 pontage	74
 postcombustion	74
 potagères	74
-pote	74
 pourcents	74
 pratiquante	74
 praxis	74
@@ -44327,7 +44409,6 @@ bipartite	73
 bipèdes	73
 birmanes	73
 biréfringence	73
-bise	73
 blaireaux	73
 bleuets	73
 blockbuster	73
@@ -44591,7 +44672,6 @@ déversées	73
 déversés	73
 effroyables	73
 eh	73
-email	73
 emballés	73
 empara	73
 empiète	73
@@ -48705,7 +48785,6 @@ poserait	71
 poseur	71
 positivistes	71
 possessive	71
-potes	71
 pouillé	71
 pourpré	71
 pourrissement	71
@@ -50939,7 +51018,6 @@ zoonose	70
 éclipser	70
 écolâtre	70
 économise	70
-écris	70
 édile	70
 éditera	70
 éditorialistes	70
@@ -54770,7 +54848,6 @@ rénovateurs	68
 réorienté	68
 réparant	68
 réparent	68
-réponds	68
 réprimander	68
 résignée	68
 résolurent	68
@@ -54993,7 +55070,6 @@ voyeur	68
 voïvodes	68
 wagnériens	68
 weekends	68
-wifi	68
 wylie	68
 yak	68
 yu	68
@@ -56440,7 +56516,6 @@ lobbyiste	67
 lobbyistes	67
 lobotomie	67
 locotracteur	67
-login	67
 logs	67
 louèrent	67
 luxueusement	67
@@ -56534,7 +56609,6 @@ mésoaméricaine	67
 mésozoïque	67
 métamorphosée	67
 métastatique	67
-nan	67
 nanomètre	67
 narcisse	67
 narcolepsie	67
@@ -62455,7 +62529,6 @@ dévoyé	64
 ectoparasites	64
 efficientes	64
 electric	64
-emails	64
 embrassée	64
 empaillés	64
 emphysème	64
@@ -64128,7 +64201,6 @@ atrophié	63
 atrophiés	63
 attaquerait	63
 atteler	63
-attends	63
 attirail	63
 attrapes	63
 attroupements	63
