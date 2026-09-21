@@ -34,10 +34,15 @@ from the password manager you already use, and the keyboard never shows or keeps
 
 ## What it looks like
 
-| Terminal on a foldable | Fn and Shift armed | Phone, with the developer strip |
-|---|---|---|
-| <img src="docs/screenshots/fold-terminal.jpg" alt="The 60% board under a terminal session on a foldable" width="380"> | <img src="docs/screenshots/fold-fn.jpg" alt="The same board with Fn and Shift held: the number row shows F1 to F12 and the letters show arrows, Home, End and brackets" width="380"> | <img src="docs/screenshots/phone-dev-strip.jpg" alt="The phone board in dark mode with a strip of Esc, Tab, Ctrl, Alt, Shift, arrows and Fn above the letters" width="180"> |
-| The whole 60% board, with the keys' symbols printed where a PC keyboard has them. | Hold Fn and the keys show what they will type, so nothing has to be remembered. | The same modifiers on a phone, one tap away, over any layer. |
+| Fn armed on a foldable | Split in two |
+|---|---|
+| <img src="docs/screenshots/fold-fn.jpg" alt="The 60% board under a terminal session on a foldable with Fn armed: the number row shows F1 to F12, the letters show arrows, Home, End, PgUp and PgDn, and the toolbar says Fn · next key" width="380"> | <img src="docs/screenshots/fold-split.jpg" alt="The 60% board split into a left and a right half on a foldable, each half with its own space bar" width="380"> |
+| Every key of a 60% board, with the symbols printed where a PC keyboard has them. Arm Fn and the keys show what they will type. | Or in two halves, one under each thumb: where a hinge crosses the screen, on a phone turned sideways, or always. |
+
+| Suggestions and the developer strip | The gear | Macros, one tap | Building a macro |
+|---|---|---|---|
+| <img src="docs/screenshots/phone-dev-strip.jpg" alt="The phone board with word suggestions in the toolbar and a strip of Esc, Tab, Ctrl, Alt, Shift, arrows and Fn above the letters" width="180"> | <img src="docs/screenshots/phone-gear-sheet.jpg" alt="The sheet the toolbar's gear opens: a Developer mode switch and a way to Settings" width="180"> | <img src="docs/screenshots/phone-macro-sheet.jpg" alt="The macro sheet over a terminal: the built-in password generator and a macro that types neofetch and presses Enter" width="180"> | <img src="docs/screenshots/phone-macro-editor.jpg" alt="The macro editor with a Type text block and a Press key block for Enter, and a field to try it" width="180"> |
+| Words to pick while you type, and the PC keys above any layer. | Developer mode and Settings, behind one button. | Play a macro into any field, a terminal included. | Snap blocks together, then try the macro right there. |
 
 ## Everyday typing
 
@@ -50,17 +55,25 @@ from the password manager you already use, and the keyboard never shows or keeps
   lights up, one tap on it cancels the capital, and terminals, addresses and code get none. It can
   be turned off in Settings.
 - **Ten languages:** English, Ukrainian, Russian, Bulgarian, French, Spanish, German, Italian, Portuguese
-  (Brazil) and Polish, each with its own layout and long-press accents. Until you change the set
-  it follows your phone's languages, plus English; a globe key switches them, and holding it opens
-  the list. For Russian speakers in Bulgaria who prefer typing on the Russian ЙЦУКЕН layout, an optional
-  setting enables combined Bulgarian vocabulary with collision-safe autocorrect.
+  (Brazil) and Polish, each with its own layout and long-press accents. English is always on; add
+  the others in Settings → Languages. With two or more, a globe key switches them, holding it opens
+  the list, and the space bar names the one you are typing in. For Russian speakers in Bulgaria
+  who prefer typing on the Russian ЙЦУКЕН layout, an optional setting enables combined Bulgarian
+  vocabulary with collision-safe autocorrect.
   *(Want your language or a feature? [Create an issue](https://github.com/matasarei/hcboard/issues) and tell me!)*
 - **The feel of a phone keyboard:** a preview above the key you press, a spring under your finger,
   a light haptic tick, accents on a long press, and a cursor trackpad when you hold the space bar.
 - **Your phone's look:** Material 3, with dynamic colour on Android 12 and later. Four themes —
   System, Light, Dark and Black — and the dark board is built on the same background your apps use.
+- **A toolbar that stays out of the way:** the gear (Developer mode and Settings), your password
+  manager, your macros and paste on the left, hide on the right. While you type a word, its
+  suggestions take the buttons' place; the chevron brings them back.
+- **Your password manager, one tap away.** Logins it offers appear above the keys. The key button
+  can also fill a login into the field in front of you, open the manager, or change which one
+  Android uses.
 - **Fits your hands:** set the keyboard's height, the space under the keys (or let it follow the
-  system bar), key borders, the haptic tick and the key preview in Settings.
+  system bar), key borders, the haptic tick and the key preview in Settings, and try each change in
+  the field at the bottom of the screen, or in its password field.
 
 ## When you want to tinker
 
@@ -70,8 +83,8 @@ from the password manager you already use, and the keyboard never shows or keeps
   edges are balanced so the letters sit nearer the middle of the screen, and it can split into a
   left and a right half: by itself where a hinge crosses the screen and on a phone turned sideways,
   or always, or never (Settings → Wide keyboard).
-- **A developer strip on phones.** Developer mode under the toolbar's gear puts Esc, Tab, Ctrl, Alt,
-  Shift, arrows and Fn above any layer, and the keyboard remembers which apps you use it in.
+- **A developer strip on phones.** Developer mode, behind the toolbar's gear, puts Esc, Tab, Ctrl,
+  Alt, Shift, arrows and Fn above any layer, and the keyboard remembers which apps you use it in.
 - **Modifiers that latch the way you expect.** Tap one to arm it for the next key, double-tap or
   long-press to lock it, or hold it and tap another key with a second finger. They survive layer
   switches, and the toolbar says what is armed. Every key shows what it will type as Shift or Fn
@@ -82,8 +95,9 @@ from the password manager you already use, and the keyboard never shows or keeps
   is armed the keys show the Latin letters they will send.
 - **Macros built from blocks.** Snap together coloured blocks — type text, press a key such as Esc,
   F1 or Shift, a combination like Ctrl+Shift+T, random keys, repeat, wait, paste — then play the
-  macro into any field from the toolbar's macro button (Settings → Macros). One comes built in: a
-  password generator that types 16 random letters, digits and symbols.
+  macro into any field from the toolbar's macro button (Settings → Macros). The editor has a field
+  to try a macro in before you use it. One comes built in: a password generator that types 16
+  random letters, digits and symbols.
 
 ## Privacy
 
