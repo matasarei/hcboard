@@ -102,6 +102,10 @@ from the password manager you already use, and the keyboard never shows or keeps
 - **A generated password is typed, not kept.** The password generator's keys are made fresh on
   each run and go straight into the field as key presses; they are not stored, logged or shown by
   the keyboard, and word suggestions do not read them back.
+- **Macros are saved like your settings.** They stay on the phone, and like the settings they are
+  part of Android's own backup of the app when you have backup turned on. The text in a macro's
+  blocks is saved as you wrote it, so keep passwords out of it; the password generator makes
+  new ones each time and saves none.
 - **Everything is on the phone**, which is also why there is nothing to sign in to.
 
 ## Install
