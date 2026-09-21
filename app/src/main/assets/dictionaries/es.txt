@@ -30,7 +30,6 @@ okay	200
 perfecto	200
 porfa	200
 saludos	200
-sí	200
 vale	200
 por	199
 un	199
@@ -531,6 +530,7 @@ posible	149
 posición	149
 posteriormente	149
 superficie	149
+sí	149
 tema	149
 tierra	149
 unas	149
