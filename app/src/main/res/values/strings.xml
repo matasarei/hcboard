@@ -129,5 +129,16 @@
     <string name="key_group_function">Function keys</string>
     <string name="key_group_modifier">Modifiers on their own</string>
     <string name="settings_section_macros">Macros</string>
+    <string name="settings_words_open">Custom words</string>
+    <string name="words_title">Custom words</string>
+    <string name="words_hint">Added words are suggested, glide-typed and never corrected away. Blocked words are never suggested or used as corrections. Each language has its own list.</string>
+    <string name="words_field">A word in %1$s</string>
+    <string name="words_invalid">Letters only, up to %1$d of them.</string>
+    <string name="words_add">Add</string>
+    <string name="words_block">Block</string>
+    <string name="words_empty">No words of your own in this language yet.</string>
+    <string name="words_added">Added</string>
+    <string name="words_blocked">Blocked</string>
+    <string name="words_delete">Delete %1$s</string>
     <string name="settings_macros_open">Edit macros</string>
 </resources>
