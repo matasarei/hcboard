@@ -19,6 +19,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -74,10 +76,13 @@ fun SettingsSheet(
                 subtitle = "Ctrl, Alt, Fn and arrows above the keys",
                 onClick = onToggleDeveloperMode,
             ) {
-                // Shows the state only: the row takes the tap, so there is one target, not two.
+                // Shows the state only: the row takes the tap, so there is one target, not two. A
+                // switch without a callback says nothing to TalkBack, so the state is spelled out
+                // and merges into the row.
                 Switch(
                     checked = developerMode,
                     onCheckedChange = null,
+                    modifier = Modifier.semantics { stateDescription = if (developerMode) "On" else "Off" },
                     colors = SwitchDefaults.colors(
                         checkedThumbColor = colors.onArmed,
                         checkedTrackColor = colors.armedRing,
