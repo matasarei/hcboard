@@ -86,8 +86,14 @@ emulator profile is `medium_phone`; boot it headless with
   all twelve top-row slots (ї, ъ), while Bulgarian fills eleven (ч on `[`), so `[` and `]` are Fn or punctuation keys. Every
   letter key carries `Key.slot`, the US character of its slot: modifier combinations send the slot
   (Ctrl+С is Ctrl+C) and `displayLabel` shows it while Ctrl, Alt or Meta is active.
+  The wide board splits (`layout/SplitLayout.kt`) by cutting the balanced board after its sixth
+  key per row, every key at its full-board width, the rows padded on the inner side;
+  `ui/SplitGeometry.kt` decides when (Off/Auto/Always; Auto = a separating vertical hinge from
+  androidx.window, or a landscape window under 480 dp high) and sizes the unit so no key lands on
+  a hinge.
 - **A key is a legend line and a glyph** (`ui/KeyButton.kt`), never a stack of paddings: the
-  shifted symbol sits top-left, the Fn meaning top-right, and the glyph fills what is left.
+  shifted symbol sits top-left (the wide board prints no Fn meaning: while Fn is active the glyph
+  is the Fn meaning, so `Key.fnLegend` stays in the data), and the glyph fills what is left.
   Nothing is dropped on a short key — both zones are sized from the key's own height by the
   functions in `ui/Dimens.kt`, because the height setting starts at 80% (a 36.8 dp key) and a
   landscape window squeezes it further. The glyph is always **what the key would type now**:
