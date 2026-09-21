@@ -30,10 +30,12 @@ class MacroControllerTest {
     private val dispatcher = StandardTestDispatcher()
     private val test = TestScope(dispatcher)
     private val port = FakeEditorPort()
+    private val copies = mutableListOf<Pair<String, Boolean>>()
     private val controller = KeyboardController(InputDispatcher(port), clock = { 1000L }, main = dispatcher).apply {
         scope = test
         macroRandom = { Random(1) }
         clipboardText = { "from clipboard" }
+        copyToClipboard = { text, sensitive -> copies += text to sensitive }
         candidateEngine = Candidates(WordList.of("hello" to 200, "help" to 150))
         onStartInput(field())
     }
@@ -85,6 +87,19 @@ class MacroControllerTest {
         controller.onSelectionChanged()
         assertNull(controller.candidates)
         assertEquals(reads, port.textReads)
+    }
+
+    @Test
+    fun `a copy goes to the clipboard from a text field, never from a password field`() {
+        port.before = "typed here"
+        controller.runMacro(macro(Block.CopyField))
+        test.advanceUntilIdle()
+        assertEquals(listOf("typed here" to false), copies)
+
+        controller.onStartInput(field().apply { inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD })
+        controller.runMacro(macro(Block.CopyField))
+        test.advanceUntilIdle()
+        assertEquals(listOf("typed here" to false), copies)
     }
 
     @Test

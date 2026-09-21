@@ -327,6 +327,9 @@ class KeyboardController(
     /** The clipboard's text for a macro's paste block; the service plugs it in. */
     var clipboardText: () -> String? = { null }
 
+    /** Puts a macro's copy on the clipboard, marked sensitive when asked; the service plugs it in. */
+    var copyToClipboard: (text: String, sensitive: Boolean) -> Unit = { _, _ -> }
+
     /** Where a run's random keys come from: a fresh SecureRandom per run. Tests seed it. */
     internal var macroRandom: () -> Random = { SecureRandom().asKotlinRandom() }
 
@@ -471,14 +474,14 @@ class KeyboardController(
         stopMacro()
         macroSheetOpen = false
         clearCandidates()
-        val runner = MacroRunner(dispatcher, clipboardText, macroRandom, awaitFocusMove = ::awaitFocusMove)
+        val runner = MacroRunner(dispatcher, clipboardText, macroRandom, awaitFocusMove = ::awaitFocusMove, copyToClipboard = copyToClipboard)
         runningMacro = macro.id
         macroPackage = fieldPackage
         macroTypesSecrets = macro.typesSecrets()
         if (macroTypesSecrets) passwordTyped = true
         val job = scope.launch(main ?: Dispatchers.Main.immediate) {
             try {
-                runner.run(macro) { MacroField(terminal = terminalField, editingShortcuts = editingShortcutsInTextFields) }
+                runner.run(macro) { MacroField(terminal = terminalField, editingShortcuts = editingShortcutsInTextFields, password = passwordField) }
             } catch (_: MacroTooLong) {
                 // The editor warns about it; the keyboard plays nothing.
             }
