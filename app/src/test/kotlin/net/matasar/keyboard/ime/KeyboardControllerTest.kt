@@ -170,6 +170,29 @@ class KeyboardControllerTest {
         controller.onStartInput(EditorInfo().apply { inputType = InputType.TYPE_CLASS_TEXT })
         assertFalse(controller.showVoiceKey)
     }
+
+    @Test
+    fun `the strip starts folded, opens on its chevron and folds again when the keyboard hides`() {
+        assertFalse(controller.toolbarExpanded)
+        controller.expandToolbar()
+        assertTrue(controller.toolbarExpanded)
+        controller.onKeyboardHidden()
+        assertFalse(controller.toolbarExpanded)
+    }
+
+    @Test
+    fun `an opened strip stays open in the next field`() {
+        controller.expandToolbar()
+        controller.onFinishInput()
+        controller.onStartInput(EditorInfo().apply { inputType = InputType.TYPE_CLASS_TEXT })
+        assertTrue(controller.toolbarExpanded)
+    }
+
+    @Test
+    fun `folding the candidates away opens the strip`() {
+        controller.collapseCandidates()
+        assertTrue(controller.toolbarExpanded)
+    }
 }
 
 class WideBoardControllerTest {
