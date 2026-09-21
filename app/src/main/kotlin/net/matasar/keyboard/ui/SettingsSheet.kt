@@ -28,13 +28,16 @@ import net.matasar.keyboard.R
 import net.matasar.keyboard.ui.theme.LocalKeyboardColors
 
 /**
- * The sheet the gear opens: developer mode, which used to have its own toolbar button, and the
- * way to the settings screen. Tapping developer mode flips it and the controller closes the sheet.
+ * The sheet the gear opens: developer mode, which used to have its own toolbar button, whether the
+ * strip always shows its buttons, and the way to the settings screen. Tapping either switch row
+ * flips it and closes the sheet.
  */
 @Composable
 fun SettingsSheet(
     developerMode: Boolean,
     onToggleDeveloperMode: () -> Unit,
+    toolbarAlwaysShown: Boolean,
+    onToggleToolbarAlwaysShown: () -> Unit,
     onOpenSettings: () -> Unit,
     onDismiss: () -> Unit,
 ) {
@@ -93,6 +96,14 @@ fun SettingsSheet(
                 )
             }
             SheetRow(
+                icon = R.drawable.ic_tune,
+                title = "Always show toolbar buttons",
+                subtitle = "Settings, passwords and macros stay beside the words",
+                onClick = onToggleToolbarAlwaysShown,
+            ) {
+                StateSwitch(toolbarAlwaysShown)
+            }
+            SheetRow(
                 icon = R.drawable.ic_settings,
                 title = "Settings",
                 subtitle = "Look, feel, languages, suggestions, macros",
@@ -100,4 +111,22 @@ fun SettingsSheet(
             )
         }
     }
+}
+
+/** A switch that only shows a row's state, as Developer mode's does: the row takes the tap. */
+@Composable
+private fun StateSwitch(checked: Boolean) {
+    val colors = LocalKeyboardColors.current
+    Switch(
+        checked = checked,
+        onCheckedChange = null,
+        modifier = Modifier.semantics { stateDescription = if (checked) "On" else "Off" },
+        colors = SwitchDefaults.colors(
+            checkedThumbColor = colors.onArmed,
+            checkedTrackColor = colors.armedRing,
+            uncheckedThumbColor = colors.subtle,
+            uncheckedTrackColor = colors.functionKey,
+            uncheckedBorderColor = colors.subtle,
+        ),
+    )
 }
