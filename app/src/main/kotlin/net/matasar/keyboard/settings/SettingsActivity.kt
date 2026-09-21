@@ -53,6 +53,7 @@ import androidx.compose.ui.text.font.FontFamily
 import net.matasar.keyboard.R
 import net.matasar.keyboard.ime.KeyboardDiagnostics
 import net.matasar.keyboard.layout.Languages
+import net.matasar.keyboard.macro.MacrosActivity
 import net.matasar.keyboard.ui.theme.KeyboardTheme
 import kotlin.math.roundToInt
 
@@ -202,6 +203,11 @@ private fun SettingsScreen(settings: Settings, prefs: Prefs) {
         Section(stringResource(R.string.settings_section_developer))
         SwitchRow(stringResource(R.string.settings_editing_shortcuts), settings.editingShortcuts) { scope.launch { prefs.setEditingShortcuts(it) } }
         SwitchRow(stringResource(R.string.settings_double_tap_lock), settings.doubleTapLock) { scope.launch { prefs.setDoubleTapLock(it) } }
+
+        Section(stringResource(R.string.settings_section_macros))
+        OutlinedButton(onClick = { context.startActivity(MacrosActivity.intent(context)) }) {
+            Text(stringResource(R.string.settings_macros_open))
+        }
 
         HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
         OutlinedTextField(

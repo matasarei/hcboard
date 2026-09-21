@@ -67,6 +67,7 @@ import net.matasar.keyboard.nlp.WordList
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import net.matasar.keyboard.macro.MacroStore
+import net.matasar.keyboard.macro.MacrosActivity
 import net.matasar.keyboard.settings.Prefs
 import net.matasar.keyboard.settings.Settings
 import net.matasar.keyboard.settings.SettingsActivity
@@ -570,7 +571,8 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
     }
 
     override fun openMacros() {
-        // The macros screen arrives with the editor; until then the sheet only plays.
+        controller.macroSheetOpen = false
+        runCatching { startActivity(MacrosActivity.intent(this).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }
     }
 
     override fun toggleDeveloperMode() {

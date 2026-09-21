@@ -68,4 +68,52 @@
     <string name="fill_cancel">Cancel</string>
     <string name="fill_show_logins">Show logins</string>
     <string name="fill_choose_manager">Choose manager</string>
+
+    <string name="macros_title">Macros</string>
+    <string name="macros_hint">A macro plays keys into any field: text, special keys like Esc or F1, combinations, random keys for a password. Build one from blocks, then run it from the macro button on the keyboard\'s toolbar.</string>
+    <string name="macros_new">New macro</string>
+    <string name="macros_new_name">New macro</string>
+    <string name="macros_empty">No macros yet.</string>
+    <string name="macros_deleted">Deleted %1$s</string>
+    <string name="macros_undo">Undo</string>
+    <string name="macros_delete">Delete</string>
+    <string name="macros_back">Back</string>
+    <string name="macros_name">Name</string>
+    <string name="macros_script">Blocks</string>
+    <string name="macros_script_empty">Add blocks from the row below. They play from top to bottom.</string>
+    <plurals name="macros_too_long">
+        <item quantity="one">Too long to play: its repeats add up to more than %1$d step.</item>
+        <item quantity="other">Too long to play: its repeats add up to more than %1$d steps.</item>
+    </plurals>
+    <string name="macros_try">Try it here</string>
+    <string name="macros_add_inside">Add a block inside</string>
+    <string name="macros_move_up">Move up</string>
+    <string name="macros_move_down">Move down</string>
+    <string name="macros_remove">Remove block</string>
+    <string name="block_text">Type text</string>
+    <string name="block_text_field">Text</string>
+    <string name="block_key">Press key</string>
+    <string name="block_key_choose">Choose a key</string>
+    <string name="block_key_character">Or one character</string>
+    <string name="block_key_holding">Holding</string>
+    <string name="block_random">Random keys</string>
+    <string name="block_random_length">Length: %1$d</string>
+    <string name="block_random_letters">Letters</string>
+    <string name="block_random_digits">Digits</string>
+    <string name="block_random_symbols">Symbols</string>
+    <string name="block_repeat">Repeat</string>
+    <plurals name="block_repeat_times">
+        <item quantity="one">%1$d time</item>
+        <item quantity="other">%1$d times</item>
+    </plurals>
+    <string name="block_wait">Wait</string>
+    <string name="block_wait_millis">%1$d ms</string>
+    <string name="block_paste">Paste clipboard</string>
+    <string name="block_paste_hint">Types whatever text the clipboard holds.</string>
+    <string name="key_group_editing">Editing</string>
+    <string name="key_group_movement">Movement</string>
+    <string name="key_group_function">Function keys</string>
+    <string name="key_group_modifier">Modifiers on their own</string>
+    <string name="settings_section_macros">Macros</string>
+    <string name="settings_macros_open">Edit macros</string>
 </resources>

@@ -36,6 +36,13 @@
             android:exported="true"
             android:label="@string/settings_title" />
 
+        <!-- Where macros are built from blocks; opened from settings and from the keyboard's macro sheet. -->
+        <activity
+            android:name=".macro.MacrosActivity"
+            android:exported="false"
+            android:label="@string/macros_title"
+            android:windowSoftInputMode="adjustResize" />
+
         <!-- The fill screen: a login form for the password manager, opened only by the keyboard.
              Its own task, so closing it lands back in the app the password is for; kept out of
              recents and history, so it is never a way back to a filled form. -->
