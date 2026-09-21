@@ -30,6 +30,8 @@ data class Settings(
     val haptics: Boolean = true,
     val keyBorders: Boolean = true,
     val previews: Boolean = true,
+    /** The strip's mic, which hands dictation to a voice keyboard; off for those who never want it. */
+    val voiceInput: Boolean = true,
     val theme: ThemeChoice = ThemeChoice.SYSTEM,
     val splitKeyboard: SplitMode = SplitMode.AUTO,
     val editingShortcuts: Boolean = true,
@@ -74,6 +76,7 @@ class Prefs(private val context: Context) {
             haptics = p[HAPTICS] ?: true,
             keyBorders = p[KEY_BORDERS] ?: true,
             previews = p[PREVIEWS] ?: true,
+            voiceInput = p[VOICE_INPUT] ?: true,
             theme = p[THEME]?.let { runCatching { ThemeChoice.valueOf(it) }.getOrNull() } ?: ThemeChoice.SYSTEM,
             splitKeyboard = p[SPLIT_KEYBOARD]?.let { runCatching { SplitMode.valueOf(it) }.getOrNull() } ?: SplitMode.AUTO,
             editingShortcuts = p[EDITING_SHORTCUTS] ?: true,
@@ -97,6 +100,7 @@ class Prefs(private val context: Context) {
     suspend fun setHaptics(value: Boolean) = context.dataStore.edit { it[HAPTICS] = value }
     suspend fun setKeyBorders(value: Boolean) = context.dataStore.edit { it[KEY_BORDERS] = value }
     suspend fun setPreviews(value: Boolean) = context.dataStore.edit { it[PREVIEWS] = value }
+    suspend fun setVoiceInput(value: Boolean) = context.dataStore.edit { it[VOICE_INPUT] = value }
     suspend fun setTheme(value: ThemeChoice) = context.dataStore.edit { it[THEME] = value.name }
     suspend fun setSplitKeyboard(value: SplitMode) = context.dataStore.edit { it[SPLIT_KEYBOARD] = value.name }
     suspend fun setEditingShortcuts(value: Boolean) = context.dataStore.edit { it[EDITING_SHORTCUTS] = value }
@@ -141,6 +145,7 @@ class Prefs(private val context: Context) {
         val HAPTICS = booleanPreferencesKey("haptics")
         val KEY_BORDERS = booleanPreferencesKey("key_borders")
         val PREVIEWS = booleanPreferencesKey("previews")
+        val VOICE_INPUT = booleanPreferencesKey("voice_input")
         val THEME = stringPreferencesKey("theme")
         val SPLIT_KEYBOARD = stringPreferencesKey("split_keyboard")
         val EDITING_SHORTCUTS = booleanPreferencesKey("editing_shortcuts")

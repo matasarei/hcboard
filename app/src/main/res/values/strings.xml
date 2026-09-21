@@ -46,6 +46,7 @@
     <string name="settings_bottom_padding_hint">Automatic keeps the keys clear of the system\'s bar and its buttons. Turn it off to set the space yourself, smaller or larger.</string>
     <string name="settings_haptics">Haptic tick on key press</string>
     <string name="settings_previews">Show key preview on press</string>
+    <string name="settings_voice_input">Microphone button for voice input</string>
     <string name="settings_editing_shortcuts">Ctrl+A/C/V/X as select, copy, paste, cut in text fields</string>
     <string name="settings_double_tap_lock">Double-tap a modifier to lock it</string>
     <string name="settings_section_languages">Languages</string>
