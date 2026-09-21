@@ -20,7 +20,10 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.coroutines.withContext
 import net.matasar.keyboard.input.keyStrokeFor
 import net.matasar.keyboard.layout.Key
@@ -250,6 +253,21 @@ class KeyboardController(
 
     private var macroJob: Job? = null
 
+    /** The app the running macro was started in; a field in another app stops it. */
+    private var macroPackage: String? = null
+
+    /** Whether the running macro types random keys, so a field it moves into is not read back either. */
+    private var macroTypesRandom = false
+
+    /** The app of the focused field, as the last [onStartInput] reported it. */
+    private var fieldPackage: String? = null
+
+    /** Counts the fields started, so a macro can wait for the next one after a Tab. */
+    private val fieldStarts = MutableStateFlow(0)
+
+    /** A macro pressed Tab or Enter and is waiting for the app to move focus: the old field finishing is expected. */
+    private var awaitingFocusMove = false
+
     /** The clipboard's text for a macro's paste block; the service plugs it in. */
     var clipboardText: () -> String? = { null }
 
@@ -314,6 +332,10 @@ class KeyboardController(
     fun showsIcon(key: Key): Boolean = fnLabel(key, shiftActive, fnActive) == null
 
     fun onStartInput(info: EditorInfo?) {
+        fieldPackage = info?.packageName
+        // A macro follows its own Tab into the next field of the same app, never into another app.
+        if (macroJob != null && fieldPackage != macroPackage) stopMacro()
+        fieldStarts.value++
         fieldKind = info?.let { fieldKindOf(it.inputType) } ?: FieldKind.TEXT
         layer = fieldKind.initialLayer()
         shift = Latch()
@@ -330,11 +352,12 @@ class KeyboardController(
         languageSheetOpen = false
         clearCandidates()
         refreshAutoCapital()
+        if (macroJob != null && macroTypesRandom) passwordTyped = true
     }
 
     fun onFinishInput() {
-        // A macro never plays into the next field.
-        stopMacro()
+        // A macro never plays on into another field, unless it moved there itself with Tab or Enter.
+        if (!awaitingFocusMove) stopMacro()
         passwordTyped = false
         capsModes = 0
         autoCapital = false
@@ -370,13 +393,14 @@ class KeyboardController(
         stopMacro()
         macroSheetOpen = false
         clearCandidates()
-        val field = MacroField(terminal = terminalField, editingShortcuts = editingShortcutsInTextFields)
-        val runner = MacroRunner(dispatcher, clipboardText, macroRandom)
+        val runner = MacroRunner(dispatcher, clipboardText, macroRandom, awaitFocusMove = ::awaitFocusMove)
         runningMacro = macro.id
-        if (macro.typesRandomKeys()) passwordTyped = true
+        macroPackage = fieldPackage
+        macroTypesRandom = macro.typesRandomKeys()
+        if (macroTypesRandom) passwordTyped = true
         val job = scope.launch(main ?: Dispatchers.Main.immediate) {
             try {
-                runner.run(macro, field)
+                runner.run(macro) { MacroField(terminal = terminalField, editingShortcuts = editingShortcutsInTextFields) }
             } catch (_: MacroTooLong) {
                 // The editor warns about it; the keyboard plays nothing.
             }
@@ -395,6 +419,18 @@ class KeyboardController(
         macroJob?.cancel()
         macroJob = null
         runningMacro = null
+        awaitingFocusMove = false
+    }
+
+    /** Waits until the app starts another field, or [FOCUS_MOVE_TIMEOUT_MS] pass when the key moved nothing. */
+    private suspend fun awaitFocusMove() {
+        val before = fieldStarts.value
+        awaitingFocusMove = true
+        try {
+            withTimeoutOrNull(FOCUS_MOVE_TIMEOUT_MS) { fieldStarts.first { it != before } }
+        } finally {
+            awaitingFocusMove = false
+        }
     }
 
     fun toggleDeveloperMode() {
@@ -863,6 +899,9 @@ class KeyboardController(
     }
 
     companion object {
+        /** How long a macro waits after its Tab or Enter for the app to start the next field. */
+        const val FOCUS_MOVE_TIMEOUT_MS = 500L
+
         /** The characters that end a word and apply its correction. */
         private val SEPARATORS = setOf(" ", ".", ",", "!", "?")
 

@@ -145,4 +145,12 @@ class MacroRunnerTest {
         runner().run(macro(Block.PasteClipboard), textField)
         assertEquals(listOf("clip"), port.committed)
     }
+
+    @Test
+    fun `Tab and Enter wait for focus to move, other keys do not`() = runTest {
+        val waits = mutableListOf<Int>()
+        val runner = MacroRunner(InputDispatcher(port), { clipboard }, { Random(7) }, awaitFocusMove = { waits += port.keys.size })
+        runner.run(macro(Block.PressKey("Esc"), Block.PressKey("Tab", setOf(ModifierKey.SHIFT)), Block.PressKey("F1"), Block.PressKey("Enter")), textField)
+        assertEquals(listOf(2, 4), waits)
+    }
 }

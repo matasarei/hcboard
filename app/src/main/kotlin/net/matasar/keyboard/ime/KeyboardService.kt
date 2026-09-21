@@ -534,6 +534,12 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
         controller.onFinishInput()
     }
 
+    /** The keyboard went away: a macro stops with it, whatever it was waiting for. */
+    override fun onWindowHidden() {
+        super.onWindowHidden()
+        controller.stopMacro()
+    }
+
     /** The cursor moved, by us or by the user: the word under it decides the candidates. */
     override fun onUpdateSelection(oldSelStart: Int, oldSelEnd: Int, newSelStart: Int, newSelEnd: Int, candidatesStart: Int, candidatesEnd: Int) {
         super.onUpdateSelection(oldSelStart, oldSelEnd, newSelStart, newSelEnd, candidatesStart, candidatesEnd)

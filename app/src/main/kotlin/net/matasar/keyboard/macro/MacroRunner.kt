@@ -24,14 +24,22 @@ class MacroRunner(
     private val clipboardText: () -> String?,
     private val random: () -> Random,
     private val delay: suspend (Long) -> Unit = { kotlinx.coroutines.delay(it) },
+    /**
+     * Called after a key that can move focus (Tab, Enter): the app moves it after the key event
+     * arrives, so what follows would reach the old field unless the run waits for the new one.
+     */
+    private val awaitFocusMove: suspend () -> Unit = {},
 ) {
 
-    suspend fun run(macro: Macro, field: MacroField) {
+    suspend fun run(macro: Macro, field: MacroField) = run(macro) { field }
+
+    /** Plays [macro]; [field] is asked again at each step, since a Tab can land in another kind of field. */
+    suspend fun run(macro: Macro, field: () -> MacroField) {
         val steps = expand(macro.blocks)
         val random = random()
         for (step in steps) {
             yield()
-            play(step, field, random)
+            play(step, field(), random)
         }
     }
 
@@ -40,7 +48,10 @@ class MacroRunner(
             is Block.TypeText -> if (step.text.isNotEmpty()) dispatcher.commitText(step.text)
             is Block.PasteClipboard -> clipboardText()?.takeIf { it.isNotEmpty() }?.let { dispatcher.commitText(it) }
             is Block.Wait -> delay(step.duration)
-            is Block.PressKey -> pressKey(step, field)
+            is Block.PressKey -> {
+                pressKey(step, field)
+                if (step.key in FOCUS_KEYS) awaitFocusMove()
+            }
             is Block.RandomKeys -> for (char in randomKeys(step, random)) {
                 keyStrokeFor(char)?.let { dispatcher.sendCombo(it, 0) }
             }
@@ -62,6 +73,9 @@ class MacroRunner(
 
     companion object {
         const val MAX_STEPS = 2_000
+
+        /** Keys after which an app may move focus to another field. */
+        private val FOCUS_KEYS = setOf("Tab", "Enter")
 
         /** [blocks] with every repeat unrolled; throws [MacroTooLong] past [MAX_STEPS]. */
         fun expand(blocks: List<Block>): List<Block> {

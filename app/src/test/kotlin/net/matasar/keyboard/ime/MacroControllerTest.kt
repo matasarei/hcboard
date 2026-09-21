@@ -6,6 +6,7 @@ import android.view.inputmethod.EditorInfo
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runCurrent
 import net.matasar.keyboard.input.FakeEditorPort
@@ -34,7 +35,12 @@ class MacroControllerTest {
         macroRandom = { Random(1) }
         clipboardText = { "from clipboard" }
         candidateEngine = Candidates(WordList.of("hello" to 200, "help" to 150))
-        onStartInput(EditorInfo().apply { inputType = InputType.TYPE_CLASS_TEXT })
+        onStartInput(field())
+    }
+
+    private fun field(pkg: String = "com.example.app") = EditorInfo().apply {
+        inputType = InputType.TYPE_CLASS_TEXT
+        packageName = pkg
     }
 
     private fun macro(vararg blocks: Block) = Macro("m", "Test", blocks.toList())
@@ -121,5 +127,55 @@ class MacroControllerTest {
         test.advanceUntilIdle()
         controller.onKey(LettersLayer.rows.flatMap { it.keys }.first { it.action == KeyAction.Space })
         assertEquals(listOf("x", " "), port.committed)
+    }
+
+    @Test
+    fun `after its Tab a macro waits for the next field and types into it`() {
+        controller.runMacro(macro(Block.TypeText("user"), Block.PressKey("Tab"), Block.TypeText("secret")))
+        test.runCurrent()
+        assertEquals(listOf("user"), port.committed)
+        assertEquals(listOf(KeyEvent.KEYCODE_TAB to 0), port.keys)
+        // The app moves focus: the old field finishes, the next one starts.
+        controller.onFinishInput()
+        assertEquals("m", controller.runningMacro)
+        controller.onStartInput(field())
+        test.runCurrent()
+        assertEquals(listOf("user", "secret"), port.committed)
+    }
+
+    @Test
+    fun `a Tab that moves nothing holds the macro only for the timeout`() {
+        controller.runMacro(macro(Block.PressKey("Enter"), Block.TypeText("x")))
+        test.runCurrent()
+        test.advanceTimeBy(KeyboardController.FOCUS_MOVE_TIMEOUT_MS - 1)
+        test.runCurrent()
+        assertEquals(emptyList(), port.committed)
+        test.advanceTimeBy(2)
+        test.runCurrent()
+        assertEquals(listOf("x"), port.committed)
+    }
+
+    @Test
+    fun `a field in another app stops the macro`() {
+        controller.runMacro(macro(Block.PressKey("Tab"), Block.TypeText("secret")))
+        test.runCurrent()
+        controller.onFinishInput()
+        controller.onStartInput(field("com.other.app"))
+        test.advanceUntilIdle()
+        assertEquals(emptyList(), port.committed)
+        assertNull(controller.runningMacro)
+    }
+
+    @Test
+    fun `random keys after a Tab are not read back in the new field either`() {
+        controller.runMacro(macro(Block.PressKey("Tab"), Block.RandomKeys(length = 8)))
+        test.runCurrent()
+        controller.onFinishInput()
+        controller.onStartInput(field())
+        test.advanceUntilIdle()
+        val reads = port.textReads
+        controller.onSelectionChanged()
+        assertNull(controller.candidates)
+        assertEquals(reads, port.textReads)
     }
 }
