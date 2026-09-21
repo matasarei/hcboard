@@ -51,6 +51,9 @@ from the password manager you already use, and the keyboard never shows or keeps
   toolbar behind a chevron. Space applies the highlighted correction and one backspace takes it
   back. Both parts can be turned off, and neither runs in password, terminal, number, address or
   e-mail fields.
+- **Your own words,** per language (Settings → Suggestions → Custom words): add a word and it is
+  suggested, glide-typed and never corrected away; block one and it is never suggested or used as
+  a correction.
 - **Capitals where a sentence starts,** in fields that ask for them (chat boxes do): the Shift key
   lights up, one tap on it cancels the capital, and terminals, addresses and code get none. It can
   be turned off in Settings.
@@ -110,6 +113,8 @@ from the password manager you already use, and the keyboard never shows or keeps
   if it tried. No analytics, no crash reporting, no account, no sync.
 - **Nothing you type is logged or stored.** Word lists ship inside the app; suggestions look only
   at the word before the cursor, on the phone, and not at all in a password or terminal field.
+  The only words kept are the ones you add or block yourself in Custom words; like the settings,
+  they stay on the phone and are part of Android's own backup of the app when that is on.
 - **Autofill suggestions belong to your manager.** When it offers a login above the keys, those
   chips are views your manager draws; the keyboard places them and never reads them.
 - **A login the keyboard types for you is held for one moment only.** "Fill a login" opens a small
