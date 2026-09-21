@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -221,6 +222,14 @@ fun KeyButton(
                     lineHeight = size * Dimens.glyphLineHeightRatio,
                     fontWeight = if (word) FontWeight.Medium else FontWeight.Normal,
                     maxLines = 1,
+                    // A word wider than its key (Home, PgUp, Shift on a one-unit key) shrinks to
+                    // fit rather than wrapping, which with one line would clip its last letters.
+                    autoSize = TextAutoSize.StepBased(
+                        minFontSize = Dimens.minWordSize,
+                        maxFontSize = size,
+                        stepSize = 0.5.sp,
+                    ),
+                    modifier = Modifier.padding(horizontal = 3.dp),
                 )
             }
         }
