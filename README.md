@@ -25,8 +25,8 @@ light or dark.
 
 When you need more than letters, it is already there. Unfold the phone or pick up a tablet and you
 get a full 60% layout: Esc, Tab, Caps, Ctrl, Alt, Meta, the symbols printed on the keys and F1–F12
-behind Fn. On a phone, one tap on `</>` adds the same keys as a strip above any layer. Ctrl+C in a
-terminal is a real Ctrl+C, so an SSH session or Termux behaves like a computer.
+behind Fn. On a phone, Developer mode under the toolbar's gear adds the same keys as a strip above
+any layer. Ctrl+C in a terminal is a real Ctrl+C, so an SSH session or Termux behaves like a computer.
 
 And it stays private. The app has no network permission at all, so nothing you type can leave the
 phone — there is no analytics, no sync, no account, and nothing is written to a log. Passwords come
@@ -70,8 +70,8 @@ from the password manager you already use, and the keyboard never shows or keeps
   edges are balanced so the letters sit nearer the middle of the screen, and it can split into a
   left and a right half: by itself where a hinge crosses the screen and on a phone turned sideways,
   or always, or never (Settings → Wide keyboard).
-- **A developer strip on phones.** One tap on `</>` puts Esc, Tab, Ctrl, Alt, Shift, arrows and Fn
-  above any layer, and the keyboard remembers which apps you use it in.
+- **A developer strip on phones.** Developer mode under the toolbar's gear puts Esc, Tab, Ctrl, Alt,
+  Shift, arrows and Fn above any layer, and the keyboard remembers which apps you use it in.
 - **Modifiers that latch the way you expect.** Tap one to arm it for the next key, double-tap or
   long-press to lock it, or hold it and tap another key with a second finger. They survive layer
   switches, and the toolbar says what is armed. Every key shows what it will type as Shift or Fn

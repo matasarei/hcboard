@@ -576,6 +576,10 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
         controller.toggleMacroSheet()
     }
 
+    override fun toggleSettingsSheet() {
+        controller.toggleSettingsSheet()
+    }
+
     override fun openMacros() {
         controller.macroSheetOpen = false
         runCatching { startActivity(MacrosActivity.intent(this).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }
@@ -609,6 +613,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
     }
 
     override fun openSettings() {
+        controller.settingsSheetOpen = false
         startActivity(
             Intent(this, SettingsActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
         )

@@ -247,6 +247,9 @@ class KeyboardController(
     /** Whether the macro sheet is open. */
     var macroSheetOpen: Boolean by mutableStateOf(false)
 
+    /** Whether the gear's sheet (developer mode, settings) is open. */
+    var settingsSheetOpen: Boolean by mutableStateOf(false)
+
     /** The id of the macro playing now, for the sheet's Stop; null when none is. */
     var runningMacro: String? by mutableStateOf(null)
         private set
@@ -349,6 +352,7 @@ class KeyboardController(
         suggestions = emptyList()
         managerSheetOpen = false
         macroSheetOpen = false
+        settingsSheetOpen = false
         languageSheetOpen = false
         clearCandidates()
         refreshAutoCapital()
@@ -370,18 +374,35 @@ class KeyboardController(
         suggestions = emptyList()
         managerSheetOpen = false
         macroSheetOpen = false
+        settingsSheetOpen = false
         fieldAllowsSuggestions = false
         clearCandidates()
     }
 
+    // The toolbar's three sheets share the space under it: opening one closes the others.
+
     fun toggleManagerSheet() {
-        managerSheetOpen = !managerSheetOpen
-        if (managerSheetOpen) macroSheetOpen = false
+        val open = !managerSheetOpen
+        closeToolbarSheets()
+        managerSheetOpen = open
     }
 
     fun toggleMacroSheet() {
-        macroSheetOpen = !macroSheetOpen
-        if (macroSheetOpen) managerSheetOpen = false
+        val open = !macroSheetOpen
+        closeToolbarSheets()
+        macroSheetOpen = open
+    }
+
+    fun toggleSettingsSheet() {
+        val open = !settingsSheetOpen
+        closeToolbarSheets()
+        settingsSheetOpen = open
+    }
+
+    private fun closeToolbarSheets() {
+        managerSheetOpen = false
+        macroSheetOpen = false
+        settingsSheetOpen = false
     }
 
     /**
@@ -433,8 +454,10 @@ class KeyboardController(
         }
     }
 
+    /** Flips developer mode from the gear's sheet and closes it, so the strip shows at once. */
     fun toggleDeveloperMode() {
         developerMode = !developerMode
+        settingsSheetOpen = false
     }
 
     /** Restores the remembered developer mode for the app that just got focus. */

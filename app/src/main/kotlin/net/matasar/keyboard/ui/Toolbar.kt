@@ -45,6 +45,7 @@ import net.matasar.keyboard.ui.theme.LocalKeyboardColors
 interface ToolbarActions {
     fun toggleManagerSheet()
     fun toggleMacroSheet()
+    fun toggleSettingsSheet()
     fun openMacros()
     fun toggleDeveloperMode()
     fun pasteClipboard()
@@ -53,20 +54,23 @@ interface ToolbarActions {
 }
 
 /**
- * The 44 dp strip above the keys: developer-mode toggle, clipboard, macros on the left, the
- * chip or the autofill suggestions in the middle, hide on the right. While a word is being
- * typed its [candidates] take the buttons' place behind a chevron that brings them back.
+ * The 44 dp strip above the keys: settings, passwords, macros and paste on the left, the chip or
+ * the autofill suggestions in the middle, hide on the right. While a word is being typed its
+ * [candidates] take the buttons' place behind a chevron that brings them back.
  */
 @Composable
 fun Toolbar(
-    developerMode: Boolean,
     chipText: String?,
     actions: ToolbarActions,
     modifier: Modifier = Modifier,
     sheetOpen: Boolean = false,
     macroSheetOpen: Boolean = false,
-    /** The 60% board carries its modifiers itself, so the strip toggle has nothing to do there. */
-    showDeveloperToggle: Boolean = true,
+    settingsSheetOpen: Boolean = false,
+    /**
+     * Whether the gear opens its sheet with the developer-mode switch. The 60% board carries its
+     * modifiers itself, so there the sheet would hold Settings alone and the gear opens it directly.
+     */
+    settingsMenu: Boolean = true,
     center: (@Composable () -> Unit)? = null,
     candidates: WordCandidates? = null,
     onPickCandidate: (String) -> Unit = {},
@@ -85,10 +89,12 @@ fun Toolbar(
             CandidateStrip(candidates, onPickCandidate, modifier = Modifier.weight(1f))
         } else {
             Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                ToolbarButton(R.drawable.ic_settings, "Settings", active = settingsSheetOpen, haptics = haptics) {
+                    if (settingsMenu) actions.toggleSettingsSheet() else actions.openSettings()
+                }
                 ToolbarButton(R.drawable.ic_key, "Password manager", active = sheetOpen, haptics = haptics) { actions.toggleManagerSheet() }
-                if (showDeveloperToggle) ToolbarButton(R.drawable.ic_code, "Developer mode", active = developerMode, haptics = haptics) { actions.toggleDeveloperMode() }
-                ToolbarButton(R.drawable.ic_clipboard, "Paste", haptics = haptics) { actions.pasteClipboard() }
                 ToolbarButton(R.drawable.ic_macro, "Macros", active = macroSheetOpen, haptics = haptics) { actions.toggleMacroSheet() }
+                ToolbarButton(R.drawable.ic_clipboard, "Paste", haptics = haptics) { actions.pasteClipboard() }
             }
             Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
                 when {
@@ -96,9 +102,6 @@ fun Toolbar(
                     chipText != null -> ModifierChip(chipText)
                 }
             }
-            // Settings sits with Hide on the right, as on Samsung's keyboard: the left group is
-            // for what acts on the text, the right for the keyboard itself.
-            ToolbarButton(R.drawable.ic_settings, "Settings", haptics = haptics) { actions.openSettings() }
         }
         ToolbarButton(R.drawable.ic_keyboard_hide, "Hide keyboard", haptics = haptics) { actions.hideKeyboard() }
     }
