@@ -48,6 +48,7 @@ interface ToolbarActions {
     fun toggleSettingsSheet()
     fun openMacros()
     fun toggleDeveloperMode()
+    fun toggleToolbarAlwaysShown()
     fun pasteClipboard()
     fun startVoiceInput()
     fun openSettings()

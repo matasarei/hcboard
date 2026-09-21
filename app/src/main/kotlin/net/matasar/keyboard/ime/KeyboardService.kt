@@ -600,6 +600,14 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
         lifecycleScope.launch { prefs.setDeveloperMode(pkg, controller.developerMode) }
     }
 
+    /** The gear sheet's switch: the strip follows at once, and the sheet closes as Developer mode's does. */
+    override fun toggleToolbarAlwaysShown() {
+        controller.foldToolbar = !controller.foldToolbar
+        controller.settingsSheetOpen = false
+        val fold = controller.foldToolbar
+        lifecycleScope.launch { prefs.setFoldToolbar(fold) }
+    }
+
     override fun pasteClipboard() {
         val text = clipboardText() ?: return
         currentInputConnection?.commitText(text, 1)

@@ -189,6 +189,14 @@ class KeyboardControllerTest {
     }
 
     @Test
+    fun `always showing the toolbar buttons is the fold setting turned off`() {
+        assertFalse(controller.toolbarAlwaysShown)
+        controller.foldToolbar = false
+        assertTrue(controller.toolbarAlwaysShown)
+        assertFalse(controller.toolbarFolds(wide = false))
+    }
+
+    @Test
     fun `the strip folds only on the phone board, and never with the setting off`() {
         assertTrue(controller.toolbarFolds(wide = false))
         assertFalse(controller.toolbarFolds(wide = true))
