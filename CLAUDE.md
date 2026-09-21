@@ -33,8 +33,9 @@ emulator profile is `medium_phone`; boot it headless with
 - **Where things live:** `ime/` service and controller; `layout/` key data and the layers
   (`Layers.kt` phone, `SixtyPercentLayout.kt` wide, `DeveloperStrip.kt`); `input/` the editor
   port, dispatcher, latch and modifier state, key codes; `ui/` composables; `settings/` DataStore
-  prefs and the settings screen; `autofill/` inline suggestions and the manager sheet; `macro/`
-  macros (model, JSON, runner, store, the block editor screen).
+  prefs and the settings screen (and the Custom words screen); `nlp/` word lists, candidates and
+  custom words; `autofill/` inline suggestions and the manager sheet; `macro/` macros (model, JSON,
+  runner, store, the block editor screen).
 - **`input/EditorPort.kt` is the only code that touches `InputConnection`.** Everything else goes
   through `InputDispatcher`, so unit tests use `FakeEditorPort`. Keep it that way.
 - **Pure logic is unit-tested on the JVM** (`app/src/test`); `android.jar` stubs return defaults,
@@ -88,6 +89,12 @@ emulator profile is `medium_phone`; boot it headless with
   layout and the glide listener is keyed on it, or a language switch classifies against the old
   alphabet. The trail is drawn from the root's draw pass: a sized canvas grows the IME window
   mid-gesture and shifts every later pointer position.
+- **Custom words** (`nlp/CustomWords.kt`, `CustomWordStore`, DataStore `words`): language tag →
+  word → frequency, 230 when added, 0 when blocked; letters only, at most 48, case kept. They are
+  applied when a list loads (`WordList.withOverrides`, 0 removes the word), keyed by the language
+  tag so `ru` words reach `ru_bg` too, never written into the assets. The service clears its
+  engine cache and reloads the current language when they change; a version counter drops a
+  list that was still loading with the old words.
 - **Languages** are data in `layout/Languages.kt`: rows, accents, native name. A layer sizes itself to
   its widest row. The globe key exists only with two or more languages enabled; the persisted
   current language is authoritative and the service follows changes to it. The enabled set is the

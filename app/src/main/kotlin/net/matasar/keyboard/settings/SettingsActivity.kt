@@ -209,6 +209,9 @@ private fun SettingsScreen(settings: Settings, prefs: Prefs) {
         SwitchRow(stringResource(R.string.settings_suggestions), settings.suggestions) { scope.launch { prefs.setSuggestions(it) } }
         SwitchRow(stringResource(R.string.settings_auto_capitalize), settings.autoCapitalize) { scope.launch { prefs.setAutoCapitalize(it) } }
         SwitchRow(stringResource(R.string.settings_auto_correct), settings.autoCorrect) { scope.launch { prefs.setAutoCorrect(it) } }
+        OutlinedButton(onClick = { context.startActivity(CustomWordsActivity.intent(context)) }) {
+            Text(stringResource(R.string.settings_words_open))
+        }
 
         Section(stringResource(R.string.settings_section_glide))
         SwitchRow(stringResource(R.string.settings_glide), settings.glide) { scope.launch { prefs.setGlide(it) } }
