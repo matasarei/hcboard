@@ -59,4 +59,14 @@ class ModifierStateTest {
         assertTrue(m.anyMetaActive)
         assertFalse(Modifiers().tap(ModifierKey.FN, 0).anyMetaActive)
     }
+
+    @Test
+    fun `metaStateOf gives each modifier its left-hand flags and Fn none`() {
+        assertEquals(0, metaStateOf(emptySet()))
+        assertEquals(0, metaStateOf(setOf(ModifierKey.FN)))
+        assertEquals(
+            KeyEvent.META_CTRL_ON or KeyEvent.META_CTRL_LEFT_ON or KeyEvent.META_SHIFT_ON or KeyEvent.META_SHIFT_LEFT_ON,
+            metaStateOf(setOf(ModifierKey.CTRL, ModifierKey.SHIFT, ModifierKey.FN)),
+        )
+    }
 }

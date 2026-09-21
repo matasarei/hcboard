@@ -41,15 +41,7 @@ data class Modifiers(
     fun releaseAll(): Modifiers = Modifiers()
 
     /** The KeyEvent meta flags for the active modifiers. Fn has none: it is translated instead. */
-    fun metaState(): Int = active.fold(0) { acc, key ->
-        acc or when (key) {
-            ModifierKey.CTRL -> KeyEvent.META_CTRL_ON or KeyEvent.META_CTRL_LEFT_ON
-            ModifierKey.ALT -> KeyEvent.META_ALT_ON or KeyEvent.META_ALT_LEFT_ON
-            ModifierKey.SHIFT -> KeyEvent.META_SHIFT_ON or KeyEvent.META_SHIFT_LEFT_ON
-            ModifierKey.META -> KeyEvent.META_META_ON or KeyEvent.META_META_LEFT_ON
-            ModifierKey.FN -> 0
-        }
-    }
+    fun metaState(): Int = metaStateOf(active)
 
     /**
      * What the toolbar chip says: "Ctrl + Alt · next key", "Ctrl locked",
@@ -63,6 +55,17 @@ data class Modifiers(
             if (oneShot.isNotEmpty()) add(oneShot.joinToString(" + ") { it.label } + " · next key")
         }
         return parts.takeIf { it.isNotEmpty() }?.joinToString(" + ")
+    }
+}
+
+/** The KeyEvent meta flags for [modifiers]: the left-hand key of each. Fn has none. */
+fun metaStateOf(modifiers: Collection<ModifierKey>): Int = modifiers.fold(0) { acc, key ->
+    acc or when (key) {
+        ModifierKey.CTRL -> KeyEvent.META_CTRL_ON or KeyEvent.META_CTRL_LEFT_ON
+        ModifierKey.ALT -> KeyEvent.META_ALT_ON or KeyEvent.META_ALT_LEFT_ON
+        ModifierKey.SHIFT -> KeyEvent.META_SHIFT_ON or KeyEvent.META_SHIFT_LEFT_ON
+        ModifierKey.META -> KeyEvent.META_META_ON or KeyEvent.META_META_LEFT_ON
+        ModifierKey.FN -> 0
     }
 }
 
