@@ -54,11 +54,18 @@ emulator profile is `medium_phone`; boot it headless with
   and are built by `scripts/build-wordlist.py` from AOSP (Apache-2.0) and, for Ukrainian, Helium314's
   CC BY 4.0 list plus the curated overlay `scripts/wordlists/uk-everyday.tsv` (the corpus is news
   text and under-rates chat words), and for English, AOSP plus `scripts/wordlists/en-modern.tsv`
-  (essential tech and modern chat words); regenerate, never hand-edit: the builder reads a shipped asset
-  as its source, so `scripts/build-wordlist.py <asset> <asset> --boost <the tsv>` rebuilds it
-  and `UkrainianOverlayTest` / `EnglishOverlayTest` fail when an asset drifts below its overlay. The combined
+  (essential tech and modern chat words); every other list has its own chat overlay,
+  `scripts/wordlists/<language>-everyday.tsv`, with tiers matched to its corpus's scale (ru 175/155/135,
+  bg 255/230/210, the rest 200/180/165; German nouns keep their capital). Regenerate, never hand-edit:
+  the builder reads a shipped asset as its source, so `scripts/build-wordlist.py <asset> <asset> --boost
+  <the tsv>` rebuilds it (`bg.txt` needs `--floor 0`, its frequencies go down to 2), and each
+  `*OverlayTest` (on `DictionaryOverlayTest`) fails when an asset drifts below its overlay; the test task
+  does not track `scripts/wordlists/`, so run it with `--rerun` after editing only an overlay. Before
+  raising a short word, check it does not outrank a more common one-edit neighbour. The combined
   Russian+Bulgarian dictionary `ru_bg.txt` is built by `scripts/build-ru-bg-wordlist.py` with collision
-  protection (1-edit Bulgarian words capped at 75 < 80) and loaded when `ruBulgarianVocabulary` is active.
+  protection (1-edit Bulgarian words capped at 75 < 80) and loaded when `ruBulgarianVocabulary` is active;
+  rebuild it after changing `ru.txt` or `bg.txt`. An е spelling of a ё word (идет) is corrected to the
+  ё word by `Candidates`, so overlays leave е spellings out.
   The same lists feed
   `nlp/Candidates.kt` (prefix completions and one-edit corrections for the word before the cursor,
   read through `InputDispatcher.wordBeforeCursor`): there is no composing region on purpose, words
