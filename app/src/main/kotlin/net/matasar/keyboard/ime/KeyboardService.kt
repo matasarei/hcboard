@@ -66,6 +66,8 @@ import net.matasar.keyboard.input.AndroidEditorPort
 import net.matasar.keyboard.input.InputDispatcher
 import net.matasar.keyboard.input.glide.GlideEngine
 import net.matasar.keyboard.nlp.Candidates
+import net.matasar.keyboard.nlp.CustomWordStore
+import net.matasar.keyboard.nlp.CustomWords
 import net.matasar.keyboard.nlp.WordList
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -116,20 +118,39 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
     /** The voice keyboard picked in settings, or null for the automatic choice. */
     private var preferredVoiceKeyboard: String? = null
 
+    /** The user's own words, by language tag; applied to every word list as it loads. */
+    private var customWords: CustomWords = emptyMap()
+
+    /** Bumped when [customWords] change, so a list still loading with the old words is not kept. */
+    private var customWordsVersion = 0
+
     /** Points the controller at [tag]'s engines, loading the word list off the main thread if needed. */
     private fun loadLanguage(tag: String) {
         val assetTag = if (tag == "ru" && ruBulgarianVocabulary) "ru_bg" else tag
         engines[assetTag]?.let { use(it); return }
         controller.glideEngine = null
         controller.candidateEngine = null
+        // Keyed by the language, not the asset: words added for Russian apply to RU+BG too.
+        val overrides = customWords[tag].orEmpty()
+        val version = customWordsVersion
         lifecycleScope.launch(Dispatchers.IO) {
-            val list = WordList.load(applicationContext, assetTag)
+            val list = WordList.load(applicationContext, assetTag).withOverrides(overrides)
             val loaded = LanguageEngines(GlideEngine(list), Candidates(list).apply { warmUp() })
             withContext(Dispatchers.Main) {
+                if (version != customWordsVersion) return@withContext
                 engines[assetTag] = loaded
                 if (controller.language.tag == tag) use(loaded)
             }
         }
+    }
+
+    /** New custom words: every cached list is stale, so the current language loads again. */
+    private fun onCustomWordsChanged(words: CustomWords) {
+        if (words == customWords) return
+        customWords = words
+        customWordsVersion++
+        engines.clear()
+        loadLanguage(controller.language.tag)
     }
 
     private fun use(loaded: LanguageEngines) {
@@ -138,6 +159,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
     }
     private lateinit var prefs: Prefs
     private lateinit var macroStore: MacroStore
+    private lateinit var wordStore: CustomWordStore
     private val autofillActions by lazy { AndroidAutofillActions(this, canFill = ::canFillHere, onFillPassword = ::fillPassword) }
     internal var inputView: View? = null
         private set
@@ -198,6 +220,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
         controller.clipboardText = ::clipboardText
         controller.copyToClipboard = ::copyToClipboard
         macroStore = MacroStore(applicationContext)
+        wordStore = CustomWordStore(applicationContext)
         savedStateController.performRestore(null)
         controller.onLanguageChanged = { language ->
             lifecycleScope.launch { prefs.setCurrentLanguage(language.tag) }
@@ -206,6 +229,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
         loadLanguage(controller.language.tag)
         lifecycleRegistry.currentState = Lifecycle.State.CREATED
         watchHinge()
+        lifecycleScope.launch { wordStore.words.collect(::onCustomWordsChanged) }
         lifecycleScope.launch {
             prefs.settings.collect { settings ->
                 val ruBgChanged = ruBulgarianVocabulary != settings.ruBulgarianVocabulary
