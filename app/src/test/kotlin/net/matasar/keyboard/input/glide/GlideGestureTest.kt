@@ -40,4 +40,14 @@ class GlideGestureTest {
         assertEquals(GlideGesture.State.PENDING, g.add(160f, 100f, 1050, null))
         assertEquals(GlideGesture.State.PENDING, g.add(160f, 100f, 1060, 'h'))
     }
+
+    @Test
+    fun `a finger crossing the split's gap when the long-press timeout passes is still gliding`() {
+        val g = gesture()
+        // Off the start key into the gap between the halves: no key under the finger...
+        assertEquals(GlideGesture.State.PENDING, g.add(160f, 100f, 1200, null))
+        // ...still there when the long-press timeout passes: it has moved, so it is no long press.
+        assertEquals(GlideGesture.State.PENDING, g.add(200f, 100f, 1450, null))
+        assertEquals(GlideGesture.State.GLIDING, g.add(240f, 100f, 1500, 'k'))
+    }
 }
