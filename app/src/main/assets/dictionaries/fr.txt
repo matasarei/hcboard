@@ -78,7 +78,6 @@ ordi	180
 pas	180
 portable	180
 poster	180
-posté	180
 rappelle	180
 réponds	180
 screenshot	180
@@ -21914,6 +21913,7 @@ polo	90
 polygamie	90
 polygones	90
 ponctuels	90
+posté	90
 potion	90
 poulets	90
 pratiqua	90
