@@ -492,6 +492,7 @@ laggy	165
 lags	165
 lambda	165
 lambdas	165
+lemme	165
 len	165
 lifo	165
 list	165
@@ -544,6 +545,8 @@ pros	165
 rn	165
 rofl	165
 second	165
+selfie	165
+selfies	165
 sem	165
 semaphore	165
 semaphores	165
@@ -584,6 +587,7 @@ vibe	165
 vibes	165
 vibing	165
 void	165
+whatsapp	165
 while	165
 whitelist	165
 wildcard	165
@@ -591,6 +595,7 @@ wildcards	165
 will	165
 workaround	165
 workarounds	165
+ya	165
 yw	165
 against	164
 age	164
