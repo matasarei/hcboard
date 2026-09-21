@@ -63,7 +63,9 @@ class MacroRunner(
     private fun pressKey(step: Block.PressKey, field: MacroField) {
         val stroke = MacroKeys.strokeFor(step.key) ?: return
         val modifiers = step.modifiers - ModifierKey.FN
-        if (modifiers == setOf(ModifierKey.CTRL) && field.editingShortcuts && !field.terminal) {
+        // An uppercase letter carries Shift, and Ctrl+Shift+C is not the editor's copy.
+        val plainLetter = step.key.singleOrNull()?.isLowerCase() == true
+        if (modifiers == setOf(ModifierKey.CTRL) && plainLetter && field.editingShortcuts && !field.terminal) {
             EditingAction.forLetter(step.key)?.let { action ->
                 if (dispatcher.sendEditingAction(action)) return
             }

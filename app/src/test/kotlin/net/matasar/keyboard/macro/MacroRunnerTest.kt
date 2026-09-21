@@ -153,4 +153,11 @@ class MacroRunnerTest {
         runner.run(macro(Block.PressKey("Esc"), Block.PressKey("Tab", setOf(ModifierKey.SHIFT)), Block.PressKey("F1"), Block.PressKey("Enter")), textField)
         assertEquals(listOf(2, 4), waits)
     }
+
+    @Test
+    fun `Ctrl with a capital letter is Ctrl+Shift, never the editor's action`() = runTest {
+        runner().run(macro(Block.PressKey("C", setOf(ModifierKey.CTRL))), textField)
+        assertEquals(emptyList(), port.contextActions)
+        assertEquals(listOf(KeyEvent.KEYCODE_C to (ctrl or shift)), port.keys)
+    }
 }
