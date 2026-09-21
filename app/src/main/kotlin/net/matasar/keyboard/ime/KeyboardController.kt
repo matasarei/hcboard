@@ -700,7 +700,7 @@ class KeyboardController(
      * The user tapped a word in the strip: after a glide it swaps the glided word (and the
      * alternatives stay); while typing it replaces the word being typed. Neither adds a space —
      * the user decides what comes after a word. The typed word itself is already in the field, so
-     * tapping it does nothing.
+     * tapping it only keeps it: the strip closes and the next separator applies no correction.
      */
     fun pickCandidate(word: String) {
         val current = candidates ?: return
@@ -720,9 +720,13 @@ class KeyboardController(
             refreshAutoCapital()
             return
         }
-        if (word == current.typed) return
-        // The field may have changed under the strip; replace only what is still there.
-        if (dispatcher.textEndsWith(current.typed)) dispatcher.replaceWordBeforeCursor(current.typed, word)
+        if (word == current.typed) {
+            // Keeping the word as typed: the next separator must not correct it after all.
+            uncorrectable = word
+        } else if (dispatcher.textEndsWith(current.typed)) {
+            // The field may have changed under the strip; replace only what is still there.
+            dispatcher.replaceWordBeforeCursor(current.typed, word)
+        }
         candidates = null
         refreshAutoCapital()
     }
