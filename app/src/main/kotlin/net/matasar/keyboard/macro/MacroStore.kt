@@ -1,0 +1,57 @@
+package net.matasar.keyboard.macro
+
+import android.content.Context
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.stringPreferencesKey
+import androidx.datastore.preferences.preferencesDataStore
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
+
+private val Context.macroStore: DataStore<Preferences> by preferencesDataStore(name = "macros")
+
+/**
+ * The saved macros, apart from the settings so a bad value here never touches them. Until the
+ * user saves anything the list is [defaults], not written, the way the language list starts.
+ */
+class MacroStore(private val context: Context) {
+
+    val macros: Flow<List<Macro>> = context.macroStore.data.map { p -> read(p) }
+
+    suspend fun save(macros: List<Macro>) {
+        context.macroStore.edit { it[MACROS_JSON] = MacroJson.encode(macros) }
+    }
+
+    /** Replaces the macro with [macro]'s id, or adds it at the end. */
+    suspend fun upsert(macro: Macro) {
+        context.macroStore.edit { p ->
+            val current = read(p)
+            val next = if (current.any { it.id == macro.id }) current.map { if (it.id == macro.id) macro else it } else current + macro
+            p[MACROS_JSON] = MacroJson.encode(next)
+        }
+    }
+
+    suspend fun delete(id: String) {
+        context.macroStore.edit { p -> p[MACROS_JSON] = MacroJson.encode(read(p).filterNot { it.id == id }) }
+    }
+
+    private fun read(p: Preferences): List<Macro> {
+        val text = p[MACROS_JSON] ?: return defaults
+        // Unreadable (a newer format, a damaged file): the defaults, until the next save replaces it.
+        return MacroJson.decode(text) ?: defaults
+    }
+
+    companion object {
+        private val MACROS_JSON = stringPreferencesKey("macros_json")
+
+        /** The one built-in macro: sixteen random letters, digits and symbols, typed as keys. */
+        val passwordGenerator = Macro(
+            id = "password-generator",
+            name = "Password generator",
+            blocks = listOf(Block.RandomKeys(length = Block.RandomKeys.DEFAULT_LENGTH, letters = true, digits = true, symbols = true)),
+        )
+
+        val defaults: List<Macro> = listOf(passwordGenerator)
+    }
+}
