@@ -541,10 +541,11 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
         controller.onFinishInput()
     }
 
-    /** The keyboard went away: a macro stops with it, whatever it was waiting for. */
+    /** The keyboard went away: a macro stops with it, whatever it was waiting for, and the strip folds. */
     override fun onWindowHidden() {
         super.onWindowHidden()
         controller.stopMacro()
+        controller.onKeyboardHidden()
     }
 
     /** The cursor moved, by us or by the user: the word under it decides the candidates. */
