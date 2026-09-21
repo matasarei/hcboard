@@ -34,9 +34,9 @@ class SplitLayoutTest {
                 assertEquals(split.right.units, row.totalUnits, "${language.tag} right")
                 assertEquals(0f, row.trailingUnits)
             }
-            // The widest row of each half is flush on both sides, so nothing is wasted.
-            assertTrue(split.left.rows.any { it.trailingUnits == 0f && it.keys.first().action != KeyAction.Space })
-            assertTrue(split.right.rows.any { it.leadingUnits == 0f })
+            // A half is as wide as its widest letter row, so that row needs no padding at all.
+            assertTrue(split.left.rows.take(4).any { it.trailingUnits == 0f }, "${language.tag} left")
+            assertTrue(split.right.rows.take(4).any { it.leadingUnits == 0f }, "${language.tag} right")
         }
     }
 
