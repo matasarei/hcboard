@@ -2,6 +2,7 @@ package net.matasar.keyboard.layout
 
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class LanguagesTest {
@@ -101,5 +102,13 @@ class LanguagesTest {
     fun `a non-letter in a row is a plain text key`() {
         val apostrophe = Languages.french.lettersLayer(false).rows[2].keys.first { it.label == "'" }
         assertEquals(KeyAction.Text("'"), apostrophe.action)
+    }
+
+    @Test
+    fun `every language has its own subtype id, and English keeps the one phones already enabled`() {
+        assertEquals(Languages.all.size, Languages.all.map { it.subtypeId }.toSet().size)
+        assertEquals(0x68630001, Languages.english.subtypeId)
+        for (language in Languages.all) assertEquals(language, Languages.bySubtypeId(language.subtypeId))
+        assertNull(Languages.bySubtypeId(0))
     }
 }
