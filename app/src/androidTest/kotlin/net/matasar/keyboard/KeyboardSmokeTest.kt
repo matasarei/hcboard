@@ -115,9 +115,10 @@ class KeyboardSmokeTest {
         assertEquals(ime, device.executeShellCommand("settings get secure default_input_method").trim())
 
         // The window reports shown a moment before it takes touches, so each letter is
-        // confirmed in the field before the next; a tap that fell into that gap is retried.
+        // confirmed in the field before the next; a tap that fell into that gap is retried. The
+        // field asks for sentence capitals, so the first letter arrives as a capital on its own.
         val typed = StringBuilder()
-        for (letter in "hello") {
+        for (letter in "Hello") {
             typed.append(letter)
             var landed = false
             repeat(3) {
@@ -127,7 +128,7 @@ class KeyboardSmokeTest {
             }
             assertTrue("expected '$typed', field holds '${fieldText()}'", landed)
         }
-        assertEquals("hello", fieldText())
+        assertEquals("Hello", fieldText())
     }
 
     @Test
@@ -148,8 +149,9 @@ class KeyboardSmokeTest {
             l, letterCentre('o'),
         )
         device.swipe(segments, 10)
-        val arrived = waitUntil(5_000) { fieldText()?.trim() == "hello" }
-        assertTrue("expected 'hello', field holds '${fieldText()}'", arrived)
+        // The field starts a sentence, so the glided word comes with its capital.
+        val arrived = waitUntil(5_000) { fieldText()?.trim() == "Hello" }
+        assertTrue("expected 'Hello', field holds '${fieldText()}'", arrived)
     }
 
     /**
@@ -352,8 +354,8 @@ class KeyboardSmokeTest {
             // "дякую" (thanks): a common word with no close neighbour in the list.
             val segments = "дякую".map { letterCentre(it) }.toTypedArray()
             device.swipe(segments, 10)
-            val arrived = waitUntil(5_000) { fieldText()?.trim() == "дякую" }
-            assertTrue("expected 'дякую', field holds '${fieldText()}'", arrived)
+            val arrived = waitUntil(5_000) { fieldText()?.trim() == "Дякую" }
+            assertTrue("expected 'Дякую', field holds '${fieldText()}'", arrived)
         } finally {
             runBlocking {
                 prefs.setCurrentLanguage("en_US")
