@@ -131,6 +131,10 @@ emulator profile is `medium_phone`; boot it headless with
   `ui/SplitGeometry.kt` decides when (Off/Auto/Always; Auto = a separating vertical hinge from
   androidx.window, or a landscape window under 480 dp high) and sizes the unit so no key lands on
   a hinge.
+- **TalkBack** (`ui/KeySpeech.kt`, `docs/talkback-matrix.md`): every key is one accessibility node,
+  named for what it types now (or Space, Shift, the arrows…), with a latching key's state and a
+  click that types it. TalkBack's lift-to-type and double-tap both use that click; never add a
+  hover handler of our own, or a key types twice.
 - **A key is a legend line and a glyph** (`ui/KeyButton.kt`), never a stack of paddings: the
   shifted symbol sits top-left, the Fn meaning top-right only when it is a symbol, both of the pair
   (`[{`, `` `~ ``; `printedFnLegend`) — named meanings (F1, arrows, Home, Del) show as the glyph
