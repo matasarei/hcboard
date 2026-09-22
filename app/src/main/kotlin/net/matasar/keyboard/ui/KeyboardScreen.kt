@@ -292,7 +292,11 @@ private fun LayerGrid(
         // press on Space (glide off while it runs) used to cancel itself.
         val glide = rememberUpdatedState(feel.glide && controller.layer == LayerId.LETTERS && controller.glideAvailable)
         val unitWidthPx = with(density) { unitWidth.toPx() }
-        val title = stringResource(layerTitle(controller.layer), controller.language.nativeName)
+        val title = if (controller.layer == LayerId.LETTERS) {
+            stringResource(layerTitle(controller.layer), controller.language.nativeName)
+        } else {
+            stringResource(layerTitle(controller.layer))
+        }
         // A password is spoken as dots unless it can only be heard in the user's own ears.
         val obscured = controller.passwordField && !rememberPrivateAudio()
         Column(
