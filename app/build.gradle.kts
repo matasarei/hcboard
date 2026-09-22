@@ -228,11 +228,12 @@ fun GenerateDependencyLicences.readTheClasspath() {
             val own = pomFiles { forComponents(list) }
             // A POM that names no licence may inherit one: fetch the parents too, one round deep,
             // which is as far as this build's dependencies go (Guava's ListenableFuture).
-            val parents = own.flatMap { pom ->
-                Regex("<parent>.*?<groupId>([^<]+)</groupId>.*?<artifactId>([^<]+)</artifactId>.*?<version>([^<]+)</version>", RegexOption.DOT_MATCHES_ALL)
-                    .findAll(pom.readText())
-                    .map { it.destructured.toList() }
-                    .toList()
+            val parents = own.mapNotNull { pom ->
+                val block = Regex("<parent>(.*?)</parent>", RegexOption.DOT_MATCHES_ALL).find(pom.readText())?.groupValues?.get(1) ?: return@mapNotNull null
+                // Read each field on its own: a POM may write them in any order.
+                fun field(name: String) = Regex("<$name>([^<]+)</$name>").find(block)?.groupValues?.get(1)?.trim()
+                val (group, artifact, version) = listOf("groupId", "artifactId", "version").map { field(it) ?: return@mapNotNull null }
+                Triple(group, artifact, version)
             }.distinct()
             own + parents.flatMap { (group, artifact, version) -> pomFiles { forModule(group, artifact, version) } }
         },
