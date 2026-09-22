@@ -201,6 +201,34 @@ class KeyboardSmokeTest {
         assertTrue("the trackpad stayed on after the cancel", waitUntil(2_000) { !trackpadOn() })
     }
 
+    /**
+     * A rotation rebuilds the input view; the view it replaces must let go of its composition, or
+     * every fold and rotation leaves one more keyboard recomposing on each keystroke.
+     */
+    @Test
+    fun rebuildDisposesTheOldComposition() {
+        val instrumentation = InstrumentationRegistry.getInstrumentation()
+        val service = KeyboardService.instance
+        assertNotNull("the service is not running", service)
+        var first: android.view.View? = null
+        instrumentation.runOnMainSync { first = service!!.inputView }
+        val old = first as androidx.compose.ui.platform.ComposeView
+        try {
+            device.setOrientationLandscape()
+            assertTrue("the input view was never rebuilt", waitUntil(5_000) {
+                var current: android.view.View? = null
+                instrumentation.runOnMainSync { current = service!!.inputView }
+                current !== old
+            })
+            var disposed = false
+            instrumentation.runOnMainSync { disposed = !old.hasComposition }
+            assertTrue("the replaced input view still holds its composition", disposed)
+        } finally {
+            device.setOrientationNatural()
+            device.unfreezeRotation()
+        }
+    }
+
     /** The space bar's centre on screen: the middle of the bottom row of the phone letters layer. */
     private fun spaceCentre(): android.graphics.Point {
         val density = InstrumentationRegistry.getInstrumentation().targetContext.resources.displayMetrics.density

@@ -27,6 +27,7 @@ import net.matasar.keyboard.ui.theme.LocalKeyboardColors
 import androidx.compose.runtime.SideEffect
 import android.annotation.SuppressLint
 import android.view.View
+import android.view.ViewTreeObserver
 import android.view.Window
 import android.view.WindowManager
 import android.view.inputmethod.EditorInfo
@@ -306,7 +307,16 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
         }
     }
 
+    /** Measures the bars after every layout of the current input view; removed with that view. */
+    private val layoutListener = ViewTreeObserver.OnGlobalLayoutListener { measureBottomBarOverlap() }
+
     override fun onCreateInputView(): View {
+        // A rebuild replaces the view, but the lifecycle it was composed under is the service's
+        // and lives on: without this the old composition keeps collecting and recomposing.
+        (inputView as? ComposeView)?.let { old ->
+            old.viewTreeObserver.removeOnGlobalLayoutListener(layoutListener)
+            old.disposeComposition()
+        }
         lifecycleRegistry.currentState = Lifecycle.State.STARTED
         // Compose resolves its window recomposer from the window's root view, so the owners
         // have to be on the IME window's decor view as well as on the ComposeView itself.
@@ -316,7 +326,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
             decor.setViewTreeSavedStateRegistryOwner(this)
         }
         return ComposeView(this).also { inputView = it }.apply {
-            viewTreeObserver.addOnGlobalLayoutListener { measureBottomBarOverlap() }
+            viewTreeObserver.addOnGlobalLayoutListener(layoutListener)
             setViewTreeLifecycleOwner(this@KeyboardService)
             setViewTreeViewModelStoreOwner(this@KeyboardService)
             setViewTreeSavedStateRegistryOwner(this@KeyboardService)
