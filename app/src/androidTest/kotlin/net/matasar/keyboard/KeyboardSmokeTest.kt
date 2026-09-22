@@ -229,6 +229,33 @@ class KeyboardSmokeTest {
         }
     }
 
+    /**
+     * Landscape on a phone is where Android puts up its fullscreen extract editor unless the
+     * keyboard says no. A plain platform field, since Compose fields opt out on their own.
+     */
+    @Test
+    fun landscapeNeverGoesFullscreen() {
+        val instrumentation = InstrumentationRegistry.getInstrumentation()
+        val context = ApplicationProvider.getApplicationContext<android.content.Context>()
+        try {
+            device.setOrientationLandscape()
+            context.startActivity(
+                Intent(context, net.matasar.keyboard.debug.PlainFieldActivity::class.java)
+                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK),
+            )
+            assertTrue("the plain field never came up", device.wait(Until.hasObject(By.clazz("android.widget.EditText")), 5_000))
+            focusFieldAndShowKeyboard()
+            val service = KeyboardService.instance
+            assertNotNull("the service is not running", service)
+            var fullscreen = true
+            instrumentation.runOnMainSync { fullscreen = service!!.isFullscreenMode }
+            assertTrue("the keyboard went fullscreen in landscape", !fullscreen)
+        } finally {
+            device.setOrientationNatural()
+            device.unfreezeRotation()
+        }
+    }
+
     /** The space bar's centre on screen: the middle of the bottom row of the phone letters layer. */
     private fun spaceCentre(): android.graphics.Point {
         val density = InstrumentationRegistry.getInstrumentation().targetContext.resources.displayMetrics.density
