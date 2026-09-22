@@ -58,6 +58,10 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import net.matasar.keyboard.ime.listVoiceKeyboards
+import net.matasar.keyboard.ime.pushEnabledSubtypes
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import net.matasar.keyboard.R
 import net.matasar.keyboard.ime.KeyboardDiagnostics
 import net.matasar.keyboard.layout.Languages
@@ -72,6 +76,11 @@ class SettingsActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         val prefs = Prefs(applicationContext)
+        // Android's keyboard list names hcboard's enabled languages; keep it current from here too,
+        // since the keyboard itself may not be running while its languages change.
+        lifecycleScope.launch {
+            prefs.settings.map { it.enabledLanguages }.distinctUntilChanged().collect { pushEnabledSubtypes(applicationContext, it) }
+        }
         setContent {
             val settings by prefs.settings.collectAsState(initial = Settings())
             KeyboardThemeFor(settings.theme) {
