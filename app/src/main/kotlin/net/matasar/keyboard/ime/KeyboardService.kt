@@ -207,6 +207,9 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
     /** The last insets handed to the window manager, kept for the dump. */
     private var lastComputedInsets: String = "not computed yet"
     private var currentPackage: String? = null
+
+    /** The apps allowed to suggest, for the field report alone; the keyboard restores per field. */
+    private var suggestInPackages: Set<String> = emptySet()
     private var currentFieldId = View.NO_ID
 
     /** The enabled languages last mirrored into Android's subtypes; null before the first push. */
@@ -247,6 +250,9 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
                 controller.voiceInputEnabled = settings.voiceInput
                 preferredVoiceKeyboard = settings.voiceKeyboard
                 controller.suggestionsEnabled = settings.suggestions
+                // Only the field report reads this copy, which is written before any field opens;
+                // what the keyboard acts on is restored per field, from the store, below.
+                suggestInPackages = settings.suggestInPackages
                 controller.autoCorrect = settings.autoCorrect
                 controller.autoCapitalize = settings.autoCapitalize
                 autoBottomPadding = settings.bottomPaddingAuto
@@ -541,7 +547,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
         // Our own screens are skipped: the report is read on the settings screen, and walking
         // there must not overwrite what the app being diagnosed reported.
         if (attribute != null && attribute.packageName != packageName) {
-            KeyboardDiagnostics.field = fieldReport(attribute)
+            KeyboardDiagnostics.field = fieldReport(attribute, attribute.packageName in suggestInPackages)
         }
         if (attribute == null || attribute.privateImeOptions == FILL_SCREEN_IME_OPTION) return
         val field = attribute.packageName?.let {
@@ -559,7 +565,13 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
 
     override fun onStartInputView(editorInfo: EditorInfo?, restarting: Boolean) {
         super.onStartInputView(editorInfo, restarting)
-        if (!restarting) controller.onStartInput(editorInfo) else controller.updateFieldMic(editorInfo)
+        if (!restarting) {
+            controller.onStartInput(editorInfo)
+        } else {
+            // A restart skips onStartInput, so everything it reads from the field is re-read here.
+            controller.updateFieldMic(editorInfo)
+            controller.updateFieldSuggestions(editorInfo)
+        }
         currentPackage = editorInfo?.packageName
         currentFieldId = editorInfo?.fieldId ?: View.NO_ID
         // Keyboards can be enabled or disabled between fields, so the mic's target is looked up per field.
@@ -569,8 +581,9 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
         // default language and Android's echo would switch the keys to it.
         if (pushedLanguages != null) reportCurrentSubtype(this, controller.language)
         lifecycleScope.launch {
-            val remembered = prefs.settings.first().developerModePackages
-            controller.restoreDeveloperMode(currentPackage in remembered)
+            val settings = prefs.settings.first()
+            controller.restoreDeveloperMode(currentPackage in settings.developerModePackages)
+            controller.restoreSuggestInApp(currentPackage in settings.suggestInPackages)
         }
         lifecycleRegistry.currentState = Lifecycle.State.RESUMED
     }
@@ -677,6 +690,13 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
         controller.toggleDeveloperMode()
         val pkg = currentPackage ?: return
         lifecycleScope.launch { prefs.setDeveloperMode(pkg, controller.developerMode) }
+    }
+
+    /** The gear sheet's row: remember, for this app, that it may suggest though it asked not to. */
+    override fun toggleSuggestInApp() {
+        controller.toggleSuggestInApp()
+        val pkg = currentPackage ?: return
+        lifecycleScope.launch { prefs.setSuggestInApp(pkg, controller.suggestInApp) }
     }
 
     /** The gear sheet's switch: the strip follows at once, and the sheet closes as Developer mode's does. */

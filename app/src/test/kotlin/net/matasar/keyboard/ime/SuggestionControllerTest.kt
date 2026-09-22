@@ -153,6 +153,83 @@ class SuggestionControllerTest {
     }
 
     @Test
+    fun `an allowed app gets candidates in a field that asked for none`() {
+        val youtube = 0xa4001 // text, sentence caps, multi-line, no suggestions
+        textField(youtube)
+        controller.autoCapitalize = false // the field asks for sentence caps; this test is not about them
+        assertTrue(controller.suggestInAppOffered)
+        assertFalse(controller.suggestInApp)
+        type("chek")
+        assertNull(controller.candidates)
+        // The stored answer arrives a moment after the field, and applies to the field that is open.
+        controller.restoreSuggestInApp(true)
+        controller.onKey(space)
+        type("chek")
+        assertEquals("check", controller.candidates?.correction)
+    }
+
+    @Test
+    fun `the gear sheet's row takes effect in the field that is open`() {
+        textField(0xa4001)
+        controller.autoCapitalize = false
+        controller.settingsSheetOpen = true
+        controller.toggleSuggestInApp()
+        assertTrue(controller.suggestInApp)
+        assertFalse(controller.settingsSheetOpen)
+        type("chek")
+        assertEquals("check", controller.candidates?.correction)
+        // And off again, in the same field: the words already on the strip go at once, rather
+        // than waiting for the next key in a field the app asked to keep quiet.
+        controller.toggleSuggestInApp()
+        assertNull(controller.candidates)
+        controller.onKey(space)
+        type("chek")
+        assertNull(controller.candidates)
+    }
+
+    @Test
+    fun `the row is not offered when suggestions are off altogether`() {
+        textField(0xa4001)
+        assertTrue(controller.suggestInAppOffered)
+        // With the setting off there is nothing to allow: the strip stays empty either way.
+        controller.suggestionsEnabled = false
+        assertFalse(controller.suggestInAppOffered)
+        controller.suggestionsEnabled = true
+        assertTrue(controller.suggestInAppOffered)
+    }
+
+    @Test
+    fun `allowing an app does not reach its password or e-mail fields, and is not offered there`() {
+        controller.restoreSuggestInApp(true)
+        for (inputType in listOf(
+            InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD or InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS,
+            InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS or InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS,
+            InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_URI,
+            InputType.TYPE_NULL,
+        )) {
+            textField(inputType)
+            controller.restoreSuggestInApp(true)
+            assertFalse(controller.suggestInAppOffered, "input type $inputType")
+            type("chek")
+            assertNull(controller.candidates, "input type $inputType")
+        }
+    }
+
+    @Test
+    fun `the answer does not carry from one app to the next`() {
+        textField(0xa4001)
+        controller.autoCapitalize = false
+        controller.restoreSuggestInApp(true)
+        type("chek")
+        assertNotNull(controller.candidates)
+        // A new field, before its own answer has been read: the app's own request stands again.
+        textField(0xa4001)
+        assertFalse(controller.suggestInApp)
+        type("chek")
+        assertNull(controller.candidates)
+    }
+
+    @Test
     fun `a filled password is typed and never read back for the strip until a key`() {
         textField()
         val reads = port.textReads

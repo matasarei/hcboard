@@ -230,6 +230,27 @@ class KeyboardController(
     /** Whether the field's input type lets candidates be read and shown. */
     private var fieldAllowsSuggestions = true
 
+    /**
+     * The focused field's input type, kept so the rule can be applied again when the stored answer
+     * for this app arrives — it is read asynchronously — and when the user flips the row mid-field.
+     * Null is a field that gave no [EditorInfo], which has always been allowed to suggest.
+     */
+    private var fieldInputType: Int? = null
+
+    /** Whether the user has allowed this app to suggest though its fields ask for none. */
+    var suggestInApp: Boolean by mutableStateOf(false)
+        private set
+
+    /** Whether this field's app asked for no suggestions and nothing else is in the way. */
+    private var fieldOverridable: Boolean by mutableStateOf(false)
+
+    /**
+     * Whether the gear sheet offers its row: allowing the app must change something here, and
+     * suggestions must be on at all — with the setting off, the row would promise what the
+     * keyboard would not then do.
+     */
+    val suggestInAppOffered: Boolean get() = fieldOverridable && suggestionsEnabled
+
     /** Whether the word before the cursor may be read and candidates shown right now. */
     val suggestionsAvailable: Boolean
         get() = suggestionsEnabled && candidateEngine != null && fieldAllowsSuggestions && !modifiers.anyMetaActive && !trackpad && !passwordTyped &&
@@ -405,7 +426,10 @@ class KeyboardController(
         usedHolds.clear()
         pendingLocks.clear()
         editorActionId = info?.let { editorActionFor(it.imeOptions, it.inputType) }
-        fieldAllowsSuggestions = info?.let { suggestionsAllowed(it.inputType) } ?: true
+        // A new field, so the previous app's answer does not carry: the service restores this
+        // one's a moment later, and until it does the app's own request stands.
+        suggestInApp = false
+        updateFieldSuggestions(info)
         updateFieldMic(info)
         capsModes = info?.let { capsModesOf(it.inputType) } ?: 0
         autoCancelledAtMs = null
@@ -435,6 +459,11 @@ class KeyboardController(
         managerSheetOpen = false
         macroSheetOpen = false
         settingsSheetOpen = false
+        // No field at all: TYPE_NULL, which no override reaches, so a stored answer landing late
+        // cannot turn the strip back on after the field has gone.
+        fieldInputType = InputType.TYPE_NULL
+        suggestInApp = false
+        fieldOverridable = false
         fieldAllowsSuggestions = false
         clearCandidates()
     }
@@ -523,6 +552,40 @@ class KeyboardController(
     /** Restores the remembered developer mode for the app that just got focus. */
     fun restoreDeveloperMode(on: Boolean) {
         developerMode = on
+    }
+
+    /**
+     * Re-reads what the field says about suggestions. Called for a new field and again when one
+     * restarts, because a restart skips [onStartInput] and would otherwise leave this per-field
+     * state describing the field before it.
+     */
+    fun updateFieldSuggestions(info: EditorInfo?) {
+        fieldInputType = info?.inputType
+        fieldOverridable = info?.let { noSuggestionsOverridable(it.inputType) } ?: false
+        applySuggestionRules()
+    }
+
+    /** Restores the remembered answer for the app that just got focus, as developer mode's is. */
+    fun restoreSuggestInApp(on: Boolean) {
+        suggestInApp = on
+        applySuggestionRules()
+    }
+
+    /**
+     * The gear sheet's row: this app may suggest though it asked not to. It takes effect in the
+     * field that is open, not only at the next one, and the sheet closes as Developer mode's does.
+     */
+    fun toggleSuggestInApp() {
+        suggestInApp = !suggestInApp
+        applySuggestionRules()
+        // Turned off, the words already on the strip would stay there until the next key, in a
+        // field whose app asked for none and where the user has just agreed.
+        if (!fieldAllowsSuggestions) clearCandidates()
+        settingsSheetOpen = false
+    }
+
+    private fun applySuggestionRules() {
+        fieldAllowsSuggestions = fieldInputType?.let { suggestionsAllowed(it, suggestInApp) } ?: true
     }
 
     /** Setting: whether a second quick tap locks a modifier or shift. */

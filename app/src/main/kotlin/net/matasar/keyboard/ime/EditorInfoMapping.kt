@@ -32,9 +32,10 @@ fun fieldKindOf(inputType: Int): FieldKind {
 /**
  * Whether word candidates may be read and shown for a field: plain text only, so no passwords,
  * numbers, terminals, addresses or e-mail, and not when the app asks for no suggestions — unless
- * it asks for autocorrect in the same breath, which a search box does.
+ * it asks for autocorrect in the same breath, which a search box does, or [appAllowed] says the
+ * user has allowed this app in the gear sheet.
  */
-fun suggestionsAllowed(inputType: Int): Boolean {
+fun suggestionsAllowed(inputType: Int, appAllowed: Boolean = false): Boolean {
     if (inputType and InputType.TYPE_MASK_CLASS != InputType.TYPE_CLASS_TEXT) return false
     // A field that asks for no suggestions and for autocorrect in the same breath contradicts
     // itself, and search boxes do it: the Google app's prompt, where Gemini is typed, reports
@@ -42,7 +43,10 @@ fun suggestionsAllowed(inputType: Int): Boolean {
     // correction wins; a field that asks for no suggestions and nothing else is still obeyed.
     val noSuggestions = inputType and InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS != 0
     val autoCorrect = inputType and InputType.TYPE_TEXT_FLAG_AUTO_CORRECT != 0
-    if (noSuggestions && !autoCorrect) return false
+    // [appAllowed] makes that one flag advisory, and only that one: the app said no suggestions
+    // anywhere it types, the user said yes here. Everything below still decides, so a password or
+    // e-mail field in an allowed app stays as quiet as in any other.
+    if (noSuggestions && !autoCorrect && !appAllowed) return false
     return when (inputType and InputType.TYPE_MASK_VARIATION) {
         InputType.TYPE_TEXT_VARIATION_URI,
         InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS,
@@ -54,6 +58,14 @@ fun suggestionsAllowed(inputType: Int): Boolean {
         else -> true
     }
 }
+
+/**
+ * Whether allowing this app would change anything for this field: it asked for no suggestions,
+ * and nothing else is in the way. The gear sheet offers its row on exactly this, so the row can
+ * never appear where tapping it would do nothing.
+ */
+fun noSuggestionsOverridable(inputType: Int): Boolean =
+    !suggestionsAllowed(inputType) && suggestionsAllowed(inputType, appAllowed = true)
 
 /**
  * Whether a field may offer the mic: never a password, which would be spoken aloud, and not when
@@ -116,12 +128,19 @@ fun canNavigateNext(imeOptions: Int): Boolean =
  * to tell from the phone which of those happened. Carries no text: not the field's content, not
  * its hint.
  */
-fun fieldReport(info: EditorInfo): String {
+fun fieldReport(info: EditorInfo, appAllowed: Boolean = false): String {
     val kind = fieldKindOf(info.inputType)
+    // Naming the override where it applies: "off" alone would leave the reader of a pasted report
+    // hunting for a setting they have, or have not, already used.
+    val suggestions = when {
+        !noSuggestionsOverridable(info.inputType) -> if (suggestionsAllowed(info.inputType)) "allowed" else "off"
+        appAllowed -> "allowed (this app is on your list)"
+        else -> "off (this app asked; you can allow it in the gear sheet)"
+    }
     return listOf(
         "app: ${info.packageName} fieldId=${info.fieldId}",
         "inputType=0x${Integer.toHexString(info.inputType)} imeOptions=0x${Integer.toHexString(info.imeOptions)} privateImeOptions=${info.privateImeOptions}",
-        "read as: $kind, suggestions ${if (suggestionsAllowed(info.inputType)) "allowed" else "off"}, glide ${if (kind == FieldKind.TEXT) "allowed" else "off"}, caps ${capsName(capsModesOf(info.inputType))}",
+        "read as: $kind, suggestions $suggestions, glide ${if (kind == FieldKind.TEXT) "allowed" else "off"}, caps ${capsName(capsModesOf(info.inputType))}",
     ).joinToString("\n")
 }
 
