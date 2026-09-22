@@ -198,6 +198,9 @@ fun KeyboardScreen(
                 SettingsSheet(
                     developerMode = controller.developerMode,
                     onToggleDeveloperMode = actions::toggleDeveloperMode,
+                    suggestInAppOffered = controller.suggestInAppOffered,
+                    suggestInApp = controller.suggestInApp,
+                    onToggleSuggestInApp = actions::toggleSuggestInApp,
                     toolbarAlwaysShown = controller.toolbarAlwaysShown,
                     onToggleToolbarAlwaysShown = actions::toggleToolbarAlwaysShown,
                     onOpenSettings = actions::openSettings,

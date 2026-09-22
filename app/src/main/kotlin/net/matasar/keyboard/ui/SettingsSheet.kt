@@ -39,6 +39,9 @@ import net.matasar.keyboard.ui.theme.LocalKeyboardColors
 fun SettingsSheet(
     developerMode: Boolean,
     onToggleDeveloperMode: () -> Unit,
+    suggestInAppOffered: Boolean,
+    suggestInApp: Boolean,
+    onToggleSuggestInApp: () -> Unit,
     toolbarAlwaysShown: Boolean,
     onToggleToolbarAlwaysShown: () -> Unit,
     onOpenSettings: () -> Unit,
@@ -100,6 +103,18 @@ fun SettingsSheet(
                         uncheckedBorderColor = colors.subtle,
                     ),
                 )
+            }
+            // Only where it would change something: the field asked for no suggestions and
+            // nothing else is in the way. Elsewhere the row would be a switch that does nothing.
+            if (suggestInAppOffered) {
+                SheetRow(
+                    icon = R.drawable.ic_spellcheck,
+                    title = "Suggest in this app",
+                    subtitle = "This app asked the keyboard not to suggest",
+                    onClick = onToggleSuggestInApp,
+                ) {
+                    StateSwitch(suggestInApp)
+                }
             }
             SheetRow(
                 icon = R.drawable.ic_tune,
