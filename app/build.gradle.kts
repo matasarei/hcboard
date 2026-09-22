@@ -69,7 +69,7 @@ abstract class GenerateDependencyLicences : DefaultTask() {
 
     @TaskAction
     fun generate() {
-        val byName = poms.files.associateBy { it.name }
+        val byName = pomsByName()
         val licences = coordinates.get().associateWith { licenceOf(it, byName) }
         val unknown = licences.filterValues { it == null }.keys
         if (unknown.isNotEmpty()) {
@@ -95,6 +95,23 @@ abstract class GenerateDependencyLicences : DefaultTask() {
                 "${committed.path} no longer matches the dependencies: run ./gradlew :app:generateDependencyLicences and commit the result.",
             )
         }
+    }
+
+    /**
+     * The POMs by file name, which is how [licenceOf] looks one up. Two modules from different
+     * groups can publish the same artifact name and version; one would then answer for the
+     * other's licence, so that stops the build instead.
+     */
+    private fun pomsByName(): Map<String, File> {
+        val byName = poms.files.groupBy { it.name }
+        val clashes = byName.filterValues { it.size > 1 }
+        if (clashes.isNotEmpty()) {
+            throw GradleException(
+                "Two POMs share a file name, so a licence could be read from the wrong module: " +
+                    clashes.values.flatten().joinToString { it.path },
+            )
+        }
+        return byName.mapValues { it.value.single() }
     }
 
     /**
