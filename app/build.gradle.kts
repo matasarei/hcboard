@@ -121,9 +121,15 @@ abstract class GenerateDependencyLicences : DefaultTask() {
         return licenceIn(poms["$artifact-$version.pom"] ?: return null, poms, depth + 1)
     }
 
-    /** One licence, one spelling: the POMs carry three for Apache-2.0 alone. */
+    /**
+     * One licence, one spelling: the POMs carry three for Apache-2.0 alone ("The Apache Software
+     * License, Version 2.0", "Apache-2.0", "The Apache License, Version 2.0"). The version is
+     * part of what is matched: Apache-1.1 is a different licence, and naming it 2.0 on the screen
+     * would say something untrue. Anything unrecognised is left as the POM wrote it, for the
+     * known-licence check to refuse.
+     */
     private fun normalise(name: String): String = when {
-        name.contains("Apache", ignoreCase = true) -> "Apache License 2.0"
+        name.contains("Apache", ignoreCase = true) && name.contains("2.0") -> "Apache License 2.0"
         name.contains("BSD-3", ignoreCase = true) || name.contains("BSD 3", ignoreCase = true) -> "BSD 3-Clause"
         else -> name
     }
