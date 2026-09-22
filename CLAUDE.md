@@ -156,5 +156,11 @@ emulator profile is `medium_phone`; boot it headless with
   `docs/autofill-matrix.md` (Enpass, Google Password Manager) and `docs/talkback-matrix.md` are
   templates to fill on a phone.
 - **Licence:** Apache-2.0 (`LICENSE`). Third-party Apache code and data are listed in `NOTICE`; a
-  copied file keeps its original header and says what changed. No GPL sources, ever.
+  copied file keeps its original header and says what changed. No GPL sources, ever. The app
+  carries `LICENSE`, `NOTICE` and `licences/BSD-3-Clause.txt` as `res/raw` (the build copies
+  them) and shows them under Settings → About → Open-source licences, with the libraries it is
+  built on: `res/raw/dependencies.txt` is generated from the dependencies' POMs by
+  `./gradlew :app:generateDependencyLicences` and committed, the way the word lists are.
+  `checkDependencyLicences` (in CI) fails when it drifts, and the task itself fails on a licence
+  the screen has no text for — add the text under `licences/` and to `KNOWN_LICENCES` first.
 - **Branching:** `main` is the base; work lands through pull requests from feature branches.
