@@ -18,7 +18,6 @@ import net.matasar.keyboard.settings.SettingsActivity
 import net.matasar.keyboard.ui.Dimens
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
-import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.AfterClass
 import org.junit.FixMethodOrder
@@ -279,7 +278,7 @@ class KeyboardSmokeTest {
         // The field asked for none, and this app is not on the list: nothing is offered.
         typeOnKeys("Chek")
         assertTrue("the field did not take the keys (it reads '${fieldText()}')", waitUntil(2_000) { fieldText() == "Chek" })
-        assertNull("a candidate showed though the field asked for none", imeNodeWithText("check"))
+        assertTrue("a candidate showed though the field asked for none", !imeHasCandidate("check"))
 
         // The gear sheet offers the row here, because allowing the app would change something.
         openGearSheet()
@@ -301,8 +300,23 @@ class KeyboardSmokeTest {
             // Same field, same app: the strip starts working without leaving it.
             typeOnKeys(" chek")
             assertTrue(
-                "no candidate after allowing the app; the keyboard shows: ${describeImeNodes()}",
-                waitUntil(3_000) { imeNodeWithText("check") != null },
+                "no candidate after allowing the app; the keyboard shows: ${describeImeTexts()}",
+                waitUntil(3_000) { imeHasCandidate("check") },
+            )
+
+            // And again in a field opened afresh: that answer is read back from the store, not
+            // left over in the state the tap set.
+            context.startActivity(
+                Intent(context, net.matasar.keyboard.debug.PlainFieldActivity::class.java)
+                    .putExtra(net.matasar.keyboard.debug.PlainFieldActivity.EXTRA_INPUT_TYPE, 0xa4001)
+                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK),
+            )
+            assertTrue("the plain field never came back", device.wait(Until.hasObject(By.clazz("android.widget.EditText")), 5_000))
+            focusFieldAndShowKeyboard()
+            typeOnKeys(" chek")
+            assertTrue(
+                "the answer did not come back with the field; the keyboard shows: ${describeImeTexts()}",
+                waitUntil(3_000) { imeHasCandidate("check") },
             )
         } finally {
             // The answer is persisted for this package, so it would outlive the test.
@@ -331,12 +345,16 @@ class KeyboardSmokeTest {
     private fun typeOnKeys(text: String) {
         for (character in text) {
             val name = if (character == ' ') "Space" else character.toString()
-            val key = waitForImeNode(name)
+            val key = waitForImeNode(name, ignoreCase = true)
             assertNotNull("no key node '$name'; saw: ${describeImeNodes()}; texts: ${describeImeTexts()}", key)
             assertTrue("the '$name' key did not take a click", key!!.performAction(android.view.accessibility.AccessibilityNodeInfo.ACTION_CLICK))
             device.waitForIdle()
         }
     }
+
+    /** Whether [word] is offered as a candidate, in whichever case the sentence capital left it. */
+    private fun imeHasCandidate(word: String): Boolean =
+        imeNodeWithText(word) != null || imeNodeWithText(word.replaceFirstChar { it.uppercase() }) != null
 
     /** Every text in the keyboard window, for a failure message. */
     private fun describeImeTexts(): String {

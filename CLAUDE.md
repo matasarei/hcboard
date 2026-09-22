@@ -79,7 +79,12 @@ emulator profile is `medium_phone`; boot it headless with
   The same lists feed `nlp/Candidates.kt` (prefix completions and one-edit corrections for the word
   before the cursor, read through `InputDispatcher.wordBeforeCursor`): there is no composing region
   on purpose, words are replaced with delete-and-commit in one batch, and nothing is read in a
-  field where `suggestionsAllowed` says no. The grid's letter-bounds registry is rebuilt per layout
+  field where `suggestionsAllowed` says no. An app that asks for no suggestions is obeyed until the
+  user says otherwise in the gear sheet ("Suggest in this app", offered only where
+  `noSuggestionsOverridable` holds): the package joins `Settings.suggestInPackages`, and from then
+  on that one flag is advisory there — never the password, e-mail or URI variations, which decide
+  as they always did. Per app, remembered and restored per field, exactly as `developerModePackages`
+  is. The grid's letter-bounds registry is rebuilt per layout
   and the glide listener is keyed on it, or a language switch classifies against the old alphabet.
   The trail is drawn from the root's draw pass: a sized canvas grows the IME window mid-gesture and
   shifts every later pointer position.
