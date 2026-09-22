@@ -292,7 +292,6 @@ class KeyboardSmokeTest {
      */
     @Test
     fun keysCarryTheirLongPressActionsWhileExploringByTouch() {
-        val automation = InstrumentationRegistry.getInstrumentation().uiAutomation
         // The keyboard has to be up before exploring starts: after it, a tap explores instead.
         focusFieldAndShowKeyboard()
         val field = device.findObject(By.clazz("android.widget.EditText"))
