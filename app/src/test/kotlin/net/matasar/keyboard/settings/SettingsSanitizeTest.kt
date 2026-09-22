@@ -24,12 +24,12 @@ class SettingsSanitizeTest {
     }
 
     @Test
-    fun `unknown languages are dropped, never all of them, and the current one is enabled`() {
-        assertEquals(setOf("uk"), Settings(enabledLanguages = setOf("uk", "klingon"), currentLanguage = "uk").sanitized().enabledLanguages)
+    fun `unknown languages are dropped, English is always kept, and the current one is enabled`() {
+        assertEquals(setOf("en_US", "uk"), Settings(enabledLanguages = setOf("uk", "klingon"), currentLanguage = "uk").sanitized().enabledLanguages)
         val none = Settings(enabledLanguages = setOf("klingon"), currentLanguage = "klingon").sanitized()
         assertEquals(setOf("en_US"), none.enabledLanguages)
         assertEquals("en_US", none.currentLanguage)
-        assertEquals("de", Settings(enabledLanguages = setOf("de", "fr"), currentLanguage = "uk").sanitized().currentLanguage)
+        assertEquals("en_US", Settings(enabledLanguages = setOf("de", "fr"), currentLanguage = "uk").sanitized().currentLanguage)
     }
 
     @Test

@@ -71,10 +71,11 @@ data class Settings(
 
 /**
  * These settings within what the screen can set: scales and padding clamped, only languages the
- * keyboard has, never none, and the current one among them. Applied to a file being restored.
+ * keyboard has, English always among them, and the current one enabled. Applied to a restored file.
  */
 fun Settings.sanitized(): Settings {
-    val languages = enabledLanguages.filter { Languages.byTag(it) != null }.toSet().ifEmpty { setOf(Settings.DEFAULT_LANGUAGE) }
+    // English is always on: the screen has no switch for it, so a file without it would strand it off.
+    val languages = setOf(Settings.DEFAULT_LANGUAGE) + enabledLanguages.filter { Languages.byTag(it) != null }
     return copy(
         heightScale = heightScale.coerceIn(Settings.MIN_HEIGHT_SCALE, Settings.MAX_HEIGHT_SCALE),
         widthScale = widthScale.coerceIn(Settings.MIN_WIDTH_SCALE, 1f),
