@@ -1,31 +1,104 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-    No language subtypes on purpose: languages live in the keyboard's own settings and on its globe
-    key. Declaring them here too gave Android a second list, filled from the phone's languages, that
-    the keyboard's settings did not agree with, and a picker whose choice never reached the keys.
+    One subtype per language the keyboard ships, in the order of Languages.all. Android's keyboard
+    list shows the enabled subtypes' names as the line under a keyboard's name, the way Samsung's
+    own keyboard reads "English (US), Русский і Українська" (android:description on the service
+    is never shown).
 
-    The one subtype below exists because Android's keyboard list shows the enabled subtypes' names
-    as the line under a keyboard's name (android:description on the service is never shown), and
-    with no subtype that line stayed empty. Always on, so it needs no picker. It is English, which
-    the keyboard always has: stock Android showed the label of a subtype with no language, but
-    Samsung's list left it out, and every keyboard it does describe declares one.
+    The keyboard's own settings stay the one source of truth for languages. On Android 14 and
+    later the keyboard enables exactly its enabled languages here (ime/SystemSubtypes.kt), follows
+    a pick from Android's switcher when that language is enabled, and reports the globe's choice
+    back as the current subtype. Only English overrides the implicitly enabled subtypes, so until
+    the first push, and on older Android, the list reads "English" rather than being filled from
+    the phone's own languages, which is what the keyboard's settings used to disagree with.
+
+    Each subtypeId is fixed and matches Language.subtypeId (MethodXmlTest checks both): Android
+    otherwise hashes one from the locale, mode and flags, and a later change to any of them would
+    make it a different subtype to enable again. The label is not part of that hash.
 -->
 <input-method xmlns:android="http://schemas.android.com/apk/res/android"
     android:settingsActivity="net.matasar.keyboard.settings.SettingsActivity"
     android:supportsInlineSuggestions="true"
     android:supportsSwitchingToNextInputMethod="true">
 
-    <!--
-        A fixed subtypeId: Android otherwise hashes one from the locale, mode and flags, and a later
-        change to any of them would make this a different subtype to enable again. The label is not
-        part of that hash, so rewording it is free either way.
-    -->
     <subtype
-        android:label="@string/ime_description"
+        android:label="@string/subtype_en_US"
         android:subtypeId="0x68630001"
         android:imeSubtypeLocale="en_US"
         android:languageTag="en-US"
         android:imeSubtypeMode="keyboard"
         android:isAsciiCapable="true"
         android:overridesImplicitlyEnabledSubtype="true" />
+
+    <subtype
+        android:label="@string/subtype_uk"
+        android:subtypeId="0x68630002"
+        android:imeSubtypeLocale="uk"
+        android:languageTag="uk"
+        android:imeSubtypeMode="keyboard"
+        android:isAsciiCapable="false" />
+
+    <subtype
+        android:label="@string/subtype_ru"
+        android:subtypeId="0x68630003"
+        android:imeSubtypeLocale="ru"
+        android:languageTag="ru"
+        android:imeSubtypeMode="keyboard"
+        android:isAsciiCapable="false" />
+
+    <subtype
+        android:label="@string/subtype_bg"
+        android:subtypeId="0x68630004"
+        android:imeSubtypeLocale="bg"
+        android:languageTag="bg"
+        android:imeSubtypeMode="keyboard"
+        android:isAsciiCapable="false" />
+
+    <subtype
+        android:label="@string/subtype_fr"
+        android:subtypeId="0x68630005"
+        android:imeSubtypeLocale="fr"
+        android:languageTag="fr"
+        android:imeSubtypeMode="keyboard"
+        android:isAsciiCapable="true" />
+
+    <subtype
+        android:label="@string/subtype_es"
+        android:subtypeId="0x68630006"
+        android:imeSubtypeLocale="es"
+        android:languageTag="es"
+        android:imeSubtypeMode="keyboard"
+        android:isAsciiCapable="true" />
+
+    <subtype
+        android:label="@string/subtype_de"
+        android:subtypeId="0x68630007"
+        android:imeSubtypeLocale="de"
+        android:languageTag="de"
+        android:imeSubtypeMode="keyboard"
+        android:isAsciiCapable="true" />
+
+    <subtype
+        android:label="@string/subtype_it"
+        android:subtypeId="0x68630008"
+        android:imeSubtypeLocale="it"
+        android:languageTag="it"
+        android:imeSubtypeMode="keyboard"
+        android:isAsciiCapable="true" />
+
+    <subtype
+        android:label="@string/subtype_pt_BR"
+        android:subtypeId="0x68630009"
+        android:imeSubtypeLocale="pt_BR"
+        android:languageTag="pt-BR"
+        android:imeSubtypeMode="keyboard"
+        android:isAsciiCapable="true" />
+
+    <subtype
+        android:label="@string/subtype_pl"
+        android:subtypeId="0x6863000a"
+        android:imeSubtypeLocale="pl"
+        android:languageTag="pl"
+        android:imeSubtypeMode="keyboard"
+        android:isAsciiCapable="true" />
 </input-method>

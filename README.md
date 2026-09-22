@@ -60,7 +60,8 @@ from the password manager you already use, and the keyboard never shows or keeps
 - **Ten languages:** English, Ukrainian, Russian, Bulgarian, French, Spanish, German, Italian, Portuguese
   (Brazil) and Polish, each with its own layout and long-press accents. English is always on; add
   the others in Settings → Languages. With two or more, a globe key switches them, holding it opens
-  the list, and the space bar names the one you are typing in. For Russian speakers in Bulgaria
+  the list, and the space bar names the one you are typing in; Android's keyboard list and its
+  switcher show the same languages. For Russian speakers in Bulgaria
   who prefer typing on the Russian ЙЦУКЕН layout, an optional setting enables combined Bulgarian
   vocabulary with collision-safe autocorrect.
   *(Want your language or a feature? [Create an issue](https://github.com/matasarei/hcboard/issues) and tell me!)*

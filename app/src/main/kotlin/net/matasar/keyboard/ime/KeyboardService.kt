@@ -30,6 +30,7 @@ import android.view.View
 import android.view.Window
 import android.view.WindowManager
 import android.view.inputmethod.EditorInfo
+import android.view.inputmethod.InputMethodSubtype
 import net.matasar.keyboard.R
 import net.matasar.keyboard.layout.Languages
 import androidx.compose.runtime.collectAsState
@@ -207,6 +208,9 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
     private var currentPackage: String? = null
     private var currentFieldId = View.NO_ID
 
+    /** The enabled languages last mirrored into Android's subtypes; null before the first push. */
+    private var pushedLanguages: Set<String>? = null
+
     /** The chip colours, captured from the theme so the inline request can style the chips. */
     private var suggestionColors = SuggestionColors(0xFFFFFFFF.toInt(), 0xFF1B1C1F.toInt(), 0xFF5C5F66.toInt())
 
@@ -225,6 +229,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
         controller.onLanguageChanged = { language ->
             lifecycleScope.launch { prefs.setCurrentLanguage(language.tag) }
             loadLanguage(language.tag)
+            reportCurrentSubtype(this, language)
         }
         loadLanguage(controller.language.tag)
         lifecycleRegistry.currentState = Lifecycle.State.CREATED
@@ -256,6 +261,13 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
                 } else if (ruBgChanged && controller.language.tag == "ru") {
                     loadLanguage("ru")
                 }
+                // Android's keyboard list names the enabled subtypes: mirror ours into it, then
+                // point its current subtype at the language on the keys.
+                if (settings.enabledLanguages != pushedLanguages) {
+                    pushEnabledSubtypes(this@KeyboardService, settings.enabledLanguages)
+                    pushedLanguages = settings.enabledLanguages
+                }
+                reportCurrentSubtype(this@KeyboardService, controller.language)
             }
         }
     }
@@ -527,6 +539,10 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
         currentFieldId = editorInfo?.fieldId ?: View.NO_ID
         // Keyboards can be enabled or disabled between fields, so the mic's target is looked up per field.
         controller.voiceAvailable = findVoiceTarget(inputMethodManager(), packageName) != null
+        // The first report, from onCreate, comes before the service is attached and does nothing;
+        // here it reaches Android. Only once the settings have loaded, or it would report the
+        // default language and Android's echo would switch the keys to it.
+        if (pushedLanguages != null) reportCurrentSubtype(this, controller.language)
         lifecycleScope.launch {
             val remembered = prefs.settings.first().developerModePackages
             controller.restoreDeveloperMode(currentPackage in remembered)
@@ -563,6 +579,16 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
             lastComputedInsets = reported
             KeyboardDiagnostics.insets = insetReport()
         }
+    }
+
+    /**
+     * Android's switcher picked one of the keyboard's subtypes: follow it when that language is
+     * enabled here, otherwise put Android back on ours. The keyboard's settings stay authoritative.
+     */
+    override fun onCurrentInputMethodSubtypeChanged(newSubtype: InputMethodSubtype) {
+        super.onCurrentInputMethodSubtypeChanged(newSubtype)
+        val picked = languageForPick(newSubtype.hashCode(), controller.enabledLanguages)
+        if (picked != null) controller.switchLanguage(picked) else reportCurrentSubtype(this, controller.language)
     }
 
     override fun onFinishInput() {

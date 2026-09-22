@@ -2,7 +2,17 @@
 <resources>
     <string name="app_name">hcboard</string>
     <string name="ime_label">hcboard</string>
-    <string name="ime_description">Privacy keyboard for everyday typing and developer mode</string>
+    <!-- Subtype names in Android's keyboard list: each language in its own script. -->
+    <string name="subtype_en_US" translatable="false">English</string>
+    <string name="subtype_uk" translatable="false">Українська</string>
+    <string name="subtype_ru" translatable="false">Русский</string>
+    <string name="subtype_bg" translatable="false">Български</string>
+    <string name="subtype_fr" translatable="false">Français</string>
+    <string name="subtype_es" translatable="false">Español</string>
+    <string name="subtype_de" translatable="false">Deutsch</string>
+    <string name="subtype_it" translatable="false">Italiano</string>
+    <string name="subtype_pt_BR" translatable="false">Português</string>
+    <string name="subtype_pl" translatable="false">Polski</string>
 
     <string name="enable_title">Set up the keyboard</string>
     <string name="enable_step1_title">1. Enable it</string>

@@ -9,6 +9,11 @@ data class Language(
     val tag: String,
     val nativeName: String,
     val englishName: String,
+    /**
+     * The fixed id of this language's subtype in `res/xml/method.xml`, which is also its hash
+     * code: Android's keyboard list names the enabled subtypes, and the keyboard enables its own.
+     */
+    val subtypeId: Int,
     /** Three rows: the top, the home row and the bottom letters row. A non-letter character is a plain text key. */
     val rows: List<String>,
     /** Long-press alternatives per letter; the first is what a plain long press selects. */
