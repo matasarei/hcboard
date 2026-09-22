@@ -18,6 +18,7 @@ import net.matasar.keyboard.settings.SettingsActivity
 import net.matasar.keyboard.ui.Dimens
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.AfterClass
 import org.junit.FixMethodOrder
@@ -258,6 +259,113 @@ class KeyboardSmokeTest {
             device.unfreezeRotation()
         }
     }
+
+    /**
+     * A field that asks for no suggestions gets none — until the gear sheet's row says this app
+     * may. `0xa4001` is what YouTube's comment box declares: text, sentence caps, multi-line, no
+     * suggestions, and no autocorrect to contradict it.
+     */
+    @Test
+    fun aNoSuggestionsFieldSuggestsOnlyOnceTheAppIsAllowed() {
+        val context = ApplicationProvider.getApplicationContext<android.content.Context>()
+        context.startActivity(
+            Intent(context, net.matasar.keyboard.debug.PlainFieldActivity::class.java)
+                .putExtra(net.matasar.keyboard.debug.PlainFieldActivity.EXTRA_INPUT_TYPE, 0xa4001)
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK),
+        )
+        assertTrue("the plain field never came up", device.wait(Until.hasObject(By.clazz("android.widget.EditText")), 5_000))
+        focusFieldAndShowKeyboard()
+
+        // The field asked for none, and this app is not on the list: nothing is offered.
+        typeOnKeys("Chek")
+        assertTrue("the field did not take the keys (it reads '${fieldText()}')", waitUntil(2_000) { fieldText() == "Chek" })
+        assertNull("a candidate showed though the field asked for none", imeNodeWithText("check"))
+
+        // The gear sheet offers the row here, because allowing the app would change something.
+        openGearSheet()
+        assertTrue(
+            "the gear sheet never offered the row (offered=${KeyboardService.instance?.controller?.suggestInAppOffered}); texts: ${describeImeTexts()}",
+            waitUntil(3_000) { imeNodeWithText("Suggest in this app") != null },
+        )
+        // Tapped at its own bounds: the row's click sits on the Row, and the node that carries the
+        // text is the Text inside it.
+        val bounds = android.graphics.Rect()
+        imeNodeWithText("Suggest in this app")!!.getBoundsInScreen(bounds)
+        device.click(bounds.centerX(), bounds.centerY())
+        assertTrue(
+            "the sheet stayed open after the row was tapped; texts: ${describeImeTexts()}",
+            waitUntil(3_000) { imeNodeWithText("Developer mode") == null },
+        )
+
+        try {
+            // Same field, same app: the strip starts working without leaving it.
+            typeOnKeys(" chek")
+            assertTrue(
+                "no candidate after allowing the app; the keyboard shows: ${describeImeNodes()}",
+                waitUntil(3_000) { imeNodeWithText("check") != null },
+            )
+        } finally {
+            // The answer is persisted for this package, so it would outlive the test.
+            kotlinx.coroutines.runBlocking { Prefs(context).setSuggestInApp(context.packageName, false) }
+        }
+    }
+
+    /**
+     * Opens the gear's sheet. On a phone the toolbar's buttons fold behind a chevron, and a node
+     * looked up before the strip recomposed is stale and takes no click — so each attempt looks
+     * its node up again.
+     */
+    private fun openGearSheet() {
+        // The gear toggles the sheet, so each click is given time to land before another follows:
+        // clicking twice in a row would open it and close it again.
+        repeat(3) {
+            val button = waitForImeNode("Settings", timeoutMs = 500) ?: waitForImeNode("Show toolbar buttons", timeoutMs = 500)
+            button?.performAction(android.view.accessibility.AccessibilityNodeInfo.ACTION_CLICK)
+            device.waitForIdle()
+            if (waitUntil(2_000) { imeNodeWithText("Developer mode") != null }) return
+        }
+        assertTrue("the gear sheet never opened; the keyboard shows: ${describeImeNodes()}", false)
+    }
+
+    /** Clicks each key of [text] by its accessibility node, which is what the keys are named for. */
+    private fun typeOnKeys(text: String) {
+        for (character in text) {
+            val name = if (character == ' ') "Space" else character.toString()
+            val key = waitForImeNode(name)
+            assertNotNull("no key node '$name'; saw: ${describeImeNodes()}; texts: ${describeImeTexts()}", key)
+            assertTrue("the '$name' key did not take a click", key!!.performAction(android.view.accessibility.AccessibilityNodeInfo.ACTION_CLICK))
+            device.waitForIdle()
+        }
+    }
+
+    /** Every text in the keyboard window, for a failure message. */
+    private fun describeImeTexts(): String {
+        val ime = InstrumentationRegistry.getInstrumentation().uiAutomation.windows
+            .firstOrNull { it.type == android.view.accessibility.AccessibilityWindowInfo.TYPE_INPUT_METHOD } ?: return "no keyboard window"
+        val texts = mutableListOf<String>()
+        fun walk(node: android.view.accessibility.AccessibilityNodeInfo) {
+            node.text?.let { texts += "'$it'" }
+            for (i in 0 until node.childCount) node.getChild(i)?.let(::walk)
+        }
+        ime.root?.let(::walk)
+        return texts.joinToString()
+    }
+
+    /** The first node in the keyboard window whose own text is [text]: a candidate, a sheet row. */
+    private fun imeNodeWithText(text: String): android.view.accessibility.AccessibilityNodeInfo? {
+        val automation = InstrumentationRegistry.getInstrumentation().uiAutomation
+        automation.serviceInfo = automation.serviceInfo.apply {
+            flags = flags or android.accessibilityservice.AccessibilityServiceInfo.FLAG_RETRIEVE_INTERACTIVE_WINDOWS
+        }
+        val ime = automation.windows.firstOrNull { it.type == android.view.accessibility.AccessibilityWindowInfo.TYPE_INPUT_METHOD } ?: return null
+        fun walk(node: android.view.accessibility.AccessibilityNodeInfo): android.view.accessibility.AccessibilityNodeInfo? {
+            if (node.text?.toString() == text) return node
+            for (i in 0 until node.childCount) node.getChild(i)?.let { child -> walk(child)?.let { return it } }
+            return null
+        }
+        return ime.root?.let(::walk)
+    }
+
 
     /**
      * What TalkBack works with: the keyboard window's accessibility nodes. Each key is one node
