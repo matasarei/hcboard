@@ -10,7 +10,9 @@ plugins {
  * files stay the only copy anyone edits.
  */
 abstract class CopyLicenceNotices : DefaultTask() {
+    // Only the names matter, not where the checkout lives, so the inputs hash the same anywhere.
     @get:InputFiles
+    @get:PathSensitive(PathSensitivity.NAME_ONLY)
     abstract val sources: ConfigurableFileCollection
 
     @get:OutputDirectory
