@@ -33,10 +33,19 @@ class SettingsSanitizeTest {
     }
 
     @Test
+    fun `a restored list of apps allowed to suggest is capped`() {
+        val many = (1..10_000).map { "com.example.app$it" }.toSet()
+        assertEquals(Settings.MAX_SUGGEST_IN_PACKAGES, Settings(suggestInPackages = many).sanitized().suggestInPackages.size)
+        val few = setOf("com.google.android.youtube")
+        assertEquals(few, Settings(suggestInPackages = few).sanitized().suggestInPackages)
+    }
+
+    @Test
     fun `settings survive a round trip, and a file missing fields or with new ones still reads`() {
         val settings = Settings(
             theme = ThemeChoice.BLACK, splitKeyboard = SplitMode.ALWAYS, voiceKeyboard = "com.example/.Voice",
             developerModePackages = setOf("com.termux"), glide = false, enabledLanguages = setOf("en_US", "bg"),
+            suggestInPackages = setOf("com.google.android.youtube"),
         )
         assertEquals(settings, json.decodeFromString(Settings.serializer(), json.encodeToString(Settings.serializer(), settings)))
         assertEquals(Settings(haptics = false), json.decodeFromString(Settings.serializer(), """{"haptics":false,"fromTheFuture":1}"""))

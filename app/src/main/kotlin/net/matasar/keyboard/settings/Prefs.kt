@@ -49,6 +49,8 @@ data class Settings(
     val doubleTapLock: Boolean = true,
     /** Packages in which developer mode was left on. */
     val developerModePackages: Set<String> = emptySet(),
+    /** Packages allowed to suggest though their fields ask for no suggestions. */
+    val suggestInPackages: Set<String> = emptySet(),
     val suggestions: Boolean = true,
     val autoCorrect: Boolean = true,
     val autoCapitalize: Boolean = true,
@@ -63,6 +65,7 @@ data class Settings(
     companion object {
         const val DEFAULT_LANGUAGE = "en_US"
         const val MAX_BOTTOM_PADDING_DP = 48
+        const val MAX_SUGGEST_IN_PACKAGES = 200
         const val MIN_HEIGHT_SCALE = 0.8f
         const val MAX_HEIGHT_SCALE = 1.2f
         const val MIN_WIDTH_SCALE = 0.7f
@@ -77,6 +80,9 @@ fun Settings.sanitized(): Settings {
     // English is always on: the screen has no switch for it, so a file without it would strand it off.
     val languages = setOf(Settings.DEFAULT_LANGUAGE) + enabledLanguages.filter { Languages.byTag(it) != null }
     return copy(
+        // A restored file is the one place this set arrives from outside, and the keyboard reads
+        // it on every field: a list of that size is a mistake or a hostile file, not a choice.
+        suggestInPackages = suggestInPackages.take(Settings.MAX_SUGGEST_IN_PACKAGES).toSet(),
         heightScale = heightScale.coerceIn(Settings.MIN_HEIGHT_SCALE, Settings.MAX_HEIGHT_SCALE),
         widthScale = widthScale.coerceIn(Settings.MIN_WIDTH_SCALE, 1f),
         bottomPaddingDp = bottomPaddingDp.coerceIn(0, Settings.MAX_BOTTOM_PADDING_DP),
@@ -114,6 +120,7 @@ class Prefs(private val context: Context) {
             editingShortcuts = p[EDITING_SHORTCUTS] ?: true,
             doubleTapLock = p[DOUBLE_TAP_LOCK] ?: true,
             developerModePackages = p[DEV_MODE_PACKAGES] ?: emptySet(),
+            suggestInPackages = p[SUGGEST_IN_PACKAGES] ?: emptySet(),
             suggestions = p[SUGGESTIONS] ?: true,
             autoCorrect = p[AUTO_CORRECT] ?: true,
             autoCapitalize = p[AUTO_CAPITALIZE] ?: true,
@@ -166,6 +173,7 @@ class Prefs(private val context: Context) {
             p[EDITING_SHORTCUTS] = s.editingShortcuts
             p[DOUBLE_TAP_LOCK] = s.doubleTapLock
             p[DEV_MODE_PACKAGES] = s.developerModePackages
+            p[SUGGEST_IN_PACKAGES] = s.suggestInPackages
             p[SUGGESTIONS] = s.suggestions
             p[AUTO_CORRECT] = s.autoCorrect
             p[AUTO_CAPITALIZE] = s.autoCapitalize
@@ -187,6 +195,12 @@ class Prefs(private val context: Context) {
     suspend fun setDeveloperMode(packageName: String, on: Boolean) = context.dataStore.edit { p ->
         val current = p[DEV_MODE_PACKAGES] ?: emptySet()
         p[DEV_MODE_PACKAGES] = if (on) current + packageName else current - packageName
+    }
+
+    /** The gear sheet's row: this app may suggest though its fields ask for no suggestions. */
+    suspend fun setSuggestInApp(packageName: String, on: Boolean) = context.dataStore.edit { p ->
+        val current = p[SUGGEST_IN_PACKAGES] ?: emptySet()
+        p[SUGGEST_IN_PACKAGES] = if (on) current + packageName else current - packageName
     }
 
     /**
@@ -217,6 +231,7 @@ class Prefs(private val context: Context) {
         val EDITING_SHORTCUTS = booleanPreferencesKey("editing_shortcuts")
         val DOUBLE_TAP_LOCK = booleanPreferencesKey("double_tap_lock")
         val DEV_MODE_PACKAGES = stringSetPreferencesKey("developer_mode_packages")
+        val SUGGEST_IN_PACKAGES = stringSetPreferencesKey("suggest_in_packages")
         val SUGGESTIONS = booleanPreferencesKey("suggestions")
         val AUTO_CORRECT = booleanPreferencesKey("auto_correct")
         val AUTO_CAPITALIZE = booleanPreferencesKey("auto_capitalize")
