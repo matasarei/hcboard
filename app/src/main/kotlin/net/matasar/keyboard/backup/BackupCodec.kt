@@ -128,7 +128,8 @@ object BackupCodec {
             if (box.open(header.check) != CHECK) throw WrongPassphrase()
             file.macros.map { it.openSecrets(box) }.map { it.copy(blocks = it.blocks.withoutKeptSealed()) }
         }
-        return Restored(file.settings.sanitized(), CustomWordsJson.sanitized(file.words), macros)
+        // The editor finds a macro by its id; a hand-edited file with two alike keeps the first.
+        return Restored(file.settings.sanitized(), CustomWordsJson.sanitized(file.words), macros.distinctBy { it.id })
     }
 
     /** Whether a repeat sits more than [depth] repeats deep; stops looking as soon as one does. */

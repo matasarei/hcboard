@@ -122,4 +122,11 @@ class BackupCodecTest {
         assertFailsWith<NotABackup> { BackupCodec.read(nested(BackupCodec.MAX_NESTING + 1)) }
         assertFailsWith<NotABackup> { BackupCodec.read(nested(100_000)) }
     }
+
+    @Test
+    fun `two macros with one id keep the first`() {
+        val text = """{"format":"hcboard-backup","version":1,"macros":[
+            {"id":"a","name":"First","blocks":[]},{"id":"b","name":"B","blocks":[]},{"id":"a","name":"Second","blocks":[]}]}"""
+        assertEquals(listOf("First", "B"), BackupCodec.open(BackupCodec.read(text), null).macros.map { it.name })
+    }
 }
