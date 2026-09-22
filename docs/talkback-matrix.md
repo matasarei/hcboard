@@ -14,6 +14,8 @@ Filled in on a device. The first row was checked on the emulator on 2026-09-22.
 | Phone, One UI / Pixel | | | | | | | | |
 | 60% board (Fold inner screen or a tablet) | | | | | | | | Fn meanings (Del, Home) should be what is read |
 | Developer mode strip | | | | | | | | Ctrl/Alt/Fn states |
+| Any phone: keyboard shown again in the same field | | | | | | | | Is the page title ("Letters, English") spoken on every show, not only on a switch? If it is noisy, move it to a live region that speaks changes only |
+| Any phone: password field | | | | | | | | Speaker: keys say Dot; with headphones: the characters |
 
 Legend: ✓ works · ✗ does not · ~ partial (say what).
 
