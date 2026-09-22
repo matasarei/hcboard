@@ -960,6 +960,19 @@ class KeyboardController(
         return true
     }
 
+    /**
+     * The toolbar's paste: the clipboard's text goes in through the dispatcher like typed text,
+     * and the strip and the automatic capital follow what is now before the cursor. It is not a
+     * key, so a one-shot Shift or modifier stays armed; nothing when the clipboard holds no text.
+     */
+    fun paste() {
+        val text = clipboardText()?.takeIf { it.isNotEmpty() } ?: return
+        dispatcher.commitText(text)
+        lastAutocorrect = null
+        refreshCandidates()
+        refreshAutoCapital()
+    }
+
     /** A chosen accent goes in like a letter: it consumes a one-shot shift. */
     fun commitAccent(text: String) {
         dispatcher.commitText(text)

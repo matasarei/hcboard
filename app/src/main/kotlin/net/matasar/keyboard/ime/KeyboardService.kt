@@ -673,8 +673,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
     }
 
     override fun pasteClipboard() {
-        val text = clipboardText() ?: return
-        currentInputConnection?.commitText(text, 1)
+        controller.paste()
     }
 
     /** The clipboard's first item as text, for the paste button and a macro's paste block. */

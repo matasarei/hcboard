@@ -128,6 +128,21 @@ class KeyboardControllerTest {
     }
 
     @Test
+    fun `paste reaches the editor through the dispatcher and leaves a one-shot shift armed`() {
+        var clipboard: String? = "hello"
+        controller.clipboardText = { clipboard }
+        controller.onKey(shiftKey)
+        controller.paste()
+        assertEquals(listOf("hello"), port.committed)
+        assertEquals(LatchState.ARMED, controller.shift.state)
+        clipboard = ""
+        controller.paste()
+        clipboard = null
+        controller.paste()
+        assertEquals(listOf("hello"), port.committed)
+    }
+
+    @Test
     fun `enter uses the field action only when the field offers one`() {
         assertEquals(EditorInfo.IME_ACTION_SEARCH, KeyboardController.editorActionFor(EditorInfo.IME_ACTION_SEARCH, InputType.TYPE_CLASS_TEXT))
         assertNull(KeyboardController.editorActionFor(EditorInfo.IME_ACTION_NONE, InputType.TYPE_CLASS_TEXT))
