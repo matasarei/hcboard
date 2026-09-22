@@ -50,6 +50,12 @@
             android:label="@string/words_title"
             android:windowSoftInputMode="adjustResize" />
 
+        <!-- The licence and notice texts the APK carries; opened from settings. -->
+        <activity
+            android:name=".settings.LicencesActivity"
+            android:exported="false"
+            android:label="@string/licences_title" />
+
         <!-- The fill screen: a login form for the password manager, opened only by the keyboard.
              Its own task, so closing it lands back in the app the password is for; kept out of
              recents and history, so it is never a way back to a filled form. -->

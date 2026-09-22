@@ -4,6 +4,40 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
 }
 
+/**
+ * Copies the repository's LICENSE and NOTICE into a generated res/raw, so the APK carries them
+ * (Apache-2.0 section 4(d), CC BY 4.0 attribution) and the licences screen shows them. The root
+ * files stay the only copy anyone edits.
+ */
+abstract class CopyLicenceNotices : DefaultTask() {
+    // Only the names matter, not where the checkout lives, so the inputs hash the same anywhere.
+    @get:InputFiles
+    @get:PathSensitive(PathSensitivity.NAME_ONLY)
+    abstract val sources: ConfigurableFileCollection
+
+    @get:OutputDirectory
+    abstract val outputDir: DirectoryProperty
+
+    @TaskAction
+    fun copy() {
+        val raw = outputDir.get().dir("raw").asFile
+        raw.deleteRecursively()
+        raw.mkdirs()
+        // Resource names are lower case: LICENSE becomes R.raw.license, NOTICE R.raw.notice.
+        sources.forEach { it.copyTo(File(raw, it.name.lowercase() + ".txt"), overwrite = true) }
+    }
+}
+
+val copyLicenceNotices = tasks.register<CopyLicenceNotices>("copyLicenceNotices") {
+    sources.from(rootProject.file("LICENSE"), rootProject.file("NOTICE"))
+}
+
+androidComponents {
+    onVariants { variant ->
+        variant.sources.res?.addGeneratedSourceDirectory(copyLicenceNotices, CopyLicenceNotices::outputDir)
+    }
+}
+
 android {
     namespace = "net.matasar.keyboard"
     compileSdk = libs.versions.compileSdk.get().toInt()

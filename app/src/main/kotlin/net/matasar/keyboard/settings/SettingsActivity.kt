@@ -290,6 +290,11 @@ private fun SettingsScreen(settings: Settings, prefs: Prefs) {
                 )
             }
         }
+
+        Section(stringResource(R.string.settings_section_about))
+        OutlinedButton(onClick = { context.startActivity(LicencesActivity.intent(context)) }) {
+            Text(stringResource(R.string.licences_title))
+        }
     }
 }
 
