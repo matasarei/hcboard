@@ -981,7 +981,7 @@ class KeyboardController(
         afterKey()
     }
 
-/**
+    /**
      * Moves the cursor by [steps] characters, or words with [byWord], as the trackpad's slide
      * does: the accessibility action on Space, for a screen reader that never gets a long press.
      * By word is Ctrl and an arrow, which is how Android's own text fields move by word.
