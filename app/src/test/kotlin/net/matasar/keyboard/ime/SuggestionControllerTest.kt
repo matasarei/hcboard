@@ -178,8 +178,10 @@ class SuggestionControllerTest {
         assertFalse(controller.settingsSheetOpen)
         type("chek")
         assertEquals("check", controller.candidates?.correction)
-        // And off again, in the same field.
+        // And off again, in the same field: the words already on the strip go at once, rather
+        // than waiting for the next key in a field the app asked to keep quiet.
         controller.toggleSuggestInApp()
+        assertNull(controller.candidates)
         controller.onKey(space)
         type("chek")
         assertNull(controller.candidates)

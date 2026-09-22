@@ -572,6 +572,9 @@ class KeyboardController(
     fun toggleSuggestInApp() {
         suggestInApp = !suggestInApp
         applySuggestionRules()
+        // Turned off, the words already on the strip would stay there until the next key, in a
+        // field whose app asked for none and where the user has just agreed.
+        if (!fieldAllowsSuggestions) clearCandidates()
         settingsSheetOpen = false
     }
 
