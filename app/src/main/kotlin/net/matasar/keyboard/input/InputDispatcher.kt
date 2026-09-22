@@ -67,11 +67,17 @@ class InputDispatcher(private val port: EditorPort) {
     /** Whether the text before the cursor ends with [suffix]; the undo of a correction checks it is still there. */
     fun textEndsWith(suffix: String): Boolean = port.textBeforeCursor(suffix.length)?.toString() == suffix
 
-    /** Replaces the [old] word before the cursor (as [wordBeforeCursor] returned it) with [new]. */
-    fun replaceWordBeforeCursor(old: String, new: String) {
+    /**
+     * Replaces the [old] word before the cursor (as [wordBeforeCursor] returned it) with [new], in
+     * one batch: the app never sees the field with the word gone and the new one not yet there.
+     */
+    fun replaceWordBeforeCursor(old: String, new: String) = port.batch {
         port.deleteSurroundingText(old.length, 0)
         port.commitText(new)
     }
+
+    /** Runs [edits] as one batch edit, for a change made of several calls (see [EditorPort.batch]). */
+    fun batch(edits: () -> Unit) = port.batch(edits)
 
     /**
      * Forward delete: clears the selection when there is one (same as [backspace]), otherwise

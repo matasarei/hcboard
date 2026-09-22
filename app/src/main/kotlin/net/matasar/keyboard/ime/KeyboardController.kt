@@ -877,11 +877,14 @@ class KeyboardController(
     private fun commitSeparator(separator: String) {
         val current = candidates
         val correction = current?.correction
-        if (autoCorrect && current != null && correction != null && lastGlideWord == null && dispatcher.textEndsWith(current.typed)) {
-            dispatcher.replaceWordBeforeCursor(current.typed, correction)
-            lastAutocorrect = Autocorrect(current.typed, correction, separator)
+        // The correction and the separator after it are one change to the app.
+        dispatcher.batch {
+            if (autoCorrect && current != null && correction != null && lastGlideWord == null && dispatcher.textEndsWith(current.typed)) {
+                dispatcher.replaceWordBeforeCursor(current.typed, correction)
+                lastAutocorrect = Autocorrect(current.typed, correction, separator)
+            }
+            dispatcher.commitText(separator)
         }
-        dispatcher.commitText(separator)
         candidates = null
     }
 

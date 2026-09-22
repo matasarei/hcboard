@@ -102,6 +102,22 @@ class InputDispatcherTest {
     }
 
     @Test
+    fun `a word is replaced in one batch, so the app never sees it half done`() {
+        val port = FakeEditorPort(before = "Spell chek")
+        InputDispatcher(port).replaceWordBeforeCursor("chek", "check")
+        assertEquals(listOf("begin", "delete:4,0", "commit:check", "end"), port.edits)
+        assertEquals(0, port.batchDepth)
+    }
+
+    @Test
+    fun `a batch is closed even when an edit inside it throws`() {
+        val port = FakeEditorPort()
+        runCatching { InputDispatcher(port).batch { error("the connection went away") } }
+        assertEquals(listOf("begin", "end"), port.edits)
+        assertEquals(0, port.batchDepth)
+    }
+
+    @Test
     fun `a word needs a space in front of it only after something that ends a word`() {
         for (text in listOf("hello", "hello,", "hello.", "hello!", "hello?", "don't", "(hello)", "7", "\u201chello\u201d", "\u00abhello\u00bb")) {
             val port = FakeEditorPort(before = text)
