@@ -539,6 +539,10 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
         currentFieldId = editorInfo?.fieldId ?: View.NO_ID
         // Keyboards can be enabled or disabled between fields, so the mic's target is looked up per field.
         controller.voiceAvailable = findVoiceTarget(inputMethodManager(), packageName) != null
+        // The first report, from onCreate, comes before the service is attached and does nothing;
+        // here it reaches Android. Only once the settings have loaded, or it would report the
+        // default language and Android's echo would switch the keys to it.
+        if (pushedLanguages != null) reportCurrentSubtype(this, controller.language)
         lifecycleScope.launch {
             val remembered = prefs.settings.first().developerModePackages
             controller.restoreDeveloperMode(currentPackage in remembered)
