@@ -1,6 +1,7 @@
 package net.matasar.keyboard.ui
 
 import android.view.KeyEvent
+import android.view.inputmethod.EditorInfo
 import androidx.annotation.StringRes
 import net.matasar.keyboard.R
 import net.matasar.keyboard.input.LatchState
@@ -26,11 +27,14 @@ sealed interface Spoken {
  * With [obscured] (a password field, and speech going out loud rather than into headphones) a key
  * that types a character says "Dot" instead, as AOSP's keyboard does: whoever is near the phone
  * does not hear the password. Named keys keep their names.
+ *
+ * Enter says the field's own action when it has one ([editorAction], an `EditorInfo.IME_ACTION_*`),
+ * as its icon shows it: Search, Send, Go, Next, Done.
  */
-internal fun spokenKey(key: Key, shown: String, iconShown: Boolean, obscured: Boolean = false): Spoken {
+internal fun spokenKey(key: Key, shown: String, iconShown: Boolean, obscured: Boolean = false, editorAction: Int? = null): Spoken {
     when (val action = key.action) {
         KeyAction.Space -> return Spoken.Named(R.string.a11y_key_space)
-        KeyAction.Enter -> return Spoken.Named(R.string.a11y_key_enter)
+        KeyAction.Enter -> return Spoken.Named(enterName(editorAction))
         KeyAction.Shift -> return Spoken.Named(R.string.a11y_key_shift)
         KeyAction.CapsLock -> return Spoken.Named(R.string.a11y_key_caps_lock)
         KeyAction.HideKeyboard -> return Spoken.Named(R.string.a11y_key_hide)
@@ -74,6 +78,16 @@ internal fun layerTitle(layer: LayerId): Int = when (layer) {
     LayerId.LETTERS -> R.string.a11y_layer_letters
     LayerId.SYMBOLS -> R.string.a11y_key_symbols
     LayerId.CODE -> R.string.a11y_key_code
+}
+
+@StringRes
+private fun enterName(editorAction: Int?): Int = when (editorAction) {
+    EditorInfo.IME_ACTION_SEARCH -> R.string.a11y_key_search
+    EditorInfo.IME_ACTION_SEND -> R.string.a11y_key_send
+    EditorInfo.IME_ACTION_GO -> R.string.a11y_key_go
+    EditorInfo.IME_ACTION_NEXT -> R.string.a11y_key_next
+    EditorInfo.IME_ACTION_DONE -> R.string.a11y_key_done
+    else -> R.string.a11y_key_enter
 }
 
 @StringRes

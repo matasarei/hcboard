@@ -143,4 +143,16 @@ class KeySpeechTest {
         assertTrue(!isPrivateOutput(android.media.AudioDeviceInfo.TYPE_BUILTIN_SPEAKER))
         assertTrue(!isPrivateOutput(android.media.AudioDeviceInfo.TYPE_BUILTIN_EARPIECE))
     }
+
+    @Test
+    fun `enter says the field's action, and Enter when there is none`() {
+        val enter = letters.first { it.action == KeyAction.Enter }
+        fun said(action: Int?) = spokenKey(enter, "", iconShown = true, editorAction = action)
+        assertEquals(Spoken.Named(R.string.a11y_key_search), said(android.view.inputmethod.EditorInfo.IME_ACTION_SEARCH))
+        assertEquals(Spoken.Named(R.string.a11y_key_send), said(android.view.inputmethod.EditorInfo.IME_ACTION_SEND))
+        assertEquals(Spoken.Named(R.string.a11y_key_go), said(android.view.inputmethod.EditorInfo.IME_ACTION_GO))
+        assertEquals(Spoken.Named(R.string.a11y_key_next), said(android.view.inputmethod.EditorInfo.IME_ACTION_NEXT))
+        assertEquals(Spoken.Named(R.string.a11y_key_done), said(android.view.inputmethod.EditorInfo.IME_ACTION_DONE))
+        assertEquals(Spoken.Named(R.string.a11y_key_enter), said(null))
+    }
 }

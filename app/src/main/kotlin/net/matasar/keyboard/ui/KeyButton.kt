@@ -108,6 +108,8 @@ fun KeyButton(
     stateDescription: String? = null,
     /** A character key says "Dot" to TalkBack rather than its character: a password, spoken out loud. */
     obscured: Boolean = false,
+    /** The field's action (`EditorInfo.IME_ACTION_*`), which Enter says instead of its own name. */
+    editorAction: Int? = null,
 ) {
     val colors = LocalKeyboardColors.current
     val view = LocalView.current
@@ -176,7 +178,7 @@ fun KeyButton(
     // One node per key for TalkBack: what the key types now, or its name, and a click that types
     // it, which is what both double-tap and TalkBack's lift-to-type perform. The glyph and the
     // legends under it are not read on their own.
-    val description = when (val spoken = spokenKey(key, label, iconShown = icon != null, obscured = obscured)) {
+    val description = when (val spoken = spokenKey(key, label, iconShown = icon != null, obscured = obscured, editorAction = editorAction)) {
         is Spoken.Named -> stringResource(spoken.id)
         is Spoken.Text -> spoken.text
     }

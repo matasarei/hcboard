@@ -336,6 +336,7 @@ private fun LayerGrid(
                     repeats = controller.repeats(key),
                     stateDescription = keyState(key, controller),
                     obscured = obscured,
+                    editorAction = controller.editorActionId,
                 )
             }
             if (split == null) {

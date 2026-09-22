@@ -177,6 +177,11 @@
     <!-- What TalkBack says for the keys that are named rather than read (ui/KeySpeech.kt). -->
     <string name="a11y_key_space">Space</string>
     <string name="a11y_key_enter">Enter</string>
+    <string name="a11y_key_search">Search</string>
+    <string name="a11y_key_send">Send</string>
+    <string name="a11y_key_go">Go</string>
+    <string name="a11y_key_next">Next</string>
+    <string name="a11y_key_done">Done</string>
     <string name="a11y_key_backspace">Backspace</string>
     <string name="a11y_key_shift">Shift</string>
     <string name="a11y_key_caps_lock">Caps Lock</string>
