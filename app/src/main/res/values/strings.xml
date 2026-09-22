@@ -140,5 +140,27 @@
     <string name="words_added">Added</string>
     <string name="words_blocked">Blocked</string>
     <string name="words_delete">Delete %1$s</string>
+    <string name="settings_section_backup">Backup</string>
+    <string name="backup_hint">One file with your settings, custom words and macros, saved where you choose. Secret texts in macros are locked with a passphrase you pick; everything else in the file is readable.</string>
+    <string name="backup_export">Export</string>
+    <string name="backup_import">Import</string>
+    <string name="backup_exported">Backup saved.</string>
+    <string name="backup_export_failed">The backup could not be saved. Try again.</string>
+    <string name="backup_not_a_backup">This is not a backup this version of the keyboard can read.</string>
+    <string name="backup_too_large">This file is too large to be a backup.</string>
+    <string name="backup_restored">Settings, custom words and macros restored.</string>
+    <string name="backup_import_confirm_title">Replace everything?</string>
+    <string name="backup_import_confirm">Your settings, custom words and macros will be replaced by the ones in the file.</string>
+    <string name="backup_replace">Replace</string>
+    <string name="backup_passphrase">Passphrase</string>
+    <string name="backup_passphrase_again">Passphrase again</string>
+    <string name="backup_passphrase_new_title">Lock the secrets</string>
+    <plurals name="backup_passphrase_new_hint">
+        <item quantity="one">Your macros hold secret texts. Pick a passphrase of at least %1$d character to lock them in the file. Without it they cannot be restored, and it is not kept anywhere.</item>
+        <item quantity="other">Your macros hold secret texts. Pick a passphrase of at least %1$d characters to lock them in the file. Without it they cannot be restored, and it is not kept anywhere.</item>
+    </plurals>
+    <string name="backup_passphrase_title">Unlock the secrets</string>
+    <string name="backup_passphrase_hint">This backup holds secret texts. Enter the passphrase it was saved with.</string>
+    <string name="backup_wrong_passphrase">That passphrase does not unlock this backup.</string>
     <string name="settings_macros_open">Edit macros</string>
 </resources>
