@@ -465,12 +465,17 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
 
     /**
      * The window's bottom bar as the framework's decor paints it, in the keyboard's own colour
-     * so the strip under the keys reads as part of the keyboard rather than a black band.
+     * so the strip under the keys reads as part of the keyboard rather than a black band. Up to
+     * Android 15, where the theme's edge-to-edge opt-out holds and the decor paints that strip.
+     * From Android 16 the opt-out is ignored at this target and the colour call does nothing:
+     * the keyboard draws under the bar itself, so the strip is already its own background.
      */
     private fun paintBottomBar(color: Int, light: Boolean) {
         val w = window?.window ?: return
-        @Suppress("DEPRECATION")
-        w.navigationBarColor = color
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.BAKLAVA) {
+            @Suppress("DEPRECATION")
+            w.navigationBarColor = color
+        }
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
             @Suppress("DEPRECATION")
             w.isNavigationBarContrastEnforced = false
