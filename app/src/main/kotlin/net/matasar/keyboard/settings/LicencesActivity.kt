@@ -25,7 +25,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import net.matasar.keyboard.R
 
@@ -76,10 +75,39 @@ private fun LicencesScreen() {
     }
 }
 
-/** A text file from res/raw, read once; monospace, because both files are laid out for it. */
+/** A text file from res/raw, read once and reflowed to the screen's width (see [reflow]). */
 @Composable
 private fun RawText(@RawRes id: Int) {
     val resources = LocalResources.current
-    val text = remember(resources, id) { resources.openRawResource(id).bufferedReader().use { it.readText() } }
-    Text(text, style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace))
+    val text = remember(resources, id) { reflow(resources.openRawResource(id).bufferedReader().use { it.readText() }) }
+    Text(text, style = MaterialTheme.typography.bodySmall)
 }
+
+/**
+ * Undoes a text file's hard wrapping, so a phone does not wrap each 80- or 100-column line a
+ * second time. A line joins the one before it when that one was long (it was cut to fit the
+ * file's width) and the new one does not start a list item; short lines, blank lines, bullets
+ * and numbered or lettered clauses keep their breaks. Indentation goes: the screen's font is
+ * not monospace.
+ */
+internal fun reflow(text: String): String {
+    val out = StringBuilder()
+    var previous = ""
+    for (raw in text.lines()) {
+        val line = raw.trim()
+        val joins = previous.length >= WRAPPED_LINE && line.isNotEmpty() && !LIST_ITEM.containsMatchIn(line)
+        when {
+            out.isEmpty() -> out.append(line)
+            joins -> out.append(' ').append(line)
+            else -> out.append('\n').append(line)
+        }
+        previous = line
+    }
+    return out.toString().trimEnd()
+}
+
+/** A line at least this long was wrapped by its file, not ended by its author. */
+private const val WRAPPED_LINE = 40
+
+/** A bullet, or a clause numbered "2." or lettered "(a)": each starts a line of its own. */
+private val LIST_ITEM = Regex("""^(- |\(\w{1,3}\) |\d{1,2}\. )""")
