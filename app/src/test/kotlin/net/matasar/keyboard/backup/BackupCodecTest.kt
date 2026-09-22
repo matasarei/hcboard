@@ -111,4 +111,15 @@ class BackupCodecTest {
             assertFailsWith<NotABackup> { BackupCodec.open(damaged, passphrase) }
         }
     }
+
+    private fun nested(levels: Int): String =
+        """{"format":"hcboard-backup","version":1,"macros":[{"id":"n","name":"N","blocks":[""" +
+            """{"type":"repeat","times":1,"blocks":[""".repeat(levels) + """{"type":"copy"}""" + "]}".repeat(levels) + "]}]}"
+
+    @Test
+    fun `repeats nested past the limit are refused, even thousands deep`() {
+        assertEquals(1, BackupCodec.read(nested(BackupCodec.MAX_NESTING)).macros.size)
+        assertFailsWith<NotABackup> { BackupCodec.read(nested(BackupCodec.MAX_NESTING + 1)) }
+        assertFailsWith<NotABackup> { BackupCodec.read(nested(100_000)) }
+    }
 }

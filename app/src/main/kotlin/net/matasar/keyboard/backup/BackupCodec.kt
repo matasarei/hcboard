@@ -36,6 +36,12 @@ object BackupCodec {
 
     private const val CHECK = "hcboard"
 
+    /**
+     * Repeats inside repeats past this depth are refused: the editor, the store and the runner
+     * all walk blocks recursively, and no macro a person builds comes near it.
+     */
+    const val MAX_NESTING = 16
+
     /** A file asking for more rounds than this is refused rather than left to spin. */
     private const val MAX_ITERATIONS = 10_000_000
 
@@ -84,8 +90,12 @@ object BackupCodec {
             throw NotABackup("not a backup file", e)
         } catch (e: IllegalArgumentException) {
             throw NotABackup("not a backup file", e)
+        } catch (e: StackOverflowError) {
+            // Repeats nested thousands deep: the decoder recurses once per level.
+            throw NotABackup("nested too deep", e)
         }
         if (file.format != BackupFile.FORMAT) throw NotABackup("not a backup file")
+        if (file.macros.any { it.blocks.nestedDeeperThan(MAX_NESTING) }) throw NotABackup("nested too deep")
         if (file.version > BackupFile.VERSION) throw NotABackup("made by a newer version")
         file.secrets?.let {
             if (it.kdf != PassphraseSecretBox.KDF || it.iterations !in 1..MAX_ITERATIONS) throw NotABackup("unknown secret protection")
@@ -120,6 +130,10 @@ object BackupCodec {
         }
         return Restored(file.settings.sanitized(), CustomWordsJson.sanitized(file.words), macros)
     }
+
+    /** Whether a repeat sits more than [depth] repeats deep; stops looking as soon as one does. */
+    private fun List<Block>.nestedDeeperThan(depth: Int): Boolean =
+        any { it is Block.Repeat && (depth == 0 || it.blocks.nestedDeeperThan(depth - 1)) }
 
     private fun List<Block>.anySecretText(): Boolean =
         any { (it is Block.TypeText && it.secret) || (it is Block.Repeat && it.blocks.anySecretText()) }
