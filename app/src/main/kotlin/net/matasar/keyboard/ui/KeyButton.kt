@@ -40,6 +40,7 @@ import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.onClick
 import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
@@ -103,6 +104,8 @@ fun KeyButton(
     onBounds: ((Key, Rect) -> Unit)? = null,
     /** Whether the key repeats while held down in its current state. */
     repeats: Boolean = key.repeats,
+    /** What TalkBack reads after the key's name: a latching key's state (see spokenState). */
+    stateDescription: String? = null,
 ) {
     val colors = LocalKeyboardColors.current
     val view = LocalView.current
@@ -182,6 +185,7 @@ fun KeyButton(
             .height(height)
             .clearAndSetSemantics {
                 contentDescription = description
+                if (stateDescription != null) this.stateDescription = stateDescription
                 role = Role.Button
                 onClick { currentCallbacks.onTap(key); true }
             }

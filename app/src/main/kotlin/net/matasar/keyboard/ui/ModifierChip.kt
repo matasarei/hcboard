@@ -10,6 +10,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -24,7 +27,9 @@ fun ModifierChip(text: String, modifier: Modifier = Modifier) {
             .height(28.dp)
             .clip(RoundedCornerShape(14.dp))
             .background(colors.chip)
-            .padding(horizontal = 12.dp),
+            .padding(horizontal = 12.dp)
+            // What is armed or locked changes under the finger that just lifted: TalkBack says it.
+            .semantics(mergeDescendants = true) { liveRegion = LiveRegionMode.Polite },
         contentAlignment = Alignment.Center,
     ) {
         Text(text, color = colors.onChip, fontSize = 13.sp, fontWeight = FontWeight.Medium, maxLines = 1)

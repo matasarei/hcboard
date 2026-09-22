@@ -269,6 +269,24 @@ class KeyboardSmokeTest {
         assertTrue("the Q key does not offer a click", q!!.isClickable)
         assertTrue("clicking the Q node did nothing", q.performAction(android.view.accessibility.AccessibilityNodeInfo.ACTION_CLICK))
         assertTrue("clicking the Q node typed nothing (field: '${fieldText()}')", waitUntil(2_000) { fieldText() == "Q" })
+
+        // A latching key says its state after its name, and the page says what it is.
+        val shift = waitForImeNode("Shift")
+        assertEquals("Off", shift?.stateDescription?.toString())
+        assertTrue(shift!!.performAction(android.view.accessibility.AccessibilityNodeInfo.ACTION_CLICK))
+        assertTrue(
+            "Shift's state did not follow the click (it reads '${waitForImeNode("Shift")?.stateDescription}')",
+            waitUntil(2_000) { waitForImeNode("Shift")?.stateDescription?.toString() == "On for the next key" },
+        )
+        assertTrue("no page title 'Letters, English' in the keyboard window", imeHasPaneTitle("Letters, English"))
+    }
+
+    private fun imeHasPaneTitle(title: String): Boolean {
+        val ime = InstrumentationRegistry.getInstrumentation().uiAutomation.windows
+            .firstOrNull { it.type == android.view.accessibility.AccessibilityWindowInfo.TYPE_INPUT_METHOD } ?: return false
+        fun walk(node: android.view.accessibility.AccessibilityNodeInfo): Boolean =
+            node.paneTitle?.toString() == title || (0 until node.childCount).any { i -> node.getChild(i)?.let(::walk) == true }
+        return ime.root?.let(::walk) == true
     }
 
     /** The first node in the input method's window whose description is [description], once it shows. */

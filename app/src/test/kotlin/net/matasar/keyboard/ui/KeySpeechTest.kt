@@ -4,6 +4,8 @@ import net.matasar.keyboard.R
 import net.matasar.keyboard.ime.KeyboardController
 import net.matasar.keyboard.input.FakeEditorPort
 import net.matasar.keyboard.input.InputDispatcher
+import net.matasar.keyboard.input.LatchState
+import net.matasar.keyboard.layout.LayerId
 import net.matasar.keyboard.layout.DeveloperStrip
 import net.matasar.keyboard.layout.Key
 import net.matasar.keyboard.layout.KeyAction
@@ -14,6 +16,7 @@ import net.matasar.keyboard.layout.phoneLayout
 import net.matasar.keyboard.layout.sixtyPercentLayer
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class KeySpeechTest {
@@ -78,5 +81,44 @@ class KeySpeechTest {
                 assertTrue(said is Spoken.Named || (said as Spoken.Text).text.isNotBlank(), "${language.tag} ${key.id}")
             }
         }
+    }
+
+    private fun state(key: Key) = spokenState(key, controller.shift.state, controller.modifiers::state, controller.modifiers.held)
+
+    @Test
+    fun `shift says off, on for the next key, then locked`() {
+        val shift = letters.first { it.action == KeyAction.Shift }
+        assertEquals(R.string.a11y_state_off, state(shift))
+        controller.onKey(shift)
+        assertEquals(R.string.a11y_state_armed, state(shift))
+        controller.onKey(shift)
+        assertEquals(LatchState.LOCKED, controller.shift.state)
+        assertEquals(R.string.a11y_state_locked, state(shift))
+    }
+
+    @Test
+    fun `caps lock is on only while shift is locked`() {
+        val caps = Key("Caps", KeyAction.CapsLock)
+        assertEquals(R.string.a11y_state_off, spokenState(caps, LatchState.ARMED, { LatchState.IDLE }, emptySet()))
+        assertEquals(R.string.a11y_state_on, spokenState(caps, LatchState.LOCKED, { LatchState.IDLE }, emptySet()))
+    }
+
+    @Test
+    fun `a modifier follows its latch, and held reads as armed`() {
+        val ctrl = Key("Ctrl", KeyAction.Modifier(ModifierKey.CTRL))
+        assertEquals(R.string.a11y_state_off, spokenState(ctrl, LatchState.IDLE, { LatchState.IDLE }, emptySet()))
+        assertEquals(R.string.a11y_state_armed, spokenState(ctrl, LatchState.IDLE, { LatchState.IDLE }, setOf(ModifierKey.CTRL)))
+        assertEquals(R.string.a11y_state_locked, spokenState(ctrl, LatchState.IDLE, { LatchState.LOCKED }, setOf(ModifierKey.CTRL)))
+        assertEquals(R.string.a11y_state_armed, spokenState(ctrl, LatchState.IDLE, { if (it == ModifierKey.CTRL) LatchState.ARMED else LatchState.IDLE }, emptySet()))
+    }
+
+    @Test
+    fun `keys that do not latch have no state`() {
+        for (key in letters.filter { it.action != KeyAction.Shift }) assertNull(state(key), key.id)
+    }
+
+    @Test
+    fun `each page has its own title, and only the letters name the language`() {
+        assertEquals(setOf(R.string.a11y_layer_letters, R.string.a11y_key_symbols, R.string.a11y_key_code), LayerId.entries.map(::layerTitle).toSet())
     }
 }

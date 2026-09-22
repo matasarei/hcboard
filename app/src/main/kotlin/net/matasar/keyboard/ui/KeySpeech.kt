@@ -3,6 +3,7 @@ package net.matasar.keyboard.ui
 import android.view.KeyEvent
 import androidx.annotation.StringRes
 import net.matasar.keyboard.R
+import net.matasar.keyboard.input.LatchState
 import net.matasar.keyboard.layout.Key
 import net.matasar.keyboard.layout.KeyAction
 import net.matasar.keyboard.layout.LayerId
@@ -44,6 +45,37 @@ internal fun spokenKey(key: Key, shown: String, iconShown: Boolean): Spoken {
     }
     ArrowDirection.fromString(shown)?.let { return Spoken.Named(arrowName(it)) }
     return Spoken.Text(shown.ifEmpty { key.label })
+}
+
+/**
+ * What TalkBack adds after a key's name: the state of a key that latches (Shift, Caps Lock, the
+ * modifiers), from [shift] and [modifier], a held modifier counting as armed, as it looks; null for
+ * every other key.
+ */
+@StringRes
+internal fun spokenState(key: Key, shift: LatchState, modifier: (ModifierKey) -> LatchState, held: Set<ModifierKey>): Int? =
+    when (val action = key.action) {
+        KeyAction.Shift -> latchName(shift)
+        KeyAction.CapsLock -> if (shift == LatchState.LOCKED) R.string.a11y_state_on else R.string.a11y_state_off
+        is KeyAction.Modifier -> latchName(
+            modifier(action.modifier).takeUnless { it == LatchState.IDLE && action.modifier in held } ?: LatchState.ARMED,
+        )
+        else -> null
+    }
+
+/** The page on the keys, as TalkBack announces it when it changes; the letters say their language. */
+@StringRes
+internal fun layerTitle(layer: LayerId): Int = when (layer) {
+    LayerId.LETTERS -> R.string.a11y_layer_letters
+    LayerId.SYMBOLS -> R.string.a11y_key_symbols
+    LayerId.CODE -> R.string.a11y_key_code
+}
+
+@StringRes
+private fun latchName(state: LatchState): Int = when (state) {
+    LatchState.IDLE -> R.string.a11y_state_off
+    LatchState.ARMED -> R.string.a11y_state_armed
+    LatchState.LOCKED -> R.string.a11y_state_locked
 }
 
 @StringRes

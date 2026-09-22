@@ -193,4 +193,11 @@
     <string name="a11y_key_right">Right arrow</string>
     <string name="a11y_key_up">Up arrow</string>
     <string name="a11y_key_down">Down arrow</string>
+    <!-- The state TalkBack reads after a latching key, and after a switch in the gear sheet. -->
+    <string name="a11y_state_off">Off</string>
+    <string name="a11y_state_on">On</string>
+    <string name="a11y_state_armed">On for the next key</string>
+    <string name="a11y_state_locked">Locked</string>
+    <!-- Announced when the letters come up; the argument is the language's own name. -->
+    <string name="a11y_layer_letters">Letters, %1$s</string>
 </resources>
