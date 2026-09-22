@@ -7,6 +7,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.annotation.RawRes
+import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -69,17 +70,34 @@ private fun LicencesScreen() {
         SelectionContainer {
             Column(verticalArrangement = Arrangement.spacedBy(24.dp)) {
                 RawText(R.raw.notice)
+                Heading(R.string.licences_libraries)
+                // One library or family per line, as the build wrote it: nothing to reflow.
+                RawText(R.raw.dependencies, reflow = false)
+                Heading(R.string.licences_apache)
                 RawText(R.raw.license)
+                Heading(R.string.licences_bsd)
+                RawText(R.raw.bsd_3_clause)
             }
         }
     }
 }
 
-/** A text file from res/raw, read once and reflowed to the screen's width (see [reflow]). */
+/** What the text below it is, for a reader scrolling past. */
 @Composable
-private fun RawText(@RawRes id: Int) {
+private fun Heading(@StringRes id: Int) {
+    Text(stringResource(id), style = MaterialTheme.typography.titleSmall)
+}
+
+/**
+ * A text file from res/raw, read once. A file wrapped for its own width is reflowed to the
+ * screen's (see [reflow]); a file written a line at a time is shown as it is.
+ */
+@Composable
+private fun RawText(@RawRes id: Int, reflow: Boolean = true) {
     val resources = LocalResources.current
-    val text = remember(resources, id) { reflow(resources.openRawResource(id).bufferedReader().use { it.readText() }) }
+    val text = remember(resources, id, reflow) {
+        resources.openRawResource(id).bufferedReader().use { it.readText() }.let { if (reflow) reflow(it) else it.trim() }
+    }
     Text(text, style = MaterialTheme.typography.bodySmall)
 }
 

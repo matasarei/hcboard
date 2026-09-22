@@ -50,7 +50,7 @@ jobs:
           HCBOARD_KEYSTORE_PASSWORD: ${{ secrets.DEV_KEYSTORE_PASSWORD }}
           HCBOARD_KEY_ALIAS: ${{ secrets.DEV_KEY_ALIAS }}
           HCBOARD_KEY_PASSWORD: ${{ secrets.DEV_KEY_PASSWORD }}
-        run: ./gradlew :app:testDebugUnitTest :app:lintDebug :app:assembleDebug --no-daemon
+        run: ./gradlew :app:checkDependencyLicences :app:testDebugUnitTest :app:lintDebug :app:assembleDebug --no-daemon
 
       - name: Name the APK
         run: cp app/build/outputs/apk/debug/app-debug.apk hcboard-dev.apk
