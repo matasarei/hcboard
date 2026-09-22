@@ -108,6 +108,55 @@ class EditorInfoMappingTest {
     }
 
     @Test
+    fun `an allowed app gets candidates where it asked for none`() {
+        // 0xa4001 is what YouTube's comment box reports: text, sentence caps, multi-line, no
+        // suggestions — and no autocorrect, which is the one bit that separates it from 0xac001.
+        val youtube = 0xa4001
+        assertFalse(suggestionsAllowed(youtube))
+        assertTrue(suggestionsAllowed(youtube, appAllowed = true))
+        assertTrue(suggestionsAllowed(InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS, appAllowed = true))
+    }
+
+    @Test
+    fun `allowing an app reaches the no-suggestions flag and nothing else`() {
+        val allowed = true
+        val noSuggestions = InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS
+        // The user allowed the app, not every field in it: these are quiet for their own reasons.
+        assertFalse(suggestionsAllowed(InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD or noSuggestions, allowed))
+        assertFalse(suggestionsAllowed(InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD or noSuggestions, allowed))
+        assertFalse(suggestionsAllowed(InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_WEB_PASSWORD or noSuggestions, allowed))
+        assertFalse(suggestionsAllowed(InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS or noSuggestions, allowed))
+        assertFalse(suggestionsAllowed(InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_WEB_EMAIL_ADDRESS or noSuggestions, allowed))
+        assertFalse(suggestionsAllowed(InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_URI or noSuggestions, allowed))
+        assertFalse(suggestionsAllowed(InputType.TYPE_CLASS_NUMBER, allowed))
+        assertFalse(suggestionsAllowed(InputType.TYPE_CLASS_PHONE, allowed))
+        assertFalse(suggestionsAllowed(InputType.TYPE_NULL, allowed))
+    }
+
+    @Test
+    fun `the gear sheet offers the override only where it would change something`() {
+        assertTrue(noSuggestionsOverridable(0xa4001))
+        assertTrue(noSuggestionsOverridable(InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS))
+        // Nothing to allow: these already suggest, or are off for a reason allowing cannot touch.
+        assertFalse(noSuggestionsOverridable(InputType.TYPE_CLASS_TEXT))
+        assertFalse(noSuggestionsOverridable(0xac001))
+        assertFalse(noSuggestionsOverridable(InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD or InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS))
+        assertFalse(noSuggestionsOverridable(InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS or InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS))
+        assertFalse(noSuggestionsOverridable(InputType.TYPE_NULL))
+    }
+
+    @Test
+    fun `the field report says whether the app was allowed`() {
+        val youtube = EditorInfo().apply { inputType = 0xa4001 }
+        assertTrue(fieldReport(youtube).contains("suggestions off (this app asked"), fieldReport(youtube))
+        val onList = fieldReport(youtube, appAllowed = true)
+        assertTrue(onList.contains("suggestions allowed (this app is on your list)"), onList)
+        // A field nobody can override says neither thing.
+        val plain = fieldReport(EditorInfo().apply { inputType = InputType.TYPE_CLASS_TEXT }, appAllowed = true)
+        assertTrue(plain.contains("suggestions allowed,"), plain)
+    }
+
+    @Test
     fun `only plain text fields ask for capitals, and only the ones they name`() {
         val sentences = InputType.TYPE_TEXT_FLAG_CAP_SENTENCES
         assertEquals(sentences, capsModesOf(InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_SHORT_MESSAGE or sentences))
