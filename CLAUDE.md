@@ -127,7 +127,10 @@ emulator profile is `medium_phone`; boot it headless with
 - **TalkBack** (`ui/KeySpeech.kt`, `docs/talkback-matrix.md`): every key is one accessibility node,
   named for what it types now (or Space, Shift, the arrows…), with a latching key's state and a
   click that types it. TalkBack's lift-to-type and double-tap both use that click; never add a
-  hover handler of our own, or a key types twice.
+  hover handler of our own, or a key types twice. What a long press holds — a letter's accents,
+  the cursor trackpad on Space, the language picker on the globe — is also an accessibility
+  action on the key (`ui/KeyActions.kt`), built only while touch exploration is on, because a
+  long press never reaches the keys through it.
 - **A key is a legend line and a glyph** (`ui/KeyButton.kt`), never a stack of paddings: the
   shifted symbol sits top-left, the Fn meaning top-right only when it is a symbol, both of the pair
   (`[{`, `` `~ ``; `printedFnLegend`) — named meanings (F1, arrows, Home, Del) show as the glyph

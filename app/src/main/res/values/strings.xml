@@ -206,6 +206,12 @@
     <string name="a11y_key_down">Down arrow</string>
     <!-- Said for a character key in a password field while speech is not going into headphones. -->
     <string name="a11y_key_dot">Dot</string>
+    <!-- What a long press offers, as actions a screen reader can perform on the key. -->
+    <string name="a11y_action_cursor_left">Move cursor left</string>
+    <string name="a11y_action_cursor_right">Move cursor right</string>
+    <string name="a11y_action_cursor_left_word">Move cursor left by word</string>
+    <string name="a11y_action_cursor_right_word">Move cursor right by word</string>
+    <string name="a11y_action_choose_language">Choose language</string>
     <!-- The state TalkBack reads after a latching key, and after a switch in the gear sheet. -->
     <string name="a11y_state_off">Off</string>
     <string name="a11y_state_on">On</string>

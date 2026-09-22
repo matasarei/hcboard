@@ -981,6 +981,20 @@ class KeyboardController(
         afterKey()
     }
 
+    /**
+     * Moves the cursor by [steps] characters, or words with [byWord], as the trackpad's slide
+     * does: the accessibility action on Space, for a screen reader that never gets a long press.
+     * By word is Ctrl and an arrow, which is how Android's own text fields move by word.
+     */
+    fun moveCursor(steps: Int, byWord: Boolean) {
+        if (byWord) {
+            val key = if (steps < 0) KeyEvent.KEYCODE_DPAD_LEFT else KeyEvent.KEYCODE_DPAD_RIGHT
+            repeat(kotlin.math.abs(steps)) { dispatcher.sendKey(key, KeyEvent.META_CTRL_ON) }
+        } else {
+            dispatcher.moveCursor(steps)
+        }
+    }
+
     fun startTrackpad(stepPx: Float) {
         trackpadGesture = TrackpadGesture(stepPx)
         trackpad = true

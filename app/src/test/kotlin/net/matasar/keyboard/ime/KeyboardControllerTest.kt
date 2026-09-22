@@ -143,6 +143,23 @@ class KeyboardControllerTest {
     }
 
     @Test
+    fun `the cursor actions send arrows, and Ctrl with them by word`() {
+        controller.moveCursor(-1, byWord = false)
+        controller.moveCursor(1, byWord = false)
+        assertEquals(listOf(KeyEvent.KEYCODE_DPAD_LEFT to 0, KeyEvent.KEYCODE_DPAD_RIGHT to 0), port.keys)
+        port.keys.clear()
+        controller.moveCursor(-1, byWord = true)
+        controller.moveCursor(1, byWord = true)
+        assertEquals(
+            listOf(
+                KeyEvent.KEYCODE_DPAD_LEFT to KeyEvent.META_CTRL_ON,
+                KeyEvent.KEYCODE_DPAD_RIGHT to KeyEvent.META_CTRL_ON,
+            ),
+            port.keys,
+        )
+    }
+
+    @Test
     fun `enter uses the field action only when the field offers one`() {
         assertEquals(EditorInfo.IME_ACTION_SEARCH, KeyboardController.editorActionFor(EditorInfo.IME_ACTION_SEARCH, InputType.TYPE_CLASS_TEXT))
         assertNull(KeyboardController.editorActionFor(EditorInfo.IME_ACTION_NONE, InputType.TYPE_CLASS_TEXT))

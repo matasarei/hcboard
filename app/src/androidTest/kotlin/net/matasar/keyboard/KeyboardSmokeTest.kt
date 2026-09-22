@@ -38,6 +38,9 @@ class KeyboardSmokeTest {
     private val device = UiDevice.getInstance(InstrumentationRegistry.getInstrumentation())
     private val ime = IME
 
+    /** What the instrumentation's accessibility flags were before touch exploration was asked for. */
+    private var flagsBeforeExploring: Int? = null
+
     companion object {
         private const val IME = "net.matasar.keyboard/.ime.KeyboardService"
 
@@ -279,6 +282,126 @@ class KeyboardSmokeTest {
             waitUntil(2_000) { waitForImeNode("Shift")?.stateDescription?.toString() == "On for the next key" },
         )
         assertTrue("no page title 'Letters, English' in the keyboard window", imeHasPaneTitle("Letters, English"))
+    }
+
+    /**
+     * What holding a key opens — the accents, the cursor trackpad — never reaches a screen
+     * reader, which takes the finger for touch exploration. Each is an action on the key's node
+     * instead: this asks the node for them and performs them, which is what TalkBack does when
+     * the user picks one from its Actions menu.
+     */
+    @Test
+    fun keysCarryTheirLongPressActionsWhileExploringByTouch() {
+        // The keyboard has to be up before exploring starts: after it, a tap explores instead.
+        focusFieldAndShowKeyboard()
+        val field = device.findObject(By.clazz("android.widget.EditText"))
+        exploreByTouch(true)
+        try {
+            assertTrue("touch exploration never turned on", waitUntil(3_000) { imeNodeWithAction("Move cursor left") != null })
+
+            // An accent, typed from the e key's own actions.
+            val e = waitForImeNode("e", ignoreCase = true)
+            assertNotNull("no node for the e key; saw: ${describeImeNodes()}", e)
+            val accent = e!!.actionList.firstOrNull { it.label?.toString()?.lowercase() == "é" }
+            assertNotNull("the e key offers no é action; it offers ${e.actionList.mapNotNull { it.label }}", accent)
+            assertTrue(e.performAction(accent!!.id))
+            assertTrue("é was not typed (field: '${fieldText()}')", waitUntil(2_000) { fieldText()?.lowercase()?.endsWith("é") == true })
+
+            // The cursor moves the trackpad makes, without the trackpad: type, step left, type.
+            field.text = ""
+            typeThroughNodes("ab")
+            assertTrue("typing through the nodes gave '${fieldText()}', not 'ab'", waitUntil(2_000) { fieldText()?.lowercase() == "ab" })
+            val space = imeNodeWithAction("Move cursor left")
+            assertNotNull("Space offers no cursor move", space)
+            val left = space!!.actionList.first { it.label?.toString() == "Move cursor left" }
+            assertTrue(space.performAction(left.id))
+            typeThroughNodes("c")
+            assertTrue("the cursor did not move left (field: '${fieldText()}')", waitUntil(2_000) { fieldText()?.lowercase() == "acb" })
+        } finally {
+            exploreByTouch(false)
+        }
+    }
+
+    /** The globe holds the language picker behind a long press; it is an action too. */
+    @Test
+    fun theGlobeOffersTheLanguagePickerWhileExploringByTouch() {
+        val context = ApplicationProvider.getApplicationContext<android.content.Context>()
+        val prefs = Prefs(context)
+        runBlocking { prefs.setLanguageEnabled("uk", true) }
+        focusFieldAndShowKeyboard()
+        exploreByTouch(true)
+        try {
+            assertNotNull("no globe on the board with two languages on; saw: ${describeImeNodes()}", waitForImeNode("Next language"))
+            // The board rebuilds when the second language arrives, so the node is looked up again
+            // for each attempt: an action performed on a node from the older tree goes nowhere.
+            // The board rebuilds when the second language arrives, so the node is looked up again
+            // for each attempt: an action performed on a node from the older tree goes nowhere.
+            // The sheet's rows carry text, not a description, which is what to look for.
+            var opened = false
+            repeat(5) {
+                if (opened) return@repeat
+                performOnKey("Next language", "Choose language")
+                opened = waitUntil(2_000) { device.hasObject(By.text("Українська")) }
+            }
+            assertTrue("the language sheet did not open; saw: ${describeImeNodes()}", opened)
+        } finally {
+            exploreByTouch(false)
+            // Leave no sheet open over the keys: the next test would find no keyboard to show.
+            InstrumentationRegistry.getInstrumentation().runOnMainSync {
+                KeyboardService.instance?.controller?.languageSheetOpen = false
+            }
+            runBlocking { prefs.setLanguageEnabled("uk", false) }
+            Thread.sleep(1_500)
+        }
+    }
+
+    /** Types [text] by performing each key's click action, the way a screen reader does. */
+    private fun typeThroughNodes(text: String) {
+        for (letter in text) {
+            val key = waitForImeNode(letter.toString(), ignoreCase = true)
+            assertNotNull("no node for the $letter key", key)
+            assertTrue(key!!.performAction(android.view.accessibility.AccessibilityNodeInfo.ACTION_CLICK))
+            device.waitForIdle()
+        }
+    }
+
+    /** The first node in the keyboard window offering an action labelled [label]. */
+    private fun imeNodeWithAction(label: String): android.view.accessibility.AccessibilityNodeInfo? {
+        val ime = InstrumentationRegistry.getInstrumentation().uiAutomation.windows
+            .firstOrNull { it.type == android.view.accessibility.AccessibilityWindowInfo.TYPE_INPUT_METHOD } ?: return null
+        fun walk(node: android.view.accessibility.AccessibilityNodeInfo): android.view.accessibility.AccessibilityNodeInfo? {
+            if (node.actionList.any { it.label?.toString() == label }) return node
+            for (i in 0 until node.childCount) node.getChild(i)?.let { child -> walk(child)?.let { return it } }
+            return null
+        }
+        return ime.root?.let(::walk)
+    }
+
+    /**
+     * Turns the instrumentation's own accessibility connection into an exploring one, or back.
+     * The flags it had are put back exactly: UiDevice keeps its own in there, and losing them
+     * leaves every later test unable to find a thing.
+     */
+    private fun exploreByTouch(on: Boolean) {
+        val automation = InstrumentationRegistry.getInstrumentation().uiAutomation
+        val info = automation.serviceInfo
+        if (on) {
+            flagsBeforeExploring = info.flags
+            info.flags = info.flags or android.accessibilityservice.AccessibilityServiceInfo.FLAG_REQUEST_TOUCH_EXPLORATION_MODE
+        } else {
+            info.flags = flagsBeforeExploring ?: return
+            flagsBeforeExploring = null
+        }
+        automation.serviceInfo = info
+        device.waitForIdle()
+        SystemClock.sleep(500)
+    }
+
+    /** Performs the action labelled [action] on the key described [description], freshly looked up. */
+    private fun performOnKey(description: String, action: String): Boolean {
+        val node = waitForImeNode(description, timeoutMs = 2_000) ?: return false
+        val entry = node.actionList.firstOrNull { it.label?.toString() == action } ?: return false
+        return node.performAction(entry.id)
     }
 
     /** In a password field, with nothing but the speaker to hear it, no key says its character. */

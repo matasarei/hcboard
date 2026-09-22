@@ -31,6 +31,7 @@ import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.platform.LocalViewConfiguration
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.CustomAccessibilityAction
 import androidx.compose.ui.semantics.paneTitle
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.platform.LocalConfiguration
@@ -38,6 +39,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import net.matasar.keyboard.autofill.AutofillActions
+import net.matasar.keyboard.R
 import net.matasar.keyboard.ime.KeyboardController
 import net.matasar.keyboard.input.LatchState
 import net.matasar.keyboard.input.glide.GlideKey
@@ -297,6 +299,8 @@ private fun LayerGrid(
         // press on Space (glide off while it runs) used to cancel itself.
         val glide = rememberUpdatedState(feel.glide && controller.layer == LayerId.LETTERS && controller.glideAvailable)
         val unitWidthPx = with(density) { unitWidth.toPx() }
+        // A screen reader takes the finger, so what a long press offers goes on the key instead.
+        val exploring = rememberTouchExploration()
         val title = if (controller.layer == LayerId.LETTERS) {
             stringResource(layerTitle(controller.layer), controller.language.nativeName)
         } else {
@@ -344,6 +348,7 @@ private fun LayerGrid(
                     onBounds = if (key.action is KeyAction.Letter) ({ k, rect -> letterBounds[(k.action as KeyAction.Letter).lower[0]] = rect }) else null,
                     repeats = controller.repeats(key),
                     stateDescription = keyState(key, controller),
+                    customActions = if (exploring) keyCustomActions(key, controller) else emptyList(),
                     obscured = obscured,
                     editorAction = controller.editorActionId,
                 )
@@ -460,6 +465,36 @@ private class KeyScreenCallbacks(
 
     private fun cellPx() = PopupMetrics.accentCell.value * popups.density
     private fun paddingPx() = PopupMetrics.accentPadding.value * popups.density
+}
+
+/**
+ * What a screen reader can do with [key] besides typing it: the accents a long press would
+ * offer, the cursor moves the trackpad makes, the language picker the globe holds.
+ */
+@Composable
+internal fun keyCustomActions(key: Key, controller: KeyboardController): List<CustomAccessibilityAction> {
+    val left = stringResource(R.string.a11y_action_cursor_left)
+    val right = stringResource(R.string.a11y_action_cursor_right)
+    val leftWord = stringResource(R.string.a11y_action_cursor_left_word)
+    val rightWord = stringResource(R.string.a11y_action_cursor_right_word)
+    val language = stringResource(R.string.a11y_action_choose_language)
+    return keyActions(key, controller.accentsFor(key), controller.withGlobe).map { action ->
+        when (action) {
+            is KeyAccessibilityAction.Accent ->
+                CustomAccessibilityAction(action.text) { controller.commitAccent(action.text); true }
+            is KeyAccessibilityAction.MoveCursor -> {
+                val label = when {
+                    action.byWord && action.steps < 0 -> leftWord
+                    action.byWord -> rightWord
+                    action.steps < 0 -> left
+                    else -> right
+                }
+                CustomAccessibilityAction(label) { controller.moveCursor(action.steps, action.byWord); true }
+            }
+            KeyAccessibilityAction.ChooseLanguage ->
+                CustomAccessibilityAction(language) { controller.onKeyLongPress(key); true }
+        }
+    }
 }
 
 /** A latching key's state as TalkBack reads it after the key's name; null for the rest. */
