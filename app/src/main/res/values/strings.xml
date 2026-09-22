@@ -173,6 +173,9 @@
     <string name="backup_passphrase_hint">This backup holds secret texts. Enter the passphrase it was saved with.</string>
     <string name="backup_wrong_passphrase">That passphrase does not unlock this backup.</string>
     <string name="settings_macros_open">Edit macros</string>
+    <string name="settings_section_about">About</string>
+    <string name="licences_title">Open-source licences</string>
+    <string name="licences_hint">hcboard is free software under the Apache License 2.0. It includes code and word lists from other projects, named below with their licences, followed by the full licence text.</string>
 
     <!-- What TalkBack says for the keys that are named rather than read (ui/KeySpeech.kt). -->
     <string name="a11y_key_space">Space</string>
