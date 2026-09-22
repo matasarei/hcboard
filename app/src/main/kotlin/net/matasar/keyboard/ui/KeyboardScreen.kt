@@ -1,5 +1,6 @@
 package net.matasar.keyboard.ui
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -255,8 +256,11 @@ private fun LayerGrid(
             }
         }
         val layer = layout.layers[controller.layer] ?: layout.layers.values.first()
+        // The screen's size, not the window's: the keyboard's window is only as tall as the
+        // keyboard, so sizing the keys from it would size them from themselves.
         val configuration = LocalConfiguration.current
         // The halves replace the whole board where a hinge or two thumbs ask for them.
+        @SuppressLint("ConfigurationScreenWidthHeight")
         val split = layout.split.takeIf {
             controller.layer == LayerId.LETTERS &&
                 shouldSplit(feel.split, wide, hingeSeparating = hinge != null, phoneLandscape = isPhoneLandscape(configuration.screenWidthDp, configuration.screenHeightDp))
@@ -267,7 +271,8 @@ private fun LayerGrid(
         val rowGap = (if (wide) Dimens.wideRowGap else Dimens.rowGap) * feel.heightScale
         // Short windows (a phone in landscape) get shorter keys so the whole board stays on screen.
         val rows = layer.rows.size + (if (controller.developerMode && !wide) 1 else 0)
-        val budget = LocalConfiguration.current.screenHeightDp.dp * Dimens.maxHeightFraction -
+        @SuppressLint("ConfigurationScreenWidthHeight")
+        val budget = configuration.screenHeightDp.dp * Dimens.maxHeightFraction -
             Dimens.toolbarHeight - Dimens.topPadding - Dimens.bottomPadding - rowGap * (rows - 1)
         val keyHeight = minOf((if (wide) Dimens.wideKeyHeight else Dimens.keyHeight) * feel.heightScale, budget / rows)
         val unitWidth = if (split == null) {

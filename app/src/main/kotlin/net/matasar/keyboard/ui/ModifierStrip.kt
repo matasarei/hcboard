@@ -20,8 +20,8 @@ fun ModifierStrip(
     feel: KeyboardFeel,
     callbacks: KeyCallbacks,
     unitWidth: Dp,
-    keyHeight: Dp = Dimens.keyHeight,
     modifier: Modifier = Modifier,
+    keyHeight: Dp = Dimens.keyHeight,
     sidePadding: Dp = Dimens.sidePadding,
 ) {
     val colors = LocalKeyboardColors.current

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    What Android's backup takes from the app, Android 12 and later: the three DataStores in
+    files/datastore/ (settings, custom words, macros) and nothing else, for cloud backup and for
+    moving to a new phone alike, as the README says. A macro's secret text is sealed with a key in
+    this phone's keystore, which never leaves it: restored elsewhere it does not open and is typed
+    again. Word lists ship in the APK, so there is nothing else of the user's to keep.
+-->
+<data-extraction-rules>
+    <cloud-backup>
+        <include domain="file" path="datastore/" />
+    </cloud-backup>
+    <device-transfer>
+        <include domain="file" path="datastore/" />
+    </device-transfer>
+</data-extraction-rules>

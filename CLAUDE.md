@@ -38,12 +38,19 @@ emulator profile is `medium_phone`; boot it headless with
   custom words; `autofill/` inline suggestions and the manager sheet; `macro/` macros (model, JSON,
   runner, store, the block editor screen).
 - **`input/EditorPort.kt` is the only code that touches `InputConnection`.** Everything else goes
-  through `InputDispatcher`, so unit tests use `FakeEditorPort`. Keep it that way.
+  through `InputDispatcher`, so unit tests use `FakeEditorPort`. Keep it that way. Edits that
+  belong together (a word and its replacement, a correction and its separator) go in one
+  `EditorPort.batch`, so the app sees one change.
 - **Pure logic is unit-tested on the JVM** (`app/src/test`); `android.jar` stubs return defaults,
   so tests may use `KeyEvent` constants and `android.R.id` values but not framework behaviour.
 - **The IME window hosts Compose** via `KeyboardService`, which owns the lifecycle, view-model
   store and saved-state registry. The owners must be set on the window's decor view as well as
-  the `ComposeView`, or Compose crashes resolving its recomposer.
+  the `ComposeView`, or Compose crashes resolving its recomposer. A rebuilt input view (a fold, a
+  rotation) disposes the old view's composition first. The keyboard never goes fullscreen
+  (`onEvaluateFullscreenMode` is false). It is not direct-boot aware, on purpose: settings,
+  custom words, macros and Keystore secrets live in credential-encrypted storage, so before the
+  first unlock Android's own keyboard types. Android 16 ignores the theme's edge-to-edge opt-out
+  at this target: the keys clear the bottom bar by `measureBottomBarOverlap`, not by the decor.
 - **Popups draw in a 68 dp transparent overhang** above the toolbar; `onComputeInsets` hands that
   strip back to the app. Do not use Compose `Popup` windows inside the IME.
 - **Clocks:** pointer and key-event timestamps are `SystemClock.uptimeMillis()`. Never compare
@@ -67,29 +74,15 @@ emulator profile is `medium_phone`; boot it headless with
   and the service marks the clip `EXTRA_IS_SENSITIVE` when the macro has a secret or random keys.
   The editor is `MacrosActivity`; the keyboard only plays, from `ui/MacroSheet.kt`.
 - **Glide typing:** `input/glide/GlideClassifier.kt` is an approved Apache-2.0 copy of FlorisBoard's
-  classifier with its header kept; do not "clean it up". Word lists live in `assets/dictionaries/`
-  and are built by `scripts/build-wordlist.py` from AOSP (Apache-2.0) and, for Ukrainian, Helium314's
-  CC BY 4.0 list plus the curated overlay `scripts/wordlists/uk-everyday.tsv` (the corpus is news
-  text and under-rates chat words), and for English, AOSP plus `scripts/wordlists/en-modern.tsv`
-  (essential tech and modern chat words); every other list has its own chat overlay,
-  `scripts/wordlists/<language>-everyday.tsv`, with tiers matched to its corpus's scale (ru 175/155/135,
-  bg 255/230/210, the rest 200/180/165; German nouns keep their capital). Regenerate, never hand-edit:
-  the builder reads a shipped asset as its source, so `scripts/build-wordlist.py <asset> <asset> --boost
-  <the tsv>` rebuilds it (`bg.txt` needs `--floor 0`, its frequencies go down to 2), and each
-  `*OverlayTest` (on `DictionaryOverlayTest`) fails when an asset drifts below its overlay; the test task
-  does not track `scripts/wordlists/`, so run it with `--rerun` after editing only an overlay. Before
-  raising a short word, check it does not outrank a more common one-edit neighbour. The combined
-  Russian+Bulgarian dictionary `ru_bg.txt` is built by `scripts/build-ru-bg-wordlist.py` with collision
-  protection (1-edit Bulgarian words capped at 75 < 80) and loaded when `ruBulgarianVocabulary` is active;
-  rebuild it after changing `ru.txt` or `bg.txt`. An е spelling of a ё word (идет) is corrected to the
-  ё word by `Candidates`, so overlays leave е spellings out.
-  The same lists feed
-  `nlp/Candidates.kt` (prefix completions and one-edit corrections for the word before the cursor,
-  read through `InputDispatcher.wordBeforeCursor`): there is no composing region on purpose, words
-  are replaced with delete-and-commit, and nothing is read in a field where `suggestionsAllowed` says no. The grid's letter-bounds registry is rebuilt per
-  layout and the glide listener is keyed on it, or a language switch classifies against the old
-  alphabet. The trail is drawn from the root's draw pass: a sized canvas grows the IME window
-  mid-gesture and shifts every later pointer position.
+  classifier with its header kept; do not "clean it up". Word lists live in `assets/dictionaries/`;
+  how they are built, overlaid and rebuilt (regenerate, never hand-edit) is in `docs/wordlists.md`.
+  The same lists feed `nlp/Candidates.kt` (prefix completions and one-edit corrections for the word
+  before the cursor, read through `InputDispatcher.wordBeforeCursor`): there is no composing region
+  on purpose, words are replaced with delete-and-commit in one batch, and nothing is read in a
+  field where `suggestionsAllowed` says no. The grid's letter-bounds registry is rebuilt per layout
+  and the glide listener is keyed on it, or a language switch classifies against the old alphabet.
+  The trail is drawn from the root's draw pass: a sized canvas grows the IME window mid-gesture and
+  shifts every later pointer position.
 - **Custom words** (`nlp/CustomWords.kt`, `CustomWordStore`, DataStore `words`): language tag →
   word → frequency, 230 when added, 0 when blocked; letters only, at most 48, case kept. They are
   applied when a list loads (`WordList.withOverrides`, 0 removes the word), keyed by the language
@@ -154,11 +147,14 @@ emulator profile is `medium_phone`; boot it headless with
   `adb shell settings put secure show_ime_with_hard_keyboard 1` or the keyboard never shows;
   `am force-stop` on the package while it is the current IME makes Android fall back to Gboard;
   `connectedDebugAndroidTest` uninstalls the app afterwards, so run `scripts/enable-ime.sh`
-  again; `uiautomator dump` does not include the IME window, so tap keys by geometry.
+  again; `uiautomator dump` does not include the IME window, so the connected tests tap a key at
+  its accessibility node's bounds (`UiAutomation` windows), never at a position worked out from
+  the layout: the bars the keyboard pads for differ by device.
 - **Generated, never hand-edited:** `app/build/`, `.gradle/`. `design/*.dc.html` are mock
   artboards generated by a script kept outside the repository; edit the mocks by regenerating.
-- **Device checks still open:** `docs/combo-matrix.md` (Termux, Chrome, a code editor) and
-  `docs/autofill-matrix.md` (Enpass, Google Password Manager) are templates to fill on a phone.
+- **Device checks still open:** `docs/combo-matrix.md` (Termux, Chrome, a code editor),
+  `docs/autofill-matrix.md` (Enpass, Google Password Manager) and `docs/talkback-matrix.md` are
+  templates to fill on a phone.
 - **Licence:** Apache-2.0 (`LICENSE`). Third-party Apache code and data are listed in `NOTICE`; a
   copied file keeps its original header and says what changed. No GPL sources, ever.
 - **Branching:** `main` is the base; work lands through pull requests from feature branches.
