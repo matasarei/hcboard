@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <application>
+        <!-- Debug builds only: a plain platform text field for the connected tests to type into.
+             The CI dev pre-release is a debug build, so it carries this too; not exported and
+             with no launcher entry, nothing but the app itself can open it. -->
+        <activity
+            android:name=".debug.PlainFieldActivity"
+            android:exported="false"
+            android:windowSoftInputMode="stateAlwaysVisible" />
+    </application>
+
+</manifest>

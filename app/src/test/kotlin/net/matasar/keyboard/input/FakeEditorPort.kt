@@ -22,6 +22,13 @@ class FakeEditorPort(
     val contextActions = mutableListOf<Int>()
     val selections = mutableListOf<Pair<Int, Int>>()
 
+    /** Edits in order, with `begin` and `end` around each batch, so a test can see what went together. */
+    val edits = mutableListOf<String>()
+
+    /** How deep the batches are nested right now; 0 outside any. */
+    var batchDepth = 0
+        private set
+
     var textReads = 0
         private set
 
@@ -29,8 +36,8 @@ class FakeEditorPort(
     var capsQueries = 0
         private set
 
-    override fun commitText(text: CharSequence) { committed += text.toString(); before += text }
-    override fun deleteSurroundingText(before: Int, after: Int) { deletions += before to after; this.before = this.before.dropLast(before) }
+    override fun commitText(text: CharSequence) { committed += text.toString(); edits += "commit:$text"; before += text }
+    override fun deleteSurroundingText(before: Int, after: Int) { deletions += before to after; edits += "delete:$before,$after"; this.before = this.before.dropLast(before) }
     override fun textBeforeCursor(length: Int): CharSequence { textReads++; return before.takeLast(length) }
     override fun textAfterCursor(length: Int): CharSequence { textReads++; return after.take(length) }
     override fun selectedText(): CharSequence = selected
@@ -39,6 +46,17 @@ class FakeEditorPort(
     override fun performEditorAction(actionId: Int): Boolean { editorActions += actionId; return acceptsEditorAction }
     override fun performContextMenuAction(id: Int): Boolean { contextActions += id; return true }
     override fun setSelection(start: Int, end: Int): Boolean { selections += start to end; return acceptsSetSelection }
+
+    override fun batch(edits: () -> Unit) {
+        this.edits += "begin"
+        batchDepth++
+        try {
+            edits()
+        } finally {
+            batchDepth--
+            this.edits += "end"
+        }
+    }
 
     /**
      * A rough stand-in for the framework's `TextUtils.getCapsMode`: characters always; words at the

@@ -201,6 +201,61 @@ class KeyboardSmokeTest {
         assertTrue("the trackpad stayed on after the cancel", waitUntil(2_000) { !trackpadOn() })
     }
 
+    /**
+     * A rotation rebuilds the input view; the view it replaces must let go of its composition, or
+     * every fold and rotation leaves one more keyboard recomposing on each keystroke.
+     */
+    @Test
+    fun rebuildDisposesTheOldComposition() {
+        val instrumentation = InstrumentationRegistry.getInstrumentation()
+        val service = KeyboardService.instance
+        assertNotNull("the service is not running", service)
+        var first: android.view.View? = null
+        instrumentation.runOnMainSync { first = service!!.inputView }
+        val old = first as androidx.compose.ui.platform.ComposeView
+        try {
+            device.setOrientationLandscape()
+            assertTrue("the input view was never rebuilt", waitUntil(5_000) {
+                var current: android.view.View? = null
+                instrumentation.runOnMainSync { current = service!!.inputView }
+                current !== old
+            })
+            var disposed = false
+            instrumentation.runOnMainSync { disposed = !old.hasComposition }
+            assertTrue("the replaced input view still holds its composition", disposed)
+        } finally {
+            device.setOrientationNatural()
+            device.unfreezeRotation()
+        }
+    }
+
+    /**
+     * Landscape on a phone is where Android puts up its fullscreen extract editor unless the
+     * keyboard says no. A plain platform field, since Compose fields opt out on their own.
+     */
+    @Test
+    fun landscapeNeverGoesFullscreen() {
+        val instrumentation = InstrumentationRegistry.getInstrumentation()
+        val context = ApplicationProvider.getApplicationContext<android.content.Context>()
+        try {
+            device.setOrientationLandscape()
+            context.startActivity(
+                Intent(context, net.matasar.keyboard.debug.PlainFieldActivity::class.java)
+                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK),
+            )
+            assertTrue("the plain field never came up", device.wait(Until.hasObject(By.clazz("android.widget.EditText")), 5_000))
+            focusFieldAndShowKeyboard()
+            val service = KeyboardService.instance
+            assertNotNull("the service is not running", service)
+            var fullscreen = true
+            instrumentation.runOnMainSync { fullscreen = service!!.isFullscreenMode }
+            assertTrue("the keyboard went fullscreen in landscape", !fullscreen)
+        } finally {
+            device.setOrientationNatural()
+            device.unfreezeRotation()
+        }
+    }
+
     /** The space bar's centre on screen: the middle of the bottom row of the phone letters layer. */
     private fun spaceCentre(): android.graphics.Point {
         val density = InstrumentationRegistry.getInstrumentation().targetContext.resources.displayMetrics.density

@@ -27,6 +27,7 @@ import net.matasar.keyboard.ui.theme.LocalKeyboardColors
 import androidx.compose.runtime.SideEffect
 import android.annotation.SuppressLint
 import android.view.View
+import android.view.ViewTreeObserver
 import android.view.Window
 import android.view.WindowManager
 import android.view.inputmethod.EditorInfo
@@ -292,6 +293,13 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
         if (resumed) lifecycleRegistry.currentState = Lifecycle.State.RESUMED
     }
 
+    /**
+     * Never the fullscreen extract editor, which Android otherwise puts over the app on a phone in
+     * landscape: the keyboard has its own landscape boards (split and 60%), and the extract view
+     * would hide the field the user is typing into.
+     */
+    override fun onEvaluateFullscreenMode(): Boolean = false
+
     override fun onConfigureWindow(win: Window, isFullscreen: Boolean, isCandidatesOnly: Boolean) {
         super.onConfigureWindow(win, isFullscreen, isCandidatesOnly)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
@@ -306,7 +314,19 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
         }
     }
 
+    /** Measures the bars after every layout of the current input view; removed with that view. */
+    private val layoutListener = ViewTreeObserver.OnGlobalLayoutListener { measureBottomBarOverlap() }
+
     override fun onCreateInputView(): View {
+        // A rebuild replaces the view, but the lifecycle it was composed under is the service's
+        // and lives on: without this the old composition keeps collecting and recomposing.
+        // The listener removal only reaches the old window's observer while the old view is still
+        // attached; after the framework rebuilt the window itself, that observer went with it, and
+        // a listener left behind would only re-measure the current inputView anyway.
+        (inputView as? ComposeView)?.let { old ->
+            old.viewTreeObserver.removeOnGlobalLayoutListener(layoutListener)
+            old.disposeComposition()
+        }
         lifecycleRegistry.currentState = Lifecycle.State.STARTED
         // Compose resolves its window recomposer from the window's root view, so the owners
         // have to be on the IME window's decor view as well as on the ComposeView itself.
@@ -316,7 +336,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
             decor.setViewTreeSavedStateRegistryOwner(this)
         }
         return ComposeView(this).also { inputView = it }.apply {
-            viewTreeObserver.addOnGlobalLayoutListener { measureBottomBarOverlap() }
+            viewTreeObserver.addOnGlobalLayoutListener(layoutListener)
             setViewTreeLifecycleOwner(this@KeyboardService)
             setViewTreeViewModelStoreOwner(this@KeyboardService)
             setViewTreeSavedStateRegistryOwner(this@KeyboardService)
@@ -448,12 +468,17 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
 
     /**
      * The window's bottom bar as the framework's decor paints it, in the keyboard's own colour
-     * so the strip under the keys reads as part of the keyboard rather than a black band.
+     * so the strip under the keys reads as part of the keyboard rather than a black band. Up to
+     * Android 15, where the theme's edge-to-edge opt-out holds and the decor paints that strip.
+     * From Android 16 the opt-out is ignored at this target and the colour call does nothing:
+     * the keyboard draws under the bar itself, so the strip is already its own background.
      */
     private fun paintBottomBar(color: Int, light: Boolean) {
         val w = window?.window ?: return
-        @Suppress("DEPRECATION")
-        w.navigationBarColor = color
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.BAKLAVA) {
+            @Suppress("DEPRECATION")
+            w.navigationBarColor = color
+        }
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
             @Suppress("DEPRECATION")
             w.isNavigationBarContrastEnforced = false
@@ -663,8 +688,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
     }
 
     override fun pasteClipboard() {
-        val text = clipboardText() ?: return
-        currentInputConnection?.commitText(text, 1)
+        controller.paste()
     }
 
     /** The clipboard's first item as text, for the paste button and a macro's paste block. */

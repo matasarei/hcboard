@@ -29,6 +29,12 @@ interface EditorPort {
      * flags): the editor works it out from its own text, so nothing is read into the keyboard.
      */
     fun cursorCapsMode(reqModes: Int): Int
+
+    /**
+     * Runs [edits] as one batch edit: the editor applies them together, so the app sees one
+     * change and one selection update, never the state between them. Batches may nest.
+     */
+    fun batch(edits: () -> Unit)
 }
 
 class AndroidEditorPort(private val connection: () -> InputConnection?) : EditorPort {
@@ -70,6 +76,16 @@ class AndroidEditorPort(private val connection: () -> InputConnection?) : Editor
     override fun setSelection(start: Int, end: Int): Boolean = connection()?.setSelection(start, end) ?: false
 
     override fun cursorCapsMode(reqModes: Int): Int = connection()?.getCursorCapsMode(reqModes) ?: 0
+
+    override fun batch(edits: () -> Unit) {
+        val ic = connection()
+        ic?.beginBatchEdit()
+        try {
+            edits()
+        } finally {
+            ic?.endBatchEdit()
+        }
+    }
 
     private fun keyEvent(time: Long, action: Int, keyCode: Int, metaState: Int) = KeyEvent(
         time, time, action, keyCode, 0, metaState,

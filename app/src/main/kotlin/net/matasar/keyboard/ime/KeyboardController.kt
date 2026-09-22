@@ -877,11 +877,14 @@ class KeyboardController(
     private fun commitSeparator(separator: String) {
         val current = candidates
         val correction = current?.correction
-        if (autoCorrect && current != null && correction != null && lastGlideWord == null && dispatcher.textEndsWith(current.typed)) {
-            dispatcher.replaceWordBeforeCursor(current.typed, correction)
-            lastAutocorrect = Autocorrect(current.typed, correction, separator)
+        // The correction and the separator after it are one change to the app.
+        dispatcher.batch {
+            if (autoCorrect && current != null && correction != null && lastGlideWord == null && dispatcher.textEndsWith(current.typed)) {
+                dispatcher.replaceWordBeforeCursor(current.typed, correction)
+                lastAutocorrect = Autocorrect(current.typed, correction, separator)
+            }
+            dispatcher.commitText(separator)
         }
-        dispatcher.commitText(separator)
         candidates = null
     }
 
@@ -955,6 +958,19 @@ class KeyboardController(
         val text = longPressText(key) ?: return false
         perform(key, KeyAction.Text(text))
         return true
+    }
+
+    /**
+     * The toolbar's paste: the clipboard's text goes in through the dispatcher like typed text,
+     * and the strip and the automatic capital follow what is now before the cursor. It is not a
+     * key, so a one-shot Shift or modifier stays armed; nothing when the clipboard holds no text.
+     */
+    fun paste() {
+        val text = clipboardText()?.takeIf { it.isNotEmpty() } ?: return
+        dispatcher.commitText(text)
+        lastAutocorrect = null
+        refreshCandidates()
+        refreshAutoCapital()
     }
 
     /** A chosen accent goes in like a letter: it consumes a one-shot shift. */

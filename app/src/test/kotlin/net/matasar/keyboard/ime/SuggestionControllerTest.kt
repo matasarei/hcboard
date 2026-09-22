@@ -63,6 +63,18 @@ class SuggestionControllerTest {
     }
 
     @Test
+    fun `the correction and the separator after it reach the app as one batch, and so does the undo`() {
+        textField()
+        type("chek")
+        port.edits.clear()
+        controller.onKey(space)
+        assertEquals(listOf("begin", "begin", "delete:4,0", "commit:check", "end", "commit: ", "end"), port.edits)
+        port.edits.clear()
+        controller.onKey(backspace)
+        assertEquals(listOf("begin", "delete:6,0", "commit:chek", "end"), port.edits)
+    }
+
+    @Test
     fun `punctuation applies the correction too and a known word is left alone`() {
         textField()
         type("chek")
