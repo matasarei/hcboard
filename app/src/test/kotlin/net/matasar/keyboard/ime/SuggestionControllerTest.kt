@@ -188,6 +188,17 @@ class SuggestionControllerTest {
     }
 
     @Test
+    fun `the row is not offered when suggestions are off altogether`() {
+        textField(0xa4001)
+        assertTrue(controller.suggestInAppOffered)
+        // With the setting off there is nothing to allow: the strip stays empty either way.
+        controller.suggestionsEnabled = false
+        assertFalse(controller.suggestInAppOffered)
+        controller.suggestionsEnabled = true
+        assertTrue(controller.suggestInAppOffered)
+    }
+
+    @Test
     fun `allowing an app does not reach its password or e-mail fields, and is not offered there`() {
         controller.restoreSuggestInApp(true)
         for (inputType in listOf(

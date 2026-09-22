@@ -241,9 +241,15 @@ class KeyboardController(
     var suggestInApp: Boolean by mutableStateOf(false)
         private set
 
-    /** Whether allowing this app would change anything here: what the gear sheet's row is shown on. */
-    var suggestInAppOffered: Boolean by mutableStateOf(false)
-        private set
+    /** Whether this field's app asked for no suggestions and nothing else is in the way. */
+    private var fieldOverridable: Boolean by mutableStateOf(false)
+
+    /**
+     * Whether the gear sheet offers its row: allowing the app must change something here, and
+     * suggestions must be on at all — with the setting off, the row would promise what the
+     * keyboard would not then do.
+     */
+    val suggestInAppOffered: Boolean get() = fieldOverridable && suggestionsEnabled
 
     /** Whether the word before the cursor may be read and candidates shown right now. */
     val suggestionsAvailable: Boolean
@@ -457,7 +463,7 @@ class KeyboardController(
         // cannot turn the strip back on after the field has gone.
         fieldInputType = InputType.TYPE_NULL
         suggestInApp = false
-        suggestInAppOffered = false
+        fieldOverridable = false
         fieldAllowsSuggestions = false
         clearCandidates()
     }
@@ -555,7 +561,7 @@ class KeyboardController(
      */
     fun updateFieldSuggestions(info: EditorInfo?) {
         fieldInputType = info?.inputType
-        suggestInAppOffered = info?.let { noSuggestionsOverridable(it.inputType) } ?: false
+        fieldOverridable = info?.let { noSuggestionsOverridable(it.inputType) } ?: false
         applySuggestionRules()
     }
 
