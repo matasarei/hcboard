@@ -38,6 +38,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.CustomAccessibilityAction
+import androidx.compose.ui.semantics.customActions
 import androidx.compose.ui.semantics.onClick
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.stateDescription
@@ -110,6 +112,8 @@ fun KeyButton(
     obscured: Boolean = false,
     /** The field's action (`EditorInfo.IME_ACTION_*`), which Enter says instead of its own name. */
     editorAction: Int? = null,
+    /** What a screen reader can do with the key besides typing it (see keyActions); usually none. */
+    customActions: List<CustomAccessibilityAction> = emptyList(),
 ) {
     val colors = LocalKeyboardColors.current
     val view = LocalView.current
@@ -192,6 +196,7 @@ fun KeyButton(
                 if (stateDescription != null) this.stateDescription = stateDescription
                 role = Role.Button
                 onClick { currentCallbacks.onTap(key); true }
+                if (customActions.isNotEmpty()) this.customActions = customActions
             }
             .onGloballyPositioned { bounds = it.boundsInRoot(); onBounds?.invoke(key, bounds) }
             .graphicsLayer { scaleX = scale; scaleY = scale }
