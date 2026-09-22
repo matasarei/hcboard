@@ -23,13 +23,25 @@ abstract class CopyLicenceNotices : DefaultTask() {
         val raw = outputDir.get().dir("raw").asFile
         raw.deleteRecursively()
         raw.mkdirs()
-        // Resource names are lower case: LICENSE becomes R.raw.license, NOTICE R.raw.notice.
-        sources.forEach { it.copyTo(File(raw, it.name.lowercase() + ".txt"), overwrite = true) }
+        sources.forEach { it.copyTo(File(raw, resourceName(it.name)), overwrite = true) }
     }
+
+    /**
+     * A resource name a file name can become: lower case, letters, digits and `_` only, and one
+     * `.txt`. LICENSE becomes R.raw.license, BSD-3-Clause.txt becomes R.raw.bsd_3_clause.
+     */
+    private fun resourceName(fileName: String): String =
+        fileName.removeSuffix(".txt").lowercase().map { if (it.isLetterOrDigit()) it else '_' }.joinToString("") + ".txt"
 }
 
 val copyLicenceNotices = tasks.register<CopyLicenceNotices>("copyLicenceNotices") {
-    sources.from(rootProject.file("LICENSE"), rootProject.file("NOTICE"))
+    sources.from(
+        rootProject.file("LICENSE"),
+        rootProject.file("NOTICE"),
+        // The Protocol Buffers copy inside androidx.datastore, the one dependency that is not
+        // Apache-2.0; taken verbatim from the artifact's own META-INF.
+        rootProject.file("licences/BSD-3-Clause.txt"),
+    )
 }
 
 androidComponents {
