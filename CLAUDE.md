@@ -109,12 +109,16 @@ emulator profile is `medium_phone`; boot it headless with
 - **Languages** are data in `layout/Languages.kt`: rows, accents, native name. A layer sizes itself to
   its widest row. The globe key exists only with two or more languages enabled; the persisted
   current language is authoritative and the service follows changes to it. The enabled set is the
-  keyboard's own: `method.xml` declares no language subtypes on purpose (Android's own per-language
-  list disagreed with ours and its picker never reached the keys), only one English subtype whose
-  label is the line Android's keyboard list shows under the name (it never shows the service's
-  `android:description`; Samsung's list leaves out a subtype with no language), and the first-run
-  default is English only; additional languages are added by the user in settings
-  (`Languages.defaultEnabled`).
+  keyboard's own, and Android mirrors it: `method.xml` declares a subtype per language (native-name
+  label, fixed `subtypeId` = `Language.subtypeId` = its hash code; `MethodXmlTest` pins both, run it
+  with `--rerun` after editing only `res/`, which is not a unit-test input), because Android's
+  keyboard list shows the enabled subtypes' names under the keyboard's name. `ime/SystemSubtypes.kt`
+  pushes the enabled set with `setExplicitlyEnabledInputMethodSubtypes` (API 34+; the service and
+  the settings screen both push) and never reads Android's set back; the globe reports the current
+  subtype, and a pick in Android's switcher is followed only for an enabled language. Only English
+  overrides the implicitly enabled subtypes, so below API 34 the list reads "English" and never
+  the phone's languages. The first-run default is English only; additional languages are added by
+  the user in settings (`Languages.defaultEnabled`).
   English is always on and not toggleable in settings. The 60% board is
   built from the same data (`layout/SixtyPercentLayout.kt`): letters fill the ANSI slots of
   `AnsiSlots.rows` left to right, a letter on a punctuation slot carries that punctuation on Fn,
