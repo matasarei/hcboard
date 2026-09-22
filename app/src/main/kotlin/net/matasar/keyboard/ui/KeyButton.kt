@@ -34,6 +34,12 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.platform.LocalViewConfiguration
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.onClick
+import androidx.compose.ui.semantics.role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
@@ -162,10 +168,23 @@ fun KeyButton(
         }
     }
 
+    // One node per key for TalkBack: what the key types now, or its name, and a click that types
+    // it, which is what both double-tap and TalkBack's lift-to-type perform. The glyph and the
+    // legends under it are not read on their own.
+    val description = when (val spoken = spokenKey(key, label, iconShown = icon != null)) {
+        is Spoken.Named -> stringResource(spoken.id)
+        is Spoken.Text -> spoken.text
+    }
+
     Box(
         modifier = modifier
             .fillMaxWidth()
             .height(height)
+            .clearAndSetSemantics {
+                contentDescription = description
+                role = Role.Button
+                onClick { currentCallbacks.onTap(key); true }
+            }
             .onGloballyPositioned { bounds = it.boundsInRoot(); onBounds?.invoke(key, bounds) }
             .graphicsLayer { scaleX = scale; scaleY = scale }
             .shadow(
