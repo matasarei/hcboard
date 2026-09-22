@@ -175,7 +175,10 @@
     <string name="settings_macros_open">Edit macros</string>
     <string name="settings_section_about">About</string>
     <string name="licences_title">Open-source licences</string>
-    <string name="licences_hint">hcboard is free software under the Apache License 2.0. It includes code and word lists from other projects, named below with their licences, followed by the full licence text.</string>
+    <string name="licences_hint">hcboard is free software under the Apache License 2.0. It includes code and word lists from other projects, and the libraries it is built on, named below with their licences, followed by the full licence texts.</string>
+    <string name="licences_libraries">Libraries in this app</string>
+    <string name="licences_apache">Apache License 2.0</string>
+    <string name="licences_bsd">BSD 3-Clause: Protocol Buffers, repackaged by The Android Open Source Project inside androidx.datastore</string>
 
     <!-- What TalkBack says for the keys that are named rather than read (ui/KeySpeech.kt). -->
     <string name="a11y_key_space">Space</string>
