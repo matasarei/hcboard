@@ -43,6 +43,7 @@ fun ModifierStrip(
             keyBorders = feel.keyBorders,
             showLabel = !controller.trackpad,
             repeats = controller.repeats(key),
+            stateDescription = keyState(key, controller),
         )
     }
 }

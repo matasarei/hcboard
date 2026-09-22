@@ -29,6 +29,9 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.platform.LocalViewConfiguration
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.paneTitle
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
@@ -289,9 +292,18 @@ private fun LayerGrid(
         // press on Space (glide off while it runs) used to cancel itself.
         val glide = rememberUpdatedState(feel.glide && controller.layer == LayerId.LETTERS && controller.glideAvailable)
         val unitWidthPx = with(density) { unitWidth.toPx() }
+        val title = if (controller.layer == LayerId.LETTERS) {
+            stringResource(layerTitle(controller.layer), controller.language.nativeName)
+        } else {
+            stringResource(layerTitle(controller.layer))
+        }
+        // A password is spoken as dots unless it can only be heard in the user's own ears.
+        val obscured = controller.passwordField && !rememberPrivateAudio()
         Column(
             modifier = Modifier
                 .fillMaxWidth()
+                // TalkBack announces the page when it changes: a layer switch or a new language.
+                .semantics { paneTitle = title }
                 .glideDetector(
                     letterBounds = { letterBounds },
                     gridOriginInRoot = { gridOrigin },
@@ -326,6 +338,9 @@ private fun LayerGrid(
                     topLegendColor = if (controller.shiftLive(key)) colors.armedRing else null,
                     onBounds = if (key.action is KeyAction.Letter) ({ k, rect -> letterBounds[(k.action as KeyAction.Letter).lower[0]] = rect }) else null,
                     repeats = controller.repeats(key),
+                    stateDescription = keyState(key, controller),
+                    obscured = obscured,
+                    editorAction = controller.editorActionId,
                 )
             }
             if (split == null) {
@@ -441,6 +456,11 @@ private class KeyScreenCallbacks(
     private fun cellPx() = PopupMetrics.accentCell.value * popups.density
     private fun paddingPx() = PopupMetrics.accentPadding.value * popups.density
 }
+
+/** A latching key's state as TalkBack reads it after the key's name; null for the rest. */
+@Composable
+internal fun keyState(key: Key, controller: KeyboardController): String? =
+    spokenState(key, controller.shift.state, controller.modifiers::state, controller.modifiers.held)?.let { stringResource(it) }
 
 private fun Key.showsPreview(): Boolean =
     style == KeyStyle.LETTER && icon == null && label.length == 1 && action != KeyAction.Space

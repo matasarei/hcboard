@@ -173,4 +173,38 @@
     <string name="backup_passphrase_hint">This backup holds secret texts. Enter the passphrase it was saved with.</string>
     <string name="backup_wrong_passphrase">That passphrase does not unlock this backup.</string>
     <string name="settings_macros_open">Edit macros</string>
+
+    <!-- What TalkBack says for the keys that are named rather than read (ui/KeySpeech.kt). -->
+    <string name="a11y_key_space">Space</string>
+    <string name="a11y_key_enter">Enter</string>
+    <string name="a11y_key_search">Search</string>
+    <string name="a11y_key_send">Send</string>
+    <string name="a11y_key_go">Go</string>
+    <string name="a11y_key_next">Next</string>
+    <string name="a11y_key_done">Done</string>
+    <string name="a11y_key_backspace">Backspace</string>
+    <string name="a11y_key_shift">Shift</string>
+    <string name="a11y_key_caps_lock">Caps Lock</string>
+    <string name="a11y_key_ctrl">Control</string>
+    <string name="a11y_key_alt">Alt</string>
+    <string name="a11y_key_meta">Meta</string>
+    <string name="a11y_key_fn">Function</string>
+    <string name="a11y_key_letters">Letters</string>
+    <string name="a11y_key_symbols">Symbols</string>
+    <string name="a11y_key_code">Code symbols</string>
+    <string name="a11y_key_hide">Hide keyboard</string>
+    <string name="a11y_key_next_language">Next language</string>
+    <string name="a11y_key_left">Left arrow</string>
+    <string name="a11y_key_right">Right arrow</string>
+    <string name="a11y_key_up">Up arrow</string>
+    <string name="a11y_key_down">Down arrow</string>
+    <!-- Said for a character key in a password field while speech is not going into headphones. -->
+    <string name="a11y_key_dot">Dot</string>
+    <!-- The state TalkBack reads after a latching key, and after a switch in the gear sheet. -->
+    <string name="a11y_state_off">Off</string>
+    <string name="a11y_state_on">On</string>
+    <string name="a11y_state_armed">On for the next key</string>
+    <string name="a11y_state_locked">Locked</string>
+    <!-- Announced when the letters come up; the argument is the language's own name. -->
+    <string name="a11y_layer_letters">Letters, %1$s</string>
 </resources>

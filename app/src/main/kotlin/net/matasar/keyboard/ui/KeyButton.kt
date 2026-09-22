@@ -34,6 +34,13 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.platform.LocalViewConfiguration
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.onClick
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
@@ -97,6 +104,12 @@ fun KeyButton(
     onBounds: ((Key, Rect) -> Unit)? = null,
     /** Whether the key repeats while held down in its current state. */
     repeats: Boolean = key.repeats,
+    /** What TalkBack reads after the key's name: a latching key's state (see spokenState). */
+    stateDescription: String? = null,
+    /** A character key says "Dot" to TalkBack rather than its character: a password, spoken out loud. */
+    obscured: Boolean = false,
+    /** The field's action (`EditorInfo.IME_ACTION_*`), which Enter says instead of its own name. */
+    editorAction: Int? = null,
 ) {
     val colors = LocalKeyboardColors.current
     val view = LocalView.current
@@ -162,10 +175,24 @@ fun KeyButton(
         }
     }
 
+    // One node per key for TalkBack: what the key types now, or its name, and a click that types
+    // it, which is what both double-tap and TalkBack's lift-to-type perform. The glyph and the
+    // legends under it are not read on their own.
+    val description = when (val spoken = spokenKey(key, label, iconShown = icon != null, obscured = obscured, editorAction = editorAction)) {
+        is Spoken.Named -> stringResource(spoken.id)
+        is Spoken.Text -> spoken.text
+    }
+
     Box(
         modifier = modifier
             .fillMaxWidth()
             .height(height)
+            .clearAndSetSemantics {
+                contentDescription = description
+                if (stateDescription != null) this.stateDescription = stateDescription
+                role = Role.Button
+                onClick { currentCallbacks.onTap(key); true }
+            }
             .onGloballyPositioned { bounds = it.boundsInRoot(); onBounds?.invoke(key, bounds) }
             .graphicsLayer { scaleX = scale; scaleY = scale }
             .shadow(

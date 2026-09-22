@@ -256,6 +256,87 @@ class KeyboardSmokeTest {
         }
     }
 
+    /**
+     * What TalkBack works with: the keyboard window's accessibility nodes. Each key is one node
+     * named for what it types, and clicking it (TalkBack's double-tap, and its lift-to-type) types.
+     */
+    @Test
+    fun keysAreAccessibilityNodesThatTypeWhenClicked() {
+        // The field is empty, so the automatic capital is on and the key says, and types, Q.
+        val q = waitForImeNode("Q")
+        assertNotNull("no accessibility node for the Q key in the keyboard window; saw: ${describeImeNodes()}", q)
+        assertNotNull("no accessibility node for Space", waitForImeNode("Space"))
+        assertTrue("the Q key does not offer a click", q!!.isClickable)
+        assertTrue("clicking the Q node did nothing", q.performAction(android.view.accessibility.AccessibilityNodeInfo.ACTION_CLICK))
+        assertTrue("clicking the Q node typed nothing (field: '${fieldText()}')", waitUntil(2_000) { fieldText() == "Q" })
+
+        // A latching key says its state after its name, and the page says what it is.
+        val shift = waitForImeNode("Shift")
+        assertEquals("Off", shift?.stateDescription?.toString())
+        assertTrue(shift!!.performAction(android.view.accessibility.AccessibilityNodeInfo.ACTION_CLICK))
+        assertTrue(
+            "Shift's state did not follow the click (it reads '${waitForImeNode("Shift")?.stateDescription}')",
+            waitUntil(2_000) { waitForImeNode("Shift")?.stateDescription?.toString() == "On for the next key" },
+        )
+        assertTrue("no page title 'Letters, English' in the keyboard window", imeHasPaneTitle("Letters, English"))
+    }
+
+    /** In a password field, with nothing but the speaker to hear it, no key says its character. */
+    @Test
+    fun keysSayDotInAPasswordField() {
+        // The keyboard @Before raised covers the password field below the first one.
+        device.pressBack()
+        waitUntil(2_000) { !device.executeShellCommand("dumpsys input_method").contains("mIsInputViewShown=true") }
+        val password = device.findObjects(By.clazz("android.widget.EditText")).getOrNull(1)
+        assertNotNull("the settings screen has no password field in view", password)
+        password!!.click()
+        assertTrue("the password field's keys never said Dot; saw: ${describeImeNodes()}", waitUntil(3_000) { waitForImeNode("Dot") != null })
+        for (letter in listOf("q", "Q", "p", "P")) assertEquals("a key still says $letter", null, waitForImeNode(letter, timeoutMs = 0))
+        assertNotNull("Space lost its name in the password field", waitForImeNode("Space"))
+    }
+
+    private fun imeHasPaneTitle(title: String): Boolean {
+        val ime = InstrumentationRegistry.getInstrumentation().uiAutomation.windows
+            .firstOrNull { it.type == android.view.accessibility.AccessibilityWindowInfo.TYPE_INPUT_METHOD } ?: return false
+        fun walk(node: android.view.accessibility.AccessibilityNodeInfo): Boolean =
+            node.paneTitle?.toString() == title || (0 until node.childCount).any { i -> node.getChild(i)?.let(::walk) == true }
+        return ime.root?.let(::walk) == true
+    }
+
+    /** The first node in the input method's window whose description is [description], once it shows. */
+    private fun waitForImeNode(description: String, timeoutMs: Long = 3_000): android.view.accessibility.AccessibilityNodeInfo? {
+        val automation = InstrumentationRegistry.getInstrumentation().uiAutomation
+        automation.serviceInfo = automation.serviceInfo.apply {
+            flags = flags or android.accessibilityservice.AccessibilityServiceInfo.FLAG_RETRIEVE_INTERACTIVE_WINDOWS
+        }
+        var found: android.view.accessibility.AccessibilityNodeInfo? = null
+        waitUntil(timeoutMs) {
+            val ime = automation.windows.firstOrNull { it.type == android.view.accessibility.AccessibilityWindowInfo.TYPE_INPUT_METHOD }
+            found = ime?.root?.let { find(it, description) }
+            found != null
+        }
+        return found
+    }
+
+    /** Every described node in the input method's window, for a failure message. */
+    private fun describeImeNodes(): String {
+        val ime = InstrumentationRegistry.getInstrumentation().uiAutomation.windows
+            .firstOrNull { it.type == android.view.accessibility.AccessibilityWindowInfo.TYPE_INPUT_METHOD } ?: return "no keyboard window"
+        val described = mutableListOf<String>()
+        fun walk(node: android.view.accessibility.AccessibilityNodeInfo) {
+            node.contentDescription?.let { described += it.toString() }
+            for (i in 0 until node.childCount) node.getChild(i)?.let(::walk)
+        }
+        ime.root?.let(::walk)
+        return described.joinToString()
+    }
+
+    private fun find(node: android.view.accessibility.AccessibilityNodeInfo, description: String): android.view.accessibility.AccessibilityNodeInfo? {
+        if (node.contentDescription?.toString() == description) return node
+        for (i in 0 until node.childCount) node.getChild(i)?.let { child -> find(child, description)?.let { return it } }
+        return null
+    }
+
     /** The space bar's centre on screen: the middle of the bottom row of the phone letters layer. */
     private fun spaceCentre(): android.graphics.Point {
         val density = InstrumentationRegistry.getInstrumentation().targetContext.resources.displayMetrics.density
