@@ -293,6 +293,8 @@ private fun LayerGrid(
         val glide = rememberUpdatedState(feel.glide && controller.layer == LayerId.LETTERS && controller.glideAvailable)
         val unitWidthPx = with(density) { unitWidth.toPx() }
         val title = stringResource(layerTitle(controller.layer), controller.language.nativeName)
+        // A password is spoken as dots unless it can only be heard in the user's own ears.
+        val obscured = controller.passwordField && !rememberPrivateAudio()
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -333,6 +335,7 @@ private fun LayerGrid(
                     onBounds = if (key.action is KeyAction.Letter) ({ k, rect -> letterBounds[(k.action as KeyAction.Letter).lower[0]] = rect }) else null,
                     repeats = controller.repeats(key),
                     stateDescription = keyState(key, controller),
+                    obscured = obscured,
                 )
             }
             if (split == null) {

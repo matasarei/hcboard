@@ -22,8 +22,12 @@ sealed interface Spoken {
  * The spoken form of [key], showing [shown] (what [net.matasar.keyboard.ime.KeyboardController.displayLabel]
  * says it types now) and drawn with an icon when [iconShown]. A key whose icon stepped aside for
  * an Fn meaning with a name (backspace reading Del, an arrow reading Home) says that name.
+ *
+ * With [obscured] (a password field, and speech going out loud rather than into headphones) a key
+ * that types a character says "Dot" instead, as AOSP's keyboard does: whoever is near the phone
+ * does not hear the password. Named keys keep their names.
  */
-internal fun spokenKey(key: Key, shown: String, iconShown: Boolean): Spoken {
+internal fun spokenKey(key: Key, shown: String, iconShown: Boolean, obscured: Boolean = false): Spoken {
     when (val action = key.action) {
         KeyAction.Space -> return Spoken.Named(R.string.a11y_key_space)
         KeyAction.Enter -> return Spoken.Named(R.string.a11y_key_enter)
@@ -44,6 +48,7 @@ internal fun spokenKey(key: Key, shown: String, iconShown: Boolean): Spoken {
         else -> Unit
     }
     ArrowDirection.fromString(shown)?.let { return Spoken.Named(arrowName(it)) }
+    if (obscured && (key.action is KeyAction.Letter || key.action is KeyAction.Text)) return Spoken.Named(R.string.a11y_key_dot)
     return Spoken.Text(shown.ifEmpty { key.label })
 }
 

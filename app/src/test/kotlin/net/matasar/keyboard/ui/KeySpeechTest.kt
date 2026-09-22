@@ -121,4 +121,26 @@ class KeySpeechTest {
     fun `each page has its own title, and only the letters name the language`() {
         assertEquals(setOf(R.string.a11y_layer_letters, R.string.a11y_key_symbols, R.string.a11y_key_code), LayerId.entries.map(::layerTitle).toSet())
     }
+
+    @Test
+    fun `in a password spoken out loud a character key says Dot, and named keys keep their names`() {
+        val p = letters.first { it.label == "p" }
+        val space = letters.first { it.action == KeyAction.Space }
+        val comma = letters.first { it.label == "," }
+        val tab = Key("Tab", KeyAction.KeyCode(android.view.KeyEvent.KEYCODE_TAB))
+        assertEquals(Spoken.Named(R.string.a11y_key_dot), spokenKey(p, "p", iconShown = false, obscured = true))
+        assertEquals(Spoken.Named(R.string.a11y_key_dot), spokenKey(comma, ",", iconShown = false, obscured = true))
+        assertEquals(Spoken.Named(R.string.a11y_key_space), spokenKey(space, "", iconShown = false, obscured = true))
+        assertEquals(Spoken.Text("Tab"), spokenKey(tab, "Tab", iconShown = false, obscured = true))
+        assertEquals(Spoken.Text("p"), spokenKey(p, "p", iconShown = false, obscured = false))
+    }
+
+    @Test
+    fun `only headphones, headsets and hearing aids count as private`() {
+        assertTrue(isPrivateOutput(android.media.AudioDeviceInfo.TYPE_WIRED_HEADPHONES))
+        assertTrue(isPrivateOutput(android.media.AudioDeviceInfo.TYPE_BLUETOOTH_A2DP))
+        assertTrue(isPrivateOutput(android.media.AudioDeviceInfo.TYPE_HEARING_AID))
+        assertTrue(!isPrivateOutput(android.media.AudioDeviceInfo.TYPE_BUILTIN_SPEAKER))
+        assertTrue(!isPrivateOutput(android.media.AudioDeviceInfo.TYPE_BUILTIN_EARPIECE))
+    }
 }

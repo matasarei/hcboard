@@ -193,6 +193,8 @@
     <string name="a11y_key_right">Right arrow</string>
     <string name="a11y_key_up">Up arrow</string>
     <string name="a11y_key_down">Down arrow</string>
+    <!-- Said for a character key in a password field while speech is not going into headphones. -->
+    <string name="a11y_key_dot">Dot</string>
     <!-- The state TalkBack reads after a latching key, and after a switch in the gear sheet. -->
     <string name="a11y_state_off">Off</string>
     <string name="a11y_state_on">On</string>
