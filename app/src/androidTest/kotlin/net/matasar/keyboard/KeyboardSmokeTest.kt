@@ -110,7 +110,7 @@ class KeyboardSmokeTest {
             device.waitForIdle()
             shown = waitUntil(2_000) { device.executeShellCommand("dumpsys input_method").contains("mIsInputViewShown=true") }
         }
-        assertTrue("keyboard never showed", shown)
+        assertTrue("keyboard never showed (touch exploration: ${device.executeShellCommand("dumpsys accessibility").contains("touchExplorationEnabled=true")})", shown)
     }
 
     @Test
@@ -297,7 +297,7 @@ class KeyboardSmokeTest {
         val field = device.findObject(By.clazz("android.widget.EditText"))
         exploreByTouch(true)
         try {
-            assertTrue("touch exploration never turned on", waitUntil(3_000) { imeNodeWithAction("Move cursor left") != null })
+            assertTrue("the keys carry no actions while exploring", waitUntil(5_000) { imeNodeWithAction("Move cursor left") != null })
 
             // An accent, typed from the e key's own actions.
             val e = waitForImeNode("e", ignoreCase = true)
@@ -393,8 +393,15 @@ class KeyboardSmokeTest {
             flagsBeforeExploring = null
         }
         automation.serviceInfo = info
+        // Asking is asynchronous: without waiting for the real state, the test runs on before
+        // exploring starts, or the next test taps while it is still on and never sees a keyboard.
+        val manager = ApplicationProvider.getApplicationContext<android.content.Context>()
+            .getSystemService(android.view.accessibility.AccessibilityManager::class.java)
+        assertTrue(
+            "touch exploration did not turn ${if (on) "on" else "off"}",
+            waitUntil(10_000) { manager.isTouchExplorationEnabled == on },
+        )
         device.waitForIdle()
-        SystemClock.sleep(500)
     }
 
     /** Performs the action labelled [action] on the key described [description], freshly looked up. */
