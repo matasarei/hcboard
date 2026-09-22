@@ -107,12 +107,14 @@ object BackupCodec {
             file.macros
         } else {
             if (passphrase == null) throw PassphraseRequired()
-            val salt = try {
-                Base64.getDecoder().decode(header.salt)
+            // A salt that is not Base64, or empty (PBKDF2 refuses one), is a damaged file.
+            val box = try {
+                PassphraseSecretBox(passphrase, Base64.getDecoder().decode(header.salt), header.iterations)
             } catch (e: IllegalArgumentException) {
                 throw NotABackup("damaged secret protection", e)
+            } catch (e: java.security.GeneralSecurityException) {
+                throw NotABackup("damaged secret protection", e)
             }
-            val box = PassphraseSecretBox(passphrase, salt, header.iterations)
             if (box.open(header.check) != CHECK) throw WrongPassphrase()
             file.macros.map { it.openSecrets(box) }.map { it.copy(blocks = it.blocks.withoutKeptSealed()) }
         }

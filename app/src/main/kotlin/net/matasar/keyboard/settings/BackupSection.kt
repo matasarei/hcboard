@@ -159,6 +159,9 @@ fun BackupSection(prefs: Prefs) {
                         restore = opened
                     } catch (_: WrongPassphrase) {
                         importPassphraseError = true
+                    } catch (_: NotABackup) {
+                        importFile = null
+                        toast(context, R.string.backup_not_a_backup)
                     } finally {
                         passphrase.fill('\u0000')
                     }

@@ -102,4 +102,13 @@ class BackupCodecTest {
         assertEquals(mapOf("en_US" to mapOf("kubectl" to 255)), restored.words)
         assertEquals(listOf(Macro("a", "A", listOf(Block.CopyField))), restored.macros)
     }
+
+    @Test
+    fun `a damaged salt is refused as not a backup, not thrown as a crash`() {
+        val file = BackupCodec.read(encode(listOf(login)))
+        for (salt in listOf("", "!!")) {
+            val damaged = file.copy(secrets = file.secrets!!.copy(salt = salt))
+            assertFailsWith<NotABackup> { BackupCodec.open(damaged, passphrase) }
+        }
+    }
 }
