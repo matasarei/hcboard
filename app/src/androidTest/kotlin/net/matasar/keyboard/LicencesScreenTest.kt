@@ -47,6 +47,21 @@ class LicencesScreenTest {
         assertTrue("the NOTICE is not shown", device.wait(Until.hasObject(By.textContains("FlorisBoard")), 5_000))
         assertTrue("the Helium314 word-list attribution is not shown", device.hasObject(By.textContains("Creative Commons Attribution 4.0")))
         assertTrue("the Apache License text is not shown", device.hasObject(By.textContains("Apache License")))
+        // The generated list of what is inside the APK, and the one library that is not Apache-2.0.
+        // Further down the page: only what is laid out is in the tree, so scroll to each.
+        assertTrue("the libraries are not listed", scrollTo("androidx.* (Jetpack and Jetpack Compose)"))
+        assertTrue("the BSD-3-Clause library is not named", scrollTo("datastore-preferences-external-protobuf"))
+        assertTrue("the BSD-3-Clause text is not shown", scrollTo("Redistribution and use in source and binary forms"))
+    }
+
+    /** Swipes down the page until [text] shows, or gives up; the screen is several pages long. */
+    private fun scrollTo(text: String): Boolean {
+        repeat(30) {
+            if (device.hasObject(By.textContains(text))) return true
+            device.swipe(device.displayWidth / 2, device.displayHeight * 3 / 4, device.displayWidth / 2, device.displayHeight / 4, 15)
+            device.waitForIdle()
+        }
+        return device.hasObject(By.textContains(text))
     }
 
     private fun waitUntil(timeoutMs: Long, condition: () -> Boolean): Boolean {

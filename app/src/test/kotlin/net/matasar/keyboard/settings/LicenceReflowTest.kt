@@ -46,4 +46,12 @@ class LicenceReflowTest {
         assertTrue("(b) You must cause any modified files to carry prominent notices stating that You changed the files; and" in lines)
         assertEquals(listOf("Apache License", "Version 2.0, January 2004"), lines.filter { it.isNotEmpty() }.take(2))
     }
+
+    @Test
+    fun `the generated library list survives reflow, bullets and blank lines intact`() {
+        // What the build writes for the licences screen, and what the screen shows unreflowed:
+        // every line is a bullet or a heading, so the rules here leave all of it alone anyway.
+        val list = "Apache License 2.0\n\n- androidx.* (Jetpack and Jetpack Compose), 102 modules\n- org.jspecify:jspecify\n\nBSD 3-Clause\n\n- androidx.datastore:datastore-preferences-external-protobuf"
+        assertEquals(list, reflow(list))
+    }
 }
