@@ -24,6 +24,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -207,7 +208,13 @@ private fun PassphraseDialog(confirm: Boolean, error: Boolean, onDismiss: () -> 
         title = { Text(stringResource(if (confirm) R.string.backup_passphrase_new_title else R.string.backup_passphrase_title)) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text(stringResource(if (confirm) R.string.backup_passphrase_new_hint else R.string.backup_passphrase_hint, MIN_PASSPHRASE))
+                Text(
+                    if (confirm) {
+                        pluralStringResource(R.plurals.backup_passphrase_new_hint, MIN_PASSPHRASE, MIN_PASSPHRASE)
+                    } else {
+                        stringResource(R.string.backup_passphrase_hint)
+                    },
+                )
                 OutlinedTextField(
                     value = first,
                     onValueChange = { first = it },

@@ -155,7 +155,10 @@
     <string name="backup_passphrase">Passphrase</string>
     <string name="backup_passphrase_again">Passphrase again</string>
     <string name="backup_passphrase_new_title">Lock the secrets</string>
-    <string name="backup_passphrase_new_hint">Your macros hold secret texts. Pick a passphrase of at least %1$d characters to lock them in the file. Without it they cannot be restored, and it is not kept anywhere.</string>
+    <plurals name="backup_passphrase_new_hint">
+        <item quantity="one">Your macros hold secret texts. Pick a passphrase of at least %1$d character to lock them in the file. Without it they cannot be restored, and it is not kept anywhere.</item>
+        <item quantity="other">Your macros hold secret texts. Pick a passphrase of at least %1$d characters to lock them in the file. Without it they cannot be restored, and it is not kept anywhere.</item>
+    </plurals>
     <string name="backup_passphrase_title">Unlock the secrets</string>
     <string name="backup_passphrase_hint">This backup holds secret texts. Enter the passphrase it was saved with.</string>
     <string name="backup_wrong_passphrase">That passphrase does not unlock this backup.</string>
