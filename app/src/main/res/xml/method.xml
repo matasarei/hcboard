@@ -15,8 +15,13 @@
     Each subtypeId is fixed and matches Language.subtypeId (MethodXmlTest checks both): Android
     otherwise hashes one from the locale, mode and flags, and a later change to any of them would
     make it a different subtype to enable again. The label is not part of that hash.
+
+    supportsInlineSuggestions exists from Android 11; older versions ignore it, which is what the
+    keyboard wants there (no inline autofill below 11), so lint's UnusedAttribute is ignored.
 -->
 <input-method xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:ignore="UnusedAttribute"
     android:settingsActivity="net.matasar.keyboard.settings.SettingsActivity"
     android:supportsInlineSuggestions="true"
     android:supportsSwitchingToNextInputMethod="true">

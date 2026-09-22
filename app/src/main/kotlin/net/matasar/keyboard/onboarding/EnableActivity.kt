@@ -2,8 +2,8 @@ package net.matasar.keyboard.onboarding
 
 import android.content.Context
 import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
+import androidx.core.net.toUri
 import android.provider.Settings
 import android.view.inputmethod.InputMethodManager
 import androidx.activity.ComponentActivity
@@ -148,7 +148,7 @@ private fun EnableScreen() {
         TextButton(
             onClick = {
                 runCatching {
-                    context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(PRIVACY_POLICY_URL)))
+                    context.startActivity(Intent(Intent.ACTION_VIEW, PRIVACY_POLICY_URL.toUri()))
                 }
             },
             modifier = Modifier.align(Alignment.CenterHorizontally),
