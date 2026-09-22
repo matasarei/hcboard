@@ -259,7 +259,7 @@ private fun LayerGrid(
         // The screen's size, not the window's: the keyboard's window is only as tall as the
         // keyboard, so sizing the keys from it would size them from themselves.
         val configuration = LocalConfiguration.current
-// The halves replace the whole board where a hinge or two thumbs ask for them.
+        // The halves replace the whole board where a hinge or two thumbs ask for them.
         @SuppressLint("ConfigurationScreenWidthHeight")
         val split = layout.split.takeIf {
             controller.layer == LayerId.LETTERS &&
