@@ -320,6 +320,9 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
     override fun onCreateInputView(): View {
         // A rebuild replaces the view, but the lifecycle it was composed under is the service's
         // and lives on: without this the old composition keeps collecting and recomposing.
+        // The listener removal only reaches the old window's observer while the old view is still
+        // attached; after the framework rebuilt the window itself, that observer went with it, and
+        // a listener left behind would only re-measure the current inputView anyway.
         (inputView as? ComposeView)?.let { old ->
             old.viewTreeObserver.removeOnGlobalLayoutListener(layoutListener)
             old.disposeComposition()
