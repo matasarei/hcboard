@@ -1,0 +1,12 @@
+Apache License 2.0
+
+- androidx.* (Jetpack and Jetpack Compose), 102 modules
+- com.google.guava:listenablefuture
+- com.squareup.okio:okio-jvm
+- com.squareup.okio:okio
+- org.jetbrains.* (Kotlin and kotlinx), 11 modules
+- org.jspecify:jspecify
+
+BSD 3-Clause
+
+- androidx.datastore:datastore-preferences-external-protobuf
