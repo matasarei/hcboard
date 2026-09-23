@@ -37,6 +37,14 @@ class BackupCodecTest {
     }
 
     @Test
+    fun `a backup made before Key borders was removed still imports`() {
+        val text = encode(emptyList(), passphrase = null)
+        val old = text.replaceFirst(Regex("\"settings\":\\s*\\{"), "\"settings\": { \"keyBorders\": false,")
+        assertTrue(old != text && "\"keyBorders\": false" in old, "the old field was not put into the file")
+        assertEquals(settings, BackupCodec.open(BackupCodec.read(old), null).settings)
+    }
+
+    @Test
     fun `the file is readable but never holds a secret's plain text`() {
         val text = encode(listOf(login))
         assertTrue("\"format\": \"hcboard-backup\"" in text, text)
