@@ -7,7 +7,8 @@ data class SplitLayer(val left: Layer, val right: Layer)
  * How many keys of each of the four upper rows the left hand takes: the row's first key and five
  * more, and one more on the digits. With Esc 1.5 keys wide the 6 sits right over the T|Y line, so
  * either half would do; on the left, as on Microsoft's, Kinesis's and UHK's split boards, the
- * right half is no longer widened by its digits alone, and every key grows.
+ * right half is no longer widened by its digits alone, so the board is narrower and the keys
+ * can grow (unless a hinge, not the width, sets their size).
  */
 private val LEFT_KEYS = listOf(7, 6, 6, 6)
 
