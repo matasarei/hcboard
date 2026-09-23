@@ -171,6 +171,8 @@ private fun SettingsScreen(settings: Settings, prefs: Prefs) {
             )
         }
         SwitchRow(stringResource(R.string.settings_key_borders), settings.keyBorders) { scope.launch { prefs.setKeyBorders(it) } }
+        SwitchRow(stringResource(R.string.settings_number_row), settings.numberRow) { scope.launch { prefs.setNumberRow(it) } }
+        Text(stringResource(R.string.settings_number_row_hint), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
 
         Section(stringResource(R.string.settings_section_feel))
         SwitchRow(stringResource(R.string.settings_haptics), settings.haptics) { scope.launch { prefs.setHaptics(it) } }

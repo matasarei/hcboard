@@ -271,9 +271,9 @@ class AutoCapitalizationTest {
         type("che")
         val asked = port.capsQueries
         controller.pickCandidate("Check")
-        assertEquals("Check", port.before)
-        // A pick adds no space, so the cursor ends inside a word: no capital, but the field was asked.
-        assertFalse(controller.autoCapital)
+        assertEquals("Check ", port.before)
+        // The pick's space starts a new word, so the field asks for a capital again.
+        assertTrue(controller.autoCapital)
         assertTrue(port.capsQueries > asked)
     }
 

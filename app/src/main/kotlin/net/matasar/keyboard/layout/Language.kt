@@ -23,14 +23,18 @@ data class Language(
     val units: Float
         get() = maxOf(rows[0].length, rows[1].length, rows[2].length + MIN_EDGE_KEYS).toFloat()
 
-    /** The letters layer for this language, with a globe key when more than one language is enabled. */
-    fun lettersLayer(withGlobe: Boolean): Layer {
+    /**
+     * The letters layer for this language, with a globe key when more than one language is
+     * enabled, and the digits across the top when [numberRow] asks for them.
+     */
+    fun lettersLayer(withGlobe: Boolean, numberRow: Boolean = false): Layer {
         val units = units
         val edge = (units - rows[2].length) / 2f
         return Layer(
             id = LayerId.LETTERS,
             units = units,
-            rows = listOf(
+            rows = listOfNotNull(
+                if (numberRow) numberRow(units) else null,
                 row(*keysFor(0), leading = (units - rows[0].length) / 2f, trailing = (units - rows[0].length) / 2f),
                 row(*keysFor(1), leading = (units - rows[1].length) / 2f, trailing = (units - rows[1].length) / 2f),
                 row(shiftKey(edge), *keysFor(2), backspaceKey(edge)),

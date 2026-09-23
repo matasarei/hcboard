@@ -50,6 +50,7 @@ interface ToolbarActions {
     fun toggleDeveloperMode()
     fun toggleSuggestInApp()
     fun toggleToolbarAlwaysShown()
+    fun toggleNumberRow()
     fun pasteClipboard()
     fun startVoiceInput()
     fun openSettings()

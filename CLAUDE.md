@@ -84,7 +84,11 @@ emulator profile is `medium_phone`; boot it headless with
   `noSuggestionsOverridable` holds): the package joins `Settings.suggestInPackages`, and from then
   on that one flag is advisory there — never the password, e-mail or URI variations, which decide
   as they always did. Per app, remembered and restored per field, exactly as `developerModePackages`
-  is. The grid's letter-bounds registry is rebuilt per layout
+  is. A word picked from the strip gets a space the keyboard owns until the next key: `. , ! ? ; :`
+  swap places with it, `) ] }` take its place, and Space finds it there; a space the user typed is
+  never taken. A correction undone with Backspace (or the typed word tapped) is `declined` for the
+  rest of the field, in memory only: only a new field forgets it, never a read of the field, because
+  some apps answer from a copy that lags our own edits. The grid's letter-bounds registry is rebuilt per layout
   and the glide listener is keyed on it, or a language switch classifies against the old alphabet.
   The trail is drawn from the root's draw pass: a sized canvas grows the IME window mid-gesture and
   shifts every later pointer position.
@@ -117,7 +121,10 @@ emulator profile is `medium_phone`; boot it headless with
   overrides the implicitly enabled subtypes, so below API 34 the list reads "English" and never
   the phone's languages. The first-run default is English only; additional languages are added by
   the user in settings (`Languages.defaultEnabled`).
-  English is always on and not toggleable in settings. The 60% board is
+  English is always on and not toggleable in settings. The phone letters page can start with a
+  number row (`Language.lettersLayer(numberRow)`, ten keys sharing the page's width), switched from
+  the gear sheet or Settings (`Settings.numberRow`) and always shown in a password field
+  (`KeyboardController.numberRowShown`). The 60% board is
   built from the same data (`layout/SixtyPercentLayout.kt`): letters fill the ANSI slots of
   `AnsiSlots.rows` left to right, a letter on a punctuation slot carries that punctuation on Fn,
   and a nine-letter Shift row shrinks both Shifts to keep `.` and `/` (eight letters in Bulgarian leave standard shifts and punctuation). Ukrainian and Russian fill

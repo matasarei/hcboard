@@ -39,10 +39,19 @@ fun codeLayer(spaceLabel: String, withGlobe: Boolean) = Layer(
     ),
 )
 
-/** The phone layout for one language: its letters plus the shared symbols and code pages. */
-fun phoneLayout(language: Language, withGlobe: Boolean): KeyboardLayout = KeyboardLayout(
+/**
+ * The digits across the top of the letters page, as on Gboard: ten keys that share the page's
+ * width whatever its unit count, so a twelve-letter top row keeps them in line with it.
+ */
+internal fun numberRow(units: Float) = Row(symbols("1234567890").map { it.copy(width = units / 10f) })
+
+/**
+ * The phone layout for one language: its letters plus the shared symbols and code pages, which
+ * start with the digits already, so [numberRow] reaches the letters page only.
+ */
+fun phoneLayout(language: Language, withGlobe: Boolean, numberRow: Boolean = false): KeyboardLayout = KeyboardLayout(
     layers = mapOf(
-        LayerId.LETTERS to language.lettersLayer(withGlobe),
+        LayerId.LETTERS to language.lettersLayer(withGlobe, numberRow),
         LayerId.SYMBOLS to symbolsLayer(language.nativeName, withGlobe),
         LayerId.CODE to codeLayer(language.nativeName, withGlobe),
     ),

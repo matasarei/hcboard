@@ -324,6 +324,37 @@ class KeyboardSmokeTest {
         }
     }
 
+    /** The gear sheet's Number row puts the digits over the letters, and they type. */
+    @Test
+    fun theGearSheetNumberRowTypesDigitsFromTheLettersPage() {
+        val context = ApplicationProvider.getApplicationContext<android.content.Context>()
+        context.startActivity(
+            Intent(context, net.matasar.keyboard.debug.PlainFieldActivity::class.java)
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK),
+        )
+        assertTrue("the plain field never came up", device.wait(Until.hasObject(By.clazz("android.widget.EditText")), 5_000))
+        focusFieldAndShowKeyboard()
+        assertTrue("the letters page had digits before the row was on", waitForImeNode("1", timeoutMs = 500) == null)
+
+        openGearSheet()
+        val bounds = android.graphics.Rect()
+        assertTrue("the gear sheet has no Number row; texts: ${describeImeTexts()}", waitUntil(3_000) { imeNodeWithText("Number row") != null })
+        imeNodeWithText("Number row")!!.getBoundsInScreen(bounds)
+        device.click(bounds.centerX(), bounds.centerY())
+        try {
+            assertTrue(
+                "the sheet stayed open after the row was tapped; texts: ${describeImeTexts()}",
+                waitUntil(3_000) { imeNodeWithText("Developer mode") == null },
+            )
+            assertTrue("no digit key on the letters page; the keyboard shows: ${describeImeNodes()}", waitForImeNode("1") != null)
+            typeOnKeys("12")
+            assertTrue("the digits did not reach the field (it reads '${fieldText()}')", waitUntil(2_000) { fieldText() == "12" })
+        } finally {
+            // The switch is persisted, so it would outlive the test.
+            kotlinx.coroutines.runBlocking { Prefs(context).setNumberRow(false) }
+        }
+    }
+
     /**
      * Opens the gear's sheet. On a phone the toolbar's buttons fold behind a chevron, and a node
      * looked up before the strip recomposed is stale and takes no click — so each attempt looks

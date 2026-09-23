@@ -85,12 +85,14 @@ class KeyboardController(
     /** The globe key exists only when there is something to switch to. */
     val withGlobe: Boolean get() = enabledLanguages.size > 1
 
-    private val layoutCache = HashMap<Pair<String, Boolean>, KeyboardLayout>()
+    private val layoutCache = HashMap<Triple<String, Boolean, Boolean>, KeyboardLayout>()
     private val wideLayoutCache = HashMap<Pair<String, Boolean>, KeyboardLayout>()
 
-    /** The phone layout for the current language, built once per language and globe state. */
+    /** The phone layout for the current language, built once per language, globe and number row. */
     val phoneLayout: KeyboardLayout
-        get() = layoutCache.getOrPut(language.tag to withGlobe) { phoneLayout(language, withGlobe) }
+        get() = numberRowShown.let { digits ->
+            layoutCache.getOrPut(Triple(language.tag, withGlobe, digits)) { phoneLayout(language, withGlobe, digits) }
+        }
 
     /** The 60% board for the current language, built the same way. */
     val wideLayout: KeyboardLayout
@@ -155,6 +157,12 @@ class KeyboardController(
     var developerMode: Boolean by mutableStateOf(false)
         private set
 
+    /** Setting: the digits across the top of the phone letters page. */
+    var numberRow: Boolean by mutableStateOf(false)
+
+    /** The number row shows where it is switched on, and in every password field regardless. */
+    val numberRowShown: Boolean get() = numberRow || passwordField
+
     /** The editor action Enter performs, or null when Enter should be a real key. */
     var editorActionId: Int? by mutableStateOf(null)
         private set
@@ -204,6 +212,15 @@ class KeyboardController(
 
     /** Whether the focused field may offer the mic: not a password, not an app that asked for none. */
     private var fieldAllowsMic: Boolean by mutableStateOf(true)
+
+    /**
+     * What kind of field this is, which decides the number row in a password field among other
+     * things. A restart re-reads it too, or a text field reached from a password field on the
+     * same screen keeps the password's digits. The page stays where the user left it.
+     */
+    fun updateFieldKind(info: EditorInfo?) {
+        fieldKind = info?.let { fieldKindOf(it.inputType) } ?: FieldKind.TEXT
+    }
 
     /**
      * Reads whether [info]'s field may offer the mic. The service calls it on a restart too: moving
@@ -309,8 +326,27 @@ class KeyboardController(
 
     private data class Autocorrect(val typed: String, val correction: String, val separator: String)
 
-    /** A word whose correction was undone: it is offered no correction until it changes. */
-    private var uncorrectable: String? = null
+    /**
+     * The picked word and the space the pick put after it, until the next key: punctuation
+     * then takes the space's place, and Space finds it already there.
+     */
+    private var autoSpace: String? = null
+
+    /**
+     * Words whose correction the user refused in this field (lowercased): an undone correction,
+     * or the typed word tapped in the strip. Only a new field forgets them, never a read of the
+     * field: some apps answer from a copy that lags our own edits, and a single stale read used
+     * to drop the refusal so the next space corrected the word again. Memory only.
+     */
+    private val declined = LinkedHashSet<String>()
+
+    private fun decline(word: String) {
+        declined.remove(word.lowercase())
+        declined.add(word.lowercase())
+        if (declined.size > MAX_DECLINED) declined.remove(declined.first())
+    }
+
+    private fun isDeclined(word: String): Boolean = word.lowercase() in declined
 
     /** The password manager's chips for the current field, pinned first. */
     var suggestions: List<net.matasar.keyboard.autofill.SuggestionEntry> by mutableStateOf(emptyList())
@@ -419,7 +455,7 @@ class KeyboardController(
         // A macro follows its own Tab into the next field of the same app, never into another app.
         if (macroJob != null && fieldPackage != macroPackage) stopMacro()
         fieldStarts.value++
-        fieldKind = info?.let { fieldKindOf(it.inputType) } ?: FieldKind.TEXT
+        updateFieldKind(info)
         layer = fieldKind.initialLayer()
         shift = Latch()
         modifiers = Modifiers()
@@ -439,6 +475,7 @@ class KeyboardController(
         settingsSheetOpen = false
         languageSheetOpen = false
         clearCandidates()
+        declined.clear()
         refreshAutoCapital()
         if (macroJob != null && macroTypesSecrets) passwordTyped = true
     }
@@ -466,6 +503,7 @@ class KeyboardController(
         fieldOverridable = false
         fieldAllowsSuggestions = false
         clearCandidates()
+        declined.clear()
     }
 
     // The toolbar's three sheets share the space under it: opening one closes the others.
@@ -571,6 +609,12 @@ class KeyboardController(
         applySuggestionRules()
     }
 
+    /** The gear sheet's row: the digits come and go at once, and the sheet closes as Developer mode's does. */
+    fun toggleNumberRow() {
+        numberRow = !numberRow
+        settingsSheetOpen = false
+    }
+
     /**
      * The gear sheet's row: this app may suggest though it asked not to. It takes effect in the
      * field that is open, not only at the next one, and the sheet closes as Developer mode's does.
@@ -598,6 +642,8 @@ class KeyboardController(
         candidatesCollapsed = false
         val undo = lastAutocorrect
         lastAutocorrect = null
+        val spaced = autoSpace
+        autoSpace = null
         val glidedWord = lastGlideWord
         val glideCommit = lastGlideCommit
         if (glidedWord != null) clearCandidates()
@@ -611,8 +657,15 @@ class KeyboardController(
             refreshAutoCapital()
             return
         }
+        if (spaced != null && !modifiers.anyActive && takeBackAutoSpace(key, spaced)) {
+            afterKey()
+            return
+        }
         val fnAction = key.fnAction
         if (modifiers.isActive(ModifierKey.FN) && fnAction != null) perform(key, fnAction) else perform(key, key.action)
+        // A page switch or Shift types nothing: on a phone ! and ) are behind ?123, and the
+        // pick's space must still be ours when they arrive.
+        if (spaced != null && (key.action is KeyAction.SwitchLayer || key.action == KeyAction.Shift)) autoSpace = spaced
         // A combination modifier or the trackpad takes the strip away; the chip has the toolbar then.
         if (modifiers.anyMetaActive || trackpad) candidates = null
     }
@@ -844,9 +897,10 @@ class KeyboardController(
 
     /**
      * The user tapped a word in the strip: after a glide it swaps the glided word (and the
-     * alternatives stay); while typing it replaces the word being typed. Neither adds a space —
-     * the user decides what comes after a word. The typed word itself is already in the field, so
-     * tapping it only keeps it: the strip closes and the next separator applies no correction.
+     * alternatives stay, and glide keeps its own spacing); while typing it replaces the word
+     * being typed and puts a space after it, unless the field already has one there or a mark
+     * that takes none. The typed word itself is already in the field, so tapping it keeps it,
+     * with its space, and the field corrects it no more.
      */
     fun pickCandidate(word: String) {
         val current = candidates ?: return
@@ -866,15 +920,44 @@ class KeyboardController(
             refreshAutoCapital()
             return
         }
-        if (word == current.typed) {
-            // Keeping the word as typed: the next separator must not correct it after all.
-            uncorrectable = word
-        } else if (dispatcher.textEndsWith(current.typed)) {
-            // The field may have changed under the strip; replace only what is still there.
-            dispatcher.replaceWordBeforeCursor(current.typed, word)
+        // Keeping the word as typed: the next separator must not correct it after all.
+        if (word == current.typed) decline(word)
+        // The field may have changed under the strip; replace only what is still there.
+        if (dispatcher.textEndsWith(current.typed)) {
+            // The word and its space are one change to the app.
+            dispatcher.batch {
+                if (word != current.typed) dispatcher.replaceWordBeforeCursor(current.typed, word)
+                if (!dispatcher.nextCharAvoidsSpace()) {
+                    dispatcher.commitText(" ")
+                    autoSpace = "$word "
+                }
+            }
         }
         candidates = null
         refreshAutoCapital()
+    }
+
+    /**
+     * The key after a pick's space: a mark that ends a word swaps places with the space
+     * ("hello! "), a closing bracket takes its place ("hello)"), and Space finds one already
+     * there. False for any other key, and when the text no longer ends with the pick (the cursor
+     * moved), so a space the user typed is never taken.
+     */
+    private fun takeBackAutoSpace(key: Key, spaced: String): Boolean {
+        val text = when (val action = key.action) {
+            KeyAction.Space -> " "
+            is KeyAction.Text -> if (shiftActive && action.shifted != null) action.shifted else action.text
+            else -> return false
+        }
+        if (text != " " && text !in SWAP_BEFORE_SPACE && text !in CLOSE_ON_WORD) return false
+        if (!dispatcher.textEndsWith(spaced)) return false
+        when (text) {
+            " " -> Unit
+            in SWAP_BEFORE_SPACE -> dispatcher.replaceWordBeforeCursor(" ", "$text ")
+            else -> dispatcher.replaceWordBeforeCursor(" ", text)
+        }
+        candidates = null
+        return true
     }
 
     /**
@@ -923,9 +1006,8 @@ class KeyboardController(
         lastGlideWord = null
         lastGlideCommit = null
         val word = dispatcher.wordBeforeCursor()
-        if (word != uncorrectable) uncorrectable = null
         val found = engine.forWord(word)
-        candidates = if (found != null && word == uncorrectable) found.copy(correction = null) else found
+        candidates = if (found != null && isDeclined(word)) found.copy(correction = null) else found
     }
 
     /** The cursor moved (the service's onUpdateSelection): the word under it may be another one. */
@@ -942,7 +1024,9 @@ class KeyboardController(
         val correction = current?.correction
         // The correction and the separator after it are one change to the app.
         dispatcher.batch {
-            if (autoCorrect && current != null && correction != null && lastGlideWord == null && dispatcher.textEndsWith(current.typed)) {
+            if (autoCorrect && current != null && correction != null && lastGlideWord == null && !isDeclined(current.typed) &&
+                dispatcher.textEndsWith(current.typed)
+            ) {
                 dispatcher.replaceWordBeforeCursor(current.typed, correction)
                 lastAutocorrect = Autocorrect(current.typed, correction, separator)
             }
@@ -964,7 +1048,7 @@ class KeyboardController(
             return
         }
         dispatcher.replaceWordBeforeCursor(applied, undo.typed)
-        uncorrectable = undo.typed
+        decline(undo.typed)
         refreshCandidates()
     }
 
@@ -988,7 +1072,7 @@ class KeyboardController(
         lastGlideWord = null
         lastGlideCommit = null
         lastAutocorrect = null
-        uncorrectable = null
+        autoSpace = null
     }
 
     /** The accent candidates a long press on [key] offers, in the current case; none in passwords. */
@@ -1084,6 +1168,15 @@ class KeyboardController(
 
         /** The characters that end a word and apply its correction. */
         private val SEPARATORS = setOf(" ", ".", ",", "!", "?")
+
+        /** Marks that follow a picked word before its space: "hello " and "!" make "hello! ". */
+        private val SWAP_BEFORE_SPACE = setOf(".", ",", "!", "?", ";", ":")
+
+        /** Closing brackets, which replace a picked word's space: "hello " and ")" make "hello)". */
+        private val CLOSE_ON_WORD = setOf(")", "]", "}")
+
+        /** How many refused words a field remembers; the oldest goes first. */
+        private const val MAX_DECLINED = 32
 
         /**
          * The action Enter should perform for a field: the field's own IME action when it has

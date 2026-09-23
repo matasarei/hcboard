@@ -52,6 +52,15 @@ class InputDispatcher(private val port: EditorPort) {
     fun needsSpaceAfter(): Boolean = port.textAfterCursor(1)?.firstOrNull()?.isLetter() == true
 
     /**
+     * Whether a word picked at the cursor should get no space after it: the field already has
+     * whitespace there, or a mark that follows a word directly (a comma, a closing bracket).
+     */
+    fun nextCharAvoidsSpace(): Boolean {
+        val next = port.textAfterCursor(1)?.firstOrNull() ?: return false
+        return next.isWhitespace() || next in NO_SPACE_BEFORE
+    }
+
+    /**
      * The letters immediately before the cursor, the word being typed; empty when the text ends
      * in a separator, and empty when a letter follows the cursor, because a cursor inside a word
      * is not typing that word. Reads at most [MAX_WORD_LENGTH] characters.
@@ -156,6 +165,9 @@ const val MAX_WORD_LENGTH = 32
  * What a word can end with, after which the next word needs a space of its own. The curly quotes
  * and the guillemets are here too: a keyboard that offers them has to space what follows them.
  */
+/** What a picked word's space would only separate from the word. */
+private const val NO_SPACE_BEFORE = ",.!?;:)]}"
+
 private const val WORD_ENDING_PUNCTUATION = ",.!?;:)]}\"'\u201d\u2019\u00bb"
 
 /** The four editing shortcuts that have a context-menu equivalent. */

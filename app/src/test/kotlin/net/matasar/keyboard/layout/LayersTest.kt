@@ -16,6 +16,22 @@ class LayersTest {
     }
 
     @Test
+    fun `the number row tops the letters page in every language, full width, and nothing else changes`() {
+        for (language in listOf(Languages.english, Languages.ukrainian)) {
+            val plain = phoneLayout(language, withGlobe = true)
+            val withDigits = phoneLayout(language, withGlobe = true, numberRow = true)
+            val letters = withDigits.layers.getValue(LayerId.LETTERS)
+            val digits = letters.rows[0]
+            assertEquals((1..9).map { "$it" } + "0", digits.keys.map { it.label }, language.tag)
+            assertTrue(digits.keys.all { it.action == KeyAction.Text(it.label) && it.style == KeyStyle.LETTER }, language.tag)
+            assertEquals(letters.units, digits.totalUnits, 0.001f, language.tag)
+            assertEquals(plain.layers.getValue(LayerId.LETTERS).rows, letters.rows.drop(1), language.tag)
+            assertEquals(plain.layers.getValue(LayerId.SYMBOLS), withDigits.layers.getValue(LayerId.SYMBOLS))
+            assertEquals(plain.layers.getValue(LayerId.CODE), withDigits.layers.getValue(LayerId.CODE))
+        }
+    }
+
+    @Test
     fun `letters commit lower and upper case`() {
         val q = LettersLayer.rows[0].keys[0]
         assertEquals(KeyAction.Letter("q", "Q"), q.action)

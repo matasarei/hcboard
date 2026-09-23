@@ -32,8 +32,8 @@ import net.matasar.keyboard.ui.theme.LocalKeyboardColors
 
 /**
  * The sheet the gear opens: developer mode, which used to have its own toolbar button, whether the
- * strip always shows its buttons, and the way to the settings screen. Tapping either switch row
- * flips it and closes the sheet.
+ * strip always shows its buttons, the number row, and the way to the settings screen. Tapping a
+ * switch row flips it and closes the sheet.
  */
 @Composable
 fun SettingsSheet(
@@ -44,6 +44,8 @@ fun SettingsSheet(
     onToggleSuggestInApp: () -> Unit,
     toolbarAlwaysShown: Boolean,
     onToggleToolbarAlwaysShown: () -> Unit,
+    numberRow: Boolean,
+    onToggleNumberRow: () -> Unit,
     onOpenSettings: () -> Unit,
     onDismiss: () -> Unit,
 ) {
@@ -63,7 +65,7 @@ fun SettingsSheet(
                 .background(colors.popup)
                 .navigationBarsPadding()
                 .padding(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 16.dp)
-                // A short keyboard (the 80% height setting) has less room than the three rows need.
+                // A short keyboard (the 80% height setting) has less room than the rows need.
                 .verticalScroll(rememberScrollState()),
         ) {
             Box(
@@ -123,6 +125,14 @@ fun SettingsSheet(
                 onClick = onToggleToolbarAlwaysShown,
             ) {
                 StateSwitch(toolbarAlwaysShown)
+            }
+            SheetRow(
+                icon = R.drawable.ic_numbers,
+                title = "Number row",
+                subtitle = "Digits above the letters",
+                onClick = onToggleNumberRow,
+            ) {
+                StateSwitch(numberRow)
             }
             SheetRow(
                 icon = R.drawable.ic_settings,

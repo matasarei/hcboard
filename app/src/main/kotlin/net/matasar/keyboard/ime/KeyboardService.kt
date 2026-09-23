@@ -247,6 +247,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
                 controller.doubleTapLock = settings.doubleTapLock
                 controller.glideEnabled = settings.glide
                 controller.foldToolbar = settings.foldToolbar
+                controller.numberRow = settings.numberRow
                 controller.voiceInputEnabled = settings.voiceInput
                 preferredVoiceKeyboard = settings.voiceKeyboard
                 controller.suggestionsEnabled = settings.suggestions
@@ -569,6 +570,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
             controller.onStartInput(editorInfo)
         } else {
             // A restart skips onStartInput, so everything it reads from the field is re-read here.
+            controller.updateFieldKind(editorInfo)
             controller.updateFieldMic(editorInfo)
             controller.updateFieldSuggestions(editorInfo)
         }
@@ -705,6 +707,13 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
         controller.settingsSheetOpen = false
         val fold = controller.foldToolbar
         lifecycleScope.launch { prefs.setFoldToolbar(fold) }
+    }
+
+    /** The gear sheet's number row switch: the board changes at once, and the setting follows. */
+    override fun toggleNumberRow() {
+        controller.toggleNumberRow()
+        val on = controller.numberRow
+        lifecycleScope.launch { prefs.setNumberRow(on) }
     }
 
     override fun pasteClipboard() {
