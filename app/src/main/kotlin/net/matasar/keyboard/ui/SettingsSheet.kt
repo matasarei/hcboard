@@ -42,6 +42,8 @@ fun SettingsSheet(
     onOpenSettings: () -> Unit,
     onDismiss: () -> Unit,
     sidePadding: Dp,
+    /** The 60% board: the same rows, with the phone board's own switches dimmed and labelled. */
+    wide: Boolean = false,
 ) {
     val colors = LocalKeyboardColors.current
     KeyboardSheet(onDismiss = onDismiss, sidePadding = sidePadding) {
@@ -63,8 +65,9 @@ fun SettingsSheet(
         SheetRow(
             icon = R.drawable.ic_code,
             title = "Developer mode",
-            subtitle = "Ctrl, Alt, Fn and arrows above the keys",
+            subtitle = if (wide) PHONE_ONLY else "Ctrl, Alt, Fn and arrows above the keys",
             onClick = onToggleDeveloperMode,
+            enabled = !wide,
         ) {
             // Shows the state only: the row takes the tap, so there is one target, not two. A
             // switch without a callback says nothing to TalkBack, so the state is spelled out
@@ -98,16 +101,18 @@ fun SettingsSheet(
         SheetRow(
             icon = R.drawable.ic_tune,
             title = "Always show toolbar buttons",
-            subtitle = "Never fold them behind ›",
+            subtitle = if (wide) PHONE_ONLY else "Never fold them behind ›",
             onClick = onToggleToolbarAlwaysShown,
+            enabled = !wide,
         ) {
             StateSwitch(toolbarAlwaysShown)
         }
         SheetRow(
             icon = R.drawable.ic_numbers,
             title = "Number row",
-            subtitle = "Digits above the letters",
+            subtitle = if (wide) PHONE_ONLY else "Digits above the letters",
             onClick = onToggleNumberRow,
+            enabled = !wide,
         ) {
             StateSwitch(numberRow)
         }
@@ -119,6 +124,13 @@ fun SettingsSheet(
         )
     }
 }
+
+/**
+ * The subtitle of a row whose switch changes only the phone board: the 60% board has its own
+ * modifiers, never folds its toolbar and always has digits. The row stays, so the sheet is the
+ * same on both boards, but it is dimmed and takes no tap.
+ */
+private const val PHONE_ONLY = "Phone board only"
 
 /** A switch that only shows a row's state, as Developer mode's does: the row takes the tap. */
 @Composable

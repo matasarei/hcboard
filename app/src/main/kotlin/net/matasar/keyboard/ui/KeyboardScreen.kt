@@ -106,9 +106,6 @@ fun KeyboardScreen(
             },
     ) {
         val wide = maxWidth >= Dimens.wideBreakpoint
-        // The 60% board has no developer strip, so the gear's sheet has nothing to offer there:
-        // an unfold or a rotation into the wide board closes it.
-        SideEffect { if (wide && controller.settingsSheetOpen) controller.settingsSheetOpen = false }
         val extraSidePadding = (maxWidth * ((1f - feel.widthScale.coerceIn(0.7f, 1f)) / 2f)).coerceAtLeast(0.dp)
         val effectiveSidePadding = maxOf(extraSidePadding, sideInset)
         Column(modifier = Modifier.fillMaxWidth()) {
@@ -124,7 +121,6 @@ fun KeyboardScreen(
                     modifier = Modifier
                         .background(colors.toolbar)
                         .padding(horizontal = effectiveSidePadding),
-                    settingsMenu = !wide,
                     chipText = chipText,
                     actions = actions,
                     sheetOpen = controller.managerSheetOpen,
@@ -206,6 +202,7 @@ fun KeyboardScreen(
                     onOpenSettings = actions::openSettings,
                     onDismiss = { controller.settingsSheetOpen = false },
                     sidePadding = effectiveSidePadding,
+                    wide = wide,
                 )
             }
         }
