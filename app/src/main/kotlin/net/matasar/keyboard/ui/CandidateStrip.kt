@@ -10,11 +10,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -51,7 +51,9 @@ fun CandidateStrip(candidates: WordCandidates, onPick: (String) -> Unit, modifie
                 if (word != null) {
                     BasicText(
                         text = word,
-                        style = TextStyle(
+                        // The theme's text style, as Material's Text used: its letter spacing and line
+                        // height, with our colour and weight; autoSize decides the size.
+                        style = LocalTextStyle.current.copy(
                             color = if (correction) colors.armedRing else colors.onKey,
                             fontWeight = if (correction) FontWeight.Medium else FontWeight.Normal,
                         ),
