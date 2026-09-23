@@ -242,6 +242,26 @@ class SuggestionControllerTest {
     }
 
     @Test
+    fun `a restart in the same field keeps the correction's undo and the pick's space`() {
+        // An app may restart input without the user leaving the field; what the last key set up
+        // must survive it, and it checks the text still ends as expected before it acts.
+        textField()
+        type("chek")
+        controller.onKey(space)
+        assertEquals("check ", port.before)
+        controller.onRestartInput(EditorInfo().apply { inputType = InputType.TYPE_CLASS_TEXT })
+        controller.onKey(backspace)
+        assertEquals("chek", port.before)
+
+        controller.onKey(space)
+        type("spel")
+        controller.pickCandidate("spelling")
+        controller.onRestartInput(EditorInfo().apply { inputType = InputType.TYPE_CLASS_TEXT })
+        controller.onKey(dot)
+        assertEquals("chek spelling. ", port.before)
+    }
+
+    @Test
     fun `no candidates and no read of the field where they are not allowed`() {
         for (inputType in listOf(
             InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD,
