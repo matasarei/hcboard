@@ -91,9 +91,9 @@ jobs:
       # The tag is moved, never deleted: GitHub turns a release into a draft when its tag is
       # deleted, and it did so asynchronously to a release re-created seconds later. Only the
       # release object is removed, and the new one is created on the tag that is already there.
-      # The last loop fails the job if the new release is a draft or is not a pre-release, and
-      # looks again after a pause, because that conversion arrived late; an APK that vanished
-      # is uploaded again (see the note at the loop).
+      # The last loop fails the job if the new release is a draft, is not a pre-release, or has
+      # no APK on it, and looks again after a pause, because that conversion arrived late. It
+      # reads the release by id (see the note at the loop).
       - name: Re-create the dev release
         env:
           GH_TOKEN: ${{ github.token }}
@@ -117,47 +117,36 @@ jobs:
           # release was a draft — a 404 for anyone not signed in — for as long as a 17 MB upload
           # took, six minutes on 2026-09-17. Published first, then the file.
           say "creating the release"
-          gh release create dev --verify-tag --prerelease --title "Dev build" --notes "$notes"
+          # The API creates a missing tag from main's head where gh release create --verify-tag
+          # refused, so the tag pushed above is confirmed first, at this commit.
+          test "$(git ls-remote origin refs/tags/dev | cut -f1)" = "$GITHUB_SHA" || {
+            echo "The dev tag on origin is not at $GITHUB_SHA; not creating a release on it." >&2
+            exit 1
+          }
+          # Through the API, for the new release's id: the check below reads the release by id.
+          id="$(gh api "repos/$GITHUB_REPOSITORY/releases" -X POST -f tag_name=dev -f name="Dev build" \
+            -f body="$notes" -F prerelease=true -F draft=false --jq .id)"
+          say "created release $id"
           # Publishing before the upload is what makes the window short, and it is also the one
           # thing release immutability forbids: it refuses a change to a published release's
           # assets. It is off for this repository (no rulesets, and this job has been clobbering
           # the same asset for weeks). Turning it on means giving up either the short window or
           # the re-created release: upload to a draft and publish afterwards, or stop deleting
           # the release and edit it in place, which costs the top spot on the releases page.
-          upload() {
-            gh release upload dev hcboard-dev.apk --clobber || {
-              echo "The upload failed. If release immutability has been enabled since this was written, see the note above: a published release's assets cannot be replaced." >&2
-              exit 1
-            }
-          }
           say "uploading the APK"
-          upload
-          # Since 2026-09-23 the APK has vanished from the new release within 20 s of a successful
-          # upload (seen at 0 s, gone at 20 s, four pushes in a row), most likely GitHub's
-          # background clean-up of the release deleted just before, which has the same tag and
-          # the same asset name. So a missing APK is uploaded again, and the job passes only once
-          # it has stayed on the release for two looks 20 s apart; every re-upload gets its own two
-          # looks, and after three re-uploads the job gives up. A draft or a lost pre-release flag
-          # still fails at once: that is the tag conversion described above.
+          gh release upload dev hcboard-dev.apk --clobber || {
+            echo "The upload failed; GitHub's own error is above. \"already exists\" means the APK is on the release already; a refusal to change a published release means release immutability was turned on (see the note above)." >&2
+            exit 1
+          }
+          # Read by id, never by tag or from the list. Since 2026-09-23 GitHub has answered
+          # /releases/tags/dev and /releases with a stale copy of a just re-created release, its
+          # APK missing, for minutes (while the release by id, the page and the download all had
+          # it): four pushes failed on "0 assets", and a re-upload was refused with "already
+          # exists". The second look, 20 s on, is for the late draft conversion described above.
           say "checking what the release ended up as"
-          seen=0
-          uploads=0
-          while [ "$seen" -lt 2 ]; do
-            state="$(gh release view dev --json isDraft,isPrerelease,assets -q '"\(.isDraft) \(.isPrerelease) \(.assets | length)"')"
-            say "draft/prerelease/assets = $state"
-            case "$state" in
-              "false true 1") seen=$((seen + 1)) ;;
-              "false true 0")
-                seen=0
-                if [ "$uploads" -ge 3 ]; then
-                  echo "The APK did not stay on the dev release." >&2
-                  exit 1
-                fi
-                uploads=$((uploads + 1))
-                say "the APK is gone; uploading it again"
-                upload
-                ;;
-              *) echo "The dev release is not a published pre-release with one APK." >&2; exit 1 ;;
-            esac
-            if [ "$seen" -lt 2 ]; then sleep 20; fi
+          for pause in 0 20; do
+            sleep "$pause"
+            state="$(gh api "repos/$GITHUB_REPOSITORY/releases/$id" --jq '"\(.draft) \(.prerelease) \([.assets[] | select(.name == "hcboard-dev.apk" and .state == "uploaded")] | length)"')"
+            say "draft/prerelease/APKs = $state"
+            test "$state" = "false true 1"
           done
