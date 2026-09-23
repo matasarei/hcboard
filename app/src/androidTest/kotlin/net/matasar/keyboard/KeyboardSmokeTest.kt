@@ -339,19 +339,31 @@ class KeyboardSmokeTest {
                 "no candidate after allowing the app; the keyboard shows: ${describeImeTexts()}",
                 waitUntil(3_000) { imeHasCandidate("check") },
             )
+        } finally {
+            // The answer is persisted for this package, so it would outlive the test.
+            kotlinx.coroutines.runBlocking { Prefs(context).setSuggestInApp(context.packageName, false) }
+        }
+    }
 
-            // And again in a field opened afresh: that answer is read back from the store, not
-            // left over in the state the tap set.
+    /**
+     * An app allowed earlier suggests in a field opened afresh: the answer is read back from the
+     * store when the field starts, not left over in the state a tap set.
+     */
+    @Test
+    fun aFieldAllowedEarlierSuggestsWhenOpenedAgain() {
+        val context = ApplicationProvider.getApplicationContext<android.content.Context>()
+        kotlinx.coroutines.runBlocking { Prefs(context).setSuggestInApp(context.packageName, true) }
+        try {
             context.startActivity(
                 Intent(context, net.matasar.keyboard.debug.PlainFieldActivity::class.java)
                     .putExtra(net.matasar.keyboard.debug.PlainFieldActivity.EXTRA_INPUT_TYPE, 0xa4001)
                     .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK),
             )
-            assertTrue("the plain field never came back", device.wait(Until.hasObject(By.clazz("android.widget.EditText")), 5_000))
+            assertTrue("the plain field never came up", device.wait(Until.hasObject(By.clazz("android.widget.EditText")), 5_000))
             focusFieldAndShowKeyboard()
-            typeOnKeys(" chek")
+            typeOnKeys("chek")
             assertTrue(
-                "the answer did not come back with the field; the keyboard shows: ${describeImeTexts()}",
+                "the stored answer did not come back with the field; the keyboard shows: ${describeImeTexts()}",
                 waitUntil(3_000) { imeHasCandidate("check") },
             )
         } finally {
