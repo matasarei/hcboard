@@ -77,7 +77,7 @@ fun KeyboardSheet(
  * Decided when the outline is drawn, from the sheet's own size, so there is no frame of the
  * wrong corners first.
  */
-private class SheetShape(private val room: Float) : Shape {
+internal class SheetShape(private val room: Float) : Shape {
     override fun createOutline(size: Size, layoutDirection: LayoutDirection, density: Density): Outline =
         if (size.height >= room - 0.5f) {
             RectangleShape.createOutline(size, layoutDirection, density)
