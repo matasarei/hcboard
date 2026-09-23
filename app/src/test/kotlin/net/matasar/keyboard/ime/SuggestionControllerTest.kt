@@ -7,9 +7,11 @@ import net.matasar.keyboard.input.InputDispatcher
 import net.matasar.keyboard.layout.DeveloperStrip
 import net.matasar.keyboard.layout.Key
 import net.matasar.keyboard.layout.KeyAction
+import net.matasar.keyboard.layout.LayerId
 import net.matasar.keyboard.layout.Languages
 import net.matasar.keyboard.layout.LettersLayer
 import net.matasar.keyboard.layout.ModifierKey
+import net.matasar.keyboard.layout.SymbolsLayer
 import net.matasar.keyboard.nlp.Candidates
 import net.matasar.keyboard.nlp.WordList
 import kotlin.test.Test
@@ -170,6 +172,17 @@ class SuggestionControllerTest {
             assertEquals(expected, port.before, "after ${mark.label}")
             if (mark != quote) assertEquals(listOf("begin", "delete:1,0", "commit:${expected.removePrefix("spelling")}", "end"), port.edits)
         }
+    }
+
+    @Test
+    fun `a mark from the symbols page still takes the pick's space`() {
+        textField()
+        type("spel")
+        controller.pickCandidate("spelling")
+        // On a phone ! and ) live behind ?123: the page switch types nothing and keeps the space ours.
+        controller.onKey(keys.first { it.action == KeyAction.SwitchLayer(LayerId.SYMBOLS) })
+        controller.onKey(SymbolsLayer.rows.flatMap { it.keys }.first { it.label == "!" })
+        assertEquals("spelling! ", port.before)
     }
 
     @Test

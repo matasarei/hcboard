@@ -663,6 +663,9 @@ class KeyboardController(
         }
         val fnAction = key.fnAction
         if (modifiers.isActive(ModifierKey.FN) && fnAction != null) perform(key, fnAction) else perform(key, key.action)
+        // A page switch or Shift types nothing: on a phone ! and ) are behind ?123, and the
+        // pick's space must still be ours when they arrive.
+        if (spaced != null && (key.action is KeyAction.SwitchLayer || key.action == KeyAction.Shift)) autoSpace = spaced
         // A combination modifier or the trackpad takes the strip away; the chip has the toolbar then.
         if (modifiers.anyMetaActive || trackpad) candidates = null
     }
