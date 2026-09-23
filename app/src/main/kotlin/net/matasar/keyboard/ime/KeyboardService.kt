@@ -708,6 +708,13 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
         lifecycleScope.launch { prefs.setFoldToolbar(fold) }
     }
 
+    /** The gear sheet's number row switch: the board changes at once, and the setting follows. */
+    override fun toggleNumberRow() {
+        controller.toggleNumberRow()
+        val on = controller.numberRow
+        lifecycleScope.launch { prefs.setNumberRow(on) }
+    }
+
     override fun pasteClipboard() {
         controller.paste()
     }

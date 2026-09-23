@@ -203,6 +203,8 @@ fun KeyboardScreen(
                     onToggleSuggestInApp = actions::toggleSuggestInApp,
                     toolbarAlwaysShown = controller.toolbarAlwaysShown,
                     onToggleToolbarAlwaysShown = actions::toggleToolbarAlwaysShown,
+                    numberRow = controller.numberRow,
+                    onToggleNumberRow = actions::toggleNumberRow,
                     onOpenSettings = actions::openSettings,
                     onDismiss = { controller.settingsSheetOpen = false },
                 )
