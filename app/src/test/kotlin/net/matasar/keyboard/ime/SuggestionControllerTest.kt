@@ -59,7 +59,29 @@ class SuggestionControllerTest {
         controller.onKey(space)
         assertEquals("chek ", port.before)
         type("chek")
-        assertEquals("check", controller.candidates?.correction) // a new word, corrected again
+        assertNull(controller.candidates?.correction) // refused once, left alone for the rest of the field
+        controller.onFinishInput()
+        textField()
+        port.before = ""
+        type("chek")
+        assertEquals("check", controller.candidates?.correction) // a new field corrects it again
+    }
+
+    @Test
+    fun `a stale read between the undo and the space does not bring the correction back`() {
+        textField()
+        type("chek")
+        controller.onKey(space)
+        controller.onKey(backspace)
+        assertEquals("chek", port.before)
+        // Some fields answer from a copy that lags our own edits: the cursor report after the
+        // undo can still read the corrected text before the field catches up.
+        port.before = "check "
+        controller.onSelectionChanged()
+        port.before = "chek"
+        controller.onSelectionChanged()
+        controller.onKey(space)
+        assertEquals("chek ", port.before)
     }
 
     @Test
@@ -117,8 +139,10 @@ class SuggestionControllerTest {
         assertNull(controller.candidates?.correction)
         controller.onKey(space)
         assertEquals("chek ", port.before)
+        controller.onKey(keys.first { it.action == KeyAction.Shift })
         type("chek")
-        assertEquals("check", controller.candidates?.correction) // a new word, corrected again
+        assertEquals("Chek", controller.candidates?.typed)
+        assertNull(controller.candidates?.correction) // kept once, in either case, for the rest of the field
     }
 
     @Test

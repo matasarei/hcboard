@@ -309,8 +309,21 @@ class KeyboardController(
 
     private data class Autocorrect(val typed: String, val correction: String, val separator: String)
 
-    /** A word whose correction was undone: it is offered no correction until it changes. */
-    private var uncorrectable: String? = null
+    /**
+     * Words whose correction the user refused in this field (lowercased): an undone correction,
+     * or the typed word tapped in the strip. Only a new field forgets them, never a read of the
+     * field: some apps answer from a copy that lags our own edits, and a single stale read used
+     * to drop the refusal so the next space corrected the word again. Memory only.
+     */
+    private val declined = LinkedHashSet<String>()
+
+    private fun decline(word: String) {
+        declined.remove(word.lowercase())
+        declined.add(word.lowercase())
+        if (declined.size > MAX_DECLINED) declined.remove(declined.first())
+    }
+
+    private fun isDeclined(word: String): Boolean = word.lowercase() in declined
 
     /** The password manager's chips for the current field, pinned first. */
     var suggestions: List<net.matasar.keyboard.autofill.SuggestionEntry> by mutableStateOf(emptyList())
@@ -439,6 +452,7 @@ class KeyboardController(
         settingsSheetOpen = false
         languageSheetOpen = false
         clearCandidates()
+        declined.clear()
         refreshAutoCapital()
         if (macroJob != null && macroTypesSecrets) passwordTyped = true
     }
@@ -466,6 +480,7 @@ class KeyboardController(
         fieldOverridable = false
         fieldAllowsSuggestions = false
         clearCandidates()
+        declined.clear()
     }
 
     // The toolbar's three sheets share the space under it: opening one closes the others.
@@ -868,7 +883,7 @@ class KeyboardController(
         }
         if (word == current.typed) {
             // Keeping the word as typed: the next separator must not correct it after all.
-            uncorrectable = word
+            decline(word)
         } else if (dispatcher.textEndsWith(current.typed)) {
             // The field may have changed under the strip; replace only what is still there.
             dispatcher.replaceWordBeforeCursor(current.typed, word)
@@ -923,9 +938,8 @@ class KeyboardController(
         lastGlideWord = null
         lastGlideCommit = null
         val word = dispatcher.wordBeforeCursor()
-        if (word != uncorrectable) uncorrectable = null
         val found = engine.forWord(word)
-        candidates = if (found != null && word == uncorrectable) found.copy(correction = null) else found
+        candidates = if (found != null && isDeclined(word)) found.copy(correction = null) else found
     }
 
     /** The cursor moved (the service's onUpdateSelection): the word under it may be another one. */
@@ -942,7 +956,9 @@ class KeyboardController(
         val correction = current?.correction
         // The correction and the separator after it are one change to the app.
         dispatcher.batch {
-            if (autoCorrect && current != null && correction != null && lastGlideWord == null && dispatcher.textEndsWith(current.typed)) {
+            if (autoCorrect && current != null && correction != null && lastGlideWord == null && !isDeclined(current.typed) &&
+                dispatcher.textEndsWith(current.typed)
+            ) {
                 dispatcher.replaceWordBeforeCursor(current.typed, correction)
                 lastAutocorrect = Autocorrect(current.typed, correction, separator)
             }
@@ -964,7 +980,7 @@ class KeyboardController(
             return
         }
         dispatcher.replaceWordBeforeCursor(applied, undo.typed)
-        uncorrectable = undo.typed
+        decline(undo.typed)
         refreshCandidates()
     }
 
@@ -988,7 +1004,6 @@ class KeyboardController(
         lastGlideWord = null
         lastGlideCommit = null
         lastAutocorrect = null
-        uncorrectable = null
     }
 
     /** The accent candidates a long press on [key] offers, in the current case; none in passwords. */
@@ -1084,6 +1099,9 @@ class KeyboardController(
 
         /** The characters that end a word and apply its correction. */
         private val SEPARATORS = setOf(" ", ".", ",", "!", "?")
+
+        /** How many refused words a field remembers; the oldest goes first. */
+        private const val MAX_DECLINED = 32
 
         /**
          * The action Enter should perform for a field: the field's own IME action when it has
