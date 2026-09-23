@@ -132,7 +132,7 @@ emulator profile is `medium_phone`; boot it headless with
   letter key carries `Key.slot`, the US character of its slot: modifier combinations send the slot
   (Ctrl+С is Ctrl+C) and `displayLabel` shows it while Ctrl, Alt or Meta is active.
   The wide board splits (`layout/SplitLayout.kt`) by cutting the balanced board after its sixth
-  key per row, every key at its full-board width, the rows padded on the inner side;
+  key per row (the seventh on the digits, so 6 is on the left), every key at its full-board width, the rows padded on the inner side;
   `ui/SplitGeometry.kt` decides when (Off/Auto/Always; Auto = a separating vertical hinge from
   androidx.window, or a landscape window under 480 dp high) and sizes the unit so no key lands on
   a hinge.
