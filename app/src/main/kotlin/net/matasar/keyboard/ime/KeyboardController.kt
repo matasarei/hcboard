@@ -85,12 +85,14 @@ class KeyboardController(
     /** The globe key exists only when there is something to switch to. */
     val withGlobe: Boolean get() = enabledLanguages.size > 1
 
-    private val layoutCache = HashMap<Pair<String, Boolean>, KeyboardLayout>()
+    private val layoutCache = HashMap<Triple<String, Boolean, Boolean>, KeyboardLayout>()
     private val wideLayoutCache = HashMap<Pair<String, Boolean>, KeyboardLayout>()
 
-    /** The phone layout for the current language, built once per language and globe state. */
+    /** The phone layout for the current language, built once per language, globe and number row. */
     val phoneLayout: KeyboardLayout
-        get() = layoutCache.getOrPut(language.tag to withGlobe) { phoneLayout(language, withGlobe) }
+        get() = numberRowShown.let { digits ->
+            layoutCache.getOrPut(Triple(language.tag, withGlobe, digits)) { phoneLayout(language, withGlobe, digits) }
+        }
 
     /** The 60% board for the current language, built the same way. */
     val wideLayout: KeyboardLayout
@@ -154,6 +156,12 @@ class KeyboardController(
     /** Whether the modifier strip shows above the layers. */
     var developerMode: Boolean by mutableStateOf(false)
         private set
+
+    /** Setting: the digits across the top of the phone letters page. */
+    var numberRow: Boolean by mutableStateOf(false)
+
+    /** The number row shows where it is switched on, and in every password field regardless. */
+    val numberRowShown: Boolean get() = numberRow || passwordField
 
     /** The editor action Enter performs, or null when Enter should be a real key. */
     var editorActionId: Int? by mutableStateOf(null)
@@ -590,6 +598,12 @@ class KeyboardController(
     fun restoreSuggestInApp(on: Boolean) {
         suggestInApp = on
         applySuggestionRules()
+    }
+
+    /** The gear sheet's row: the digits come and go at once, and the sheet closes as Developer mode's does. */
+    fun toggleNumberRow() {
+        numberRow = !numberRow
+        settingsSheetOpen = false
     }
 
     /**
