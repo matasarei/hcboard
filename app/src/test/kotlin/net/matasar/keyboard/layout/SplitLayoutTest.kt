@@ -17,7 +17,8 @@ class SplitLayoutTest {
             for (index in 0..3) {
                 val halves = split.left.rows[index].keys + split.right.rows[index].keys
                 assertEquals(whole.rows[index].keys, halves, "${language.tag} globe=$withGlobe row $index")
-                assertEquals(6, split.left.rows[index].keys.size, "${language.tag} row $index")
+                // Esc, 1 to 6 on the digits; the row's first key and five letters below.
+                assertEquals(if (index == 0) 7 else 6, split.left.rows[index].keys.size, "${language.tag} row $index")
             }
         }
     }
@@ -44,8 +45,10 @@ class SplitLayoutTest {
     fun `english halves are the balanced board's`() {
         val split = splitLayer(Languages.english, withGlobe = true)
         assertEquals(7.75f, split.left.units)
-        assertEquals(8.5f, split.right.units)
-        assertEquals("Esc 1 2 3 4 5", split.left.rows[0].keys.joinToString(" ") { it.label })
+        // The digits no longer set the right half's width: the Y row does, half a key narrower.
+        assertEquals(8f, split.right.units)
+        assertEquals("Esc 1 2 3 4 5 6", split.left.rows[0].keys.joinToString(" ") { it.label })
+        assertEquals("7 8 9 0 - = backspace", split.right.rows[0].keys.joinToString(" ") { it.label })
         assertEquals("y u i o p [ ] \\", split.right.rows[1].keys.joinToString(" ") { it.label })
         assertEquals("h j k l ; ' enter", split.right.rows[2].keys.joinToString(" ") { it.label.lowercase() })
     }
