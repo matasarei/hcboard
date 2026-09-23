@@ -228,6 +228,20 @@ class SuggestionControllerTest {
     }
 
     @Test
+    fun `a field reached by a restart is read afresh, and the last field's words leave the strip`() {
+        textField()
+        type("chek")
+        assertNotNull(controller.candidates)
+        assertFalse(controller.numberRowShown)
+        // Focus moved to the password field of the same screen: a restart, not a new start.
+        controller.onRestartInput(EditorInfo().apply { inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD })
+        assertTrue(controller.numberRowShown)
+        assertNull(controller.candidates) // the text field's words, still on the strip over a password
+        controller.onRestartInput(EditorInfo().apply { inputType = InputType.TYPE_CLASS_TEXT })
+        assertFalse(controller.numberRowShown)
+    }
+
+    @Test
     fun `no candidates and no read of the field where they are not allowed`() {
         for (inputType in listOf(
             InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD,

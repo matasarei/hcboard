@@ -214,6 +214,19 @@ class KeyboardController(
     private var fieldAllowsMic: Boolean by mutableStateOf(true)
 
     /**
+     * A restart: focus moved to another field of the same screen (or the app restarted input), and
+     * onStartInput is skipped. Everything onStartInput reads from the field is read again here,
+     * and the strip is cleared: its words were the last field's, and a password field reached from
+     * a text field kept showing them.
+     */
+    fun onRestartInput(info: EditorInfo?) {
+        updateFieldKind(info)
+        updateFieldMic(info)
+        updateFieldSuggestions(info)
+        clearCandidates()
+    }
+
+    /**
      * What kind of field this is, which decides the number row in a password field among other
      * things. A restart re-reads it too, or a text field reached from a password field on the
      * same screen keeps the password's digits. The page stays where the user left it.
