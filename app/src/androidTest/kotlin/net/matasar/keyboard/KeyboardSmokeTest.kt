@@ -260,6 +260,42 @@ class KeyboardSmokeTest {
     }
 
     /**
+     * On the wide board (a phone turned sideways) the gear opens the same sheet as on the phone,
+     * with the three switches that only change the phone board dimmed: they say so, and a tap on
+     * one does nothing.
+     */
+    @Test
+    fun theWideBoardsGearSheetDimsThePhoneOnlyRows() {
+        val context = ApplicationProvider.getApplicationContext<android.content.Context>()
+        try {
+            device.setOrientationLandscape()
+            context.startActivity(
+                Intent(context, net.matasar.keyboard.debug.PlainFieldActivity::class.java)
+                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK),
+            )
+            assertTrue("the plain field never came up", device.wait(Until.hasObject(By.clazz("android.widget.EditText")), 5_000))
+            focusFieldAndShowKeyboard()
+            openGearSheet()
+            assertTrue(
+                "the wide board's sheet does not mark three rows as phone-only; texts: ${describeImeTexts()}",
+                waitUntil(3_000) { describeImeTexts().split("'Phone board only'").size - 1 == 3 },
+            )
+
+            val bounds = android.graphics.Rect()
+            imeNodeWithText("Developer mode")!!.getBoundsInScreen(bounds)
+            device.click(bounds.centerX(), bounds.centerY())
+            device.waitForIdle()
+            Thread.sleep(500)
+            assertNotNull("a tap on a dimmed row closed the sheet; texts: ${describeImeTexts()}", imeNodeWithText("Developer mode"))
+            assertTrue("a tap on a dimmed row turned developer mode on", KeyboardService.instance?.controller?.developerMode == false)
+        } finally {
+            InstrumentationRegistry.getInstrumentation().runOnMainSync { KeyboardService.instance?.controller?.settingsSheetOpen = false }
+            device.setOrientationNatural()
+            device.unfreezeRotation()
+        }
+    }
+
+    /**
      * A field that asks for no suggestions gets none — until the gear sheet's row says this app
      * may. `0xa4001` is what YouTube's comment box declares: text, sentence caps, multi-line, no
      * suggestions, and no autocorrect to contradict it.
