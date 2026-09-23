@@ -570,6 +570,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
             controller.onStartInput(editorInfo)
         } else {
             // A restart skips onStartInput, so everything it reads from the field is re-read here.
+            controller.updateFieldKind(editorInfo)
             controller.updateFieldMic(editorInfo)
             controller.updateFieldSuggestions(editorInfo)
         }

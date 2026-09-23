@@ -214,6 +214,15 @@ class KeyboardController(
     private var fieldAllowsMic: Boolean by mutableStateOf(true)
 
     /**
+     * What kind of field this is, which decides the number row in a password field among other
+     * things. A restart re-reads it too, or a text field reached from a password field on the
+     * same screen keeps the password's digits. The page stays where the user left it.
+     */
+    fun updateFieldKind(info: EditorInfo?) {
+        fieldKind = info?.let { fieldKindOf(it.inputType) } ?: FieldKind.TEXT
+    }
+
+    /**
      * Reads whether [info]'s field may offer the mic. The service calls it on a restart too: moving
      * between fields of one Compose screen restarts input without a new start, and a password field
      * reached that way must not keep the text field's mic.
@@ -446,7 +455,7 @@ class KeyboardController(
         // A macro follows its own Tab into the next field of the same app, never into another app.
         if (macroJob != null && fieldPackage != macroPackage) stopMacro()
         fieldStarts.value++
-        fieldKind = info?.let { fieldKindOf(it.inputType) } ?: FieldKind.TEXT
+        updateFieldKind(info)
         layer = fieldKind.initialLayer()
         shift = Latch()
         modifiers = Modifiers()

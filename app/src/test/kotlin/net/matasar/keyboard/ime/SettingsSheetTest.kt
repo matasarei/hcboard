@@ -27,6 +27,11 @@ class SettingsSheetTest {
         assertEquals(5, rows())
         controller.onStartInput(field())
         assertEquals(4, rows())
+        // Focus moving between fields of one screen restarts input without a new start.
+        controller.updateFieldKind(EditorInfo().apply { inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD })
+        assertEquals(5, rows())
+        controller.updateFieldKind(field())
+        assertEquals(4, rows())
 
         controller.toggleSettingsSheet()
         controller.toggleNumberRow()
