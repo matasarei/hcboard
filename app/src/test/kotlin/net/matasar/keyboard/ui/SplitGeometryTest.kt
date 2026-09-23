@@ -40,9 +40,9 @@ class SplitGeometryTest {
 
     @Test
     fun `without a hinge the halves and the gap fill the width`() {
-        val unit = splitUnit(width = 840f, sidePadding = 8f, gap = 5f, leftUnits = 7.75f, rightUnits = 8.5f, hinge = null, hingeMargin = 12f, gapUnits = 2f)
+        val unit = splitUnit(width = 840f, sidePadding = 8f, gap = 5f, leftUnits = 7.75f, rightUnits = 8f, hinge = null, hingeMargin = 12f, gapUnits = 2f)
         val left = halfWidth(7.75f, unit, 5f)
-        val right = halfWidth(8.5f, unit, 5f)
+        val right = halfWidth(8f, unit, 5f)
         val centre = 840f - 16f - left - right
         assertEquals(halfWidth(2f, unit, 5f) + 2 * 5f, centre, 0.01f)
         assertTrue(unit > 0f)
@@ -51,9 +51,9 @@ class SplitGeometryTest {
     @Test
     fun `with a hinge no key comes within the margin of it`() {
         for (hinge in listOf(540f..560f, 400f..420f, 700f..710f)) {
-            val unit = splitUnit(width = 1100f, sidePadding = 8f, gap = 5f, leftUnits = 7.75f, rightUnits = 8.5f, hinge = hinge, hingeMargin = 12f, gapUnits = 2f)
+            val unit = splitUnit(width = 1100f, sidePadding = 8f, gap = 5f, leftUnits = 7.75f, rightUnits = 8f, hinge = hinge, hingeMargin = 12f, gapUnits = 2f)
             val leftEnd = 8f + halfWidth(7.75f, unit, 5f)
-            val rightStart = 1100f - 8f - halfWidth(8.5f, unit, 5f)
+            val rightStart = 1100f - 8f - halfWidth(8f, unit, 5f)
             assertTrue(leftEnd <= hinge.start - 12f + 0.01f, "hinge $hinge: left half ends at $leftEnd")
             assertTrue(rightStart >= hinge.endInclusive + 12f - 0.01f, "hinge $hinge: right half starts at $rightStart")
         }
@@ -61,9 +61,9 @@ class SplitGeometryTest {
 
     @Test
     fun `the tighter side sets the size, and a hinge at an edge leaves no room rather than a negative unit`() {
-        val centred = splitUnit(1100f, 8f, 5f, 7.75f, 8.5f, 540f..560f, 12f, 2f)
-        val offCentre = splitUnit(1100f, 8f, 5f, 7.75f, 8.5f, 300f..320f, 12f, 2f)
+        val centred = splitUnit(1100f, 8f, 5f, 7.75f, 8f, 540f..560f, 12f, 2f)
+        val offCentre = splitUnit(1100f, 8f, 5f, 7.75f, 8f, 300f..320f, 12f, 2f)
         assertTrue(offCentre < centred)
-        assertEquals(0f, splitUnit(1100f, 8f, 5f, 7.75f, 8.5f, 0f..10f, 12f, 2f))
+        assertEquals(0f, splitUnit(1100f, 8f, 5f, 7.75f, 8f, 0f..10f, 12f, 2f))
     }
 }
