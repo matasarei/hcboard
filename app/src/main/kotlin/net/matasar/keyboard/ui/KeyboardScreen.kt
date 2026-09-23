@@ -149,34 +149,33 @@ fun KeyboardScreen(
             Box(
                 modifier = Modifier
                     .matchParentSize()
-                    .padding(top = PopupMetrics.overhang + Dimens.toolbarHeight)
-                    .padding(horizontal = effectiveSidePadding),
+                    .padding(top = PopupMetrics.overhang + Dimens.toolbarHeight),
             ) {
                 LanguageSheet(
                     languages = controller.enabledLanguageList,
                     current = controller.language,
                     onPick = controller::switchLanguage,
                     onDismiss = { controller.languageSheetOpen = false },
+                    sidePadding = effectiveSidePadding,
                 )
             }
         }
         if (controller.managerSheetOpen) {
             // Covers the keys, not the overhang: the sheet starts under the toolbar like the mock.
+            // Full width: the sheet keeps the keys' side padding inside it (KeyboardSheet).
             Box(
                 modifier = Modifier
                     .matchParentSize()
-                    .padding(top = PopupMetrics.overhang + Dimens.toolbarHeight)
-                    .padding(horizontal = effectiveSidePadding),
+                    .padding(top = PopupMetrics.overhang + Dimens.toolbarHeight),
             ) {
-                ManagerSheet(autofill, onDismiss = { controller.managerSheetOpen = false })
+                ManagerSheet(autofill, onDismiss = { controller.managerSheetOpen = false }, sidePadding = effectiveSidePadding)
             }
         }
         if (controller.macroSheetOpen) {
             Box(
                 modifier = Modifier
                     .matchParentSize()
-                    .padding(top = PopupMetrics.overhang + Dimens.toolbarHeight)
-                    .padding(horizontal = effectiveSidePadding),
+                    .padding(top = PopupMetrics.overhang + Dimens.toolbarHeight),
             ) {
                 MacroSheet(
                     macros = macros,
@@ -185,6 +184,7 @@ fun KeyboardScreen(
                     onStop = controller::stopMacro,
                     onEdit = actions::openMacros,
                     onDismiss = { controller.macroSheetOpen = false },
+                    sidePadding = effectiveSidePadding,
                 )
             }
         }
@@ -192,8 +192,7 @@ fun KeyboardScreen(
             Box(
                 modifier = Modifier
                     .matchParentSize()
-                    .padding(top = PopupMetrics.overhang + Dimens.toolbarHeight)
-                    .padding(horizontal = effectiveSidePadding),
+                    .padding(top = PopupMetrics.overhang + Dimens.toolbarHeight),
             ) {
                 SettingsSheet(
                     developerMode = controller.developerMode,
@@ -207,6 +206,7 @@ fun KeyboardScreen(
                     onToggleNumberRow = actions::toggleNumberRow,
                     onOpenSettings = actions::openSettings,
                     onDismiss = { controller.settingsSheetOpen = false },
+                    sidePadding = effectiveSidePadding,
                 )
             }
         }
