@@ -117,6 +117,12 @@ jobs:
           # release was a draft — a 404 for anyone not signed in — for as long as a 17 MB upload
           # took, six minutes on 2026-09-17. Published first, then the file.
           say "creating the release"
+          # The API creates a missing tag from main's head where gh release create --verify-tag
+          # refused, so the tag pushed above is confirmed first, at this commit.
+          test "$(git ls-remote origin refs/tags/dev | cut -f1)" = "$GITHUB_SHA" || {
+            echo "The dev tag on origin is not at $GITHUB_SHA; not creating a release on it." >&2
+            exit 1
+          }
           # Through the API, for the new release's id: the check below reads the release by id.
           id="$(gh api "repos/$GITHUB_REPOSITORY/releases" -X POST -f tag_name=dev -f name="Dev build" \
             -f body="$notes" -F prerelease=true -F draft=false --jq .id)"
