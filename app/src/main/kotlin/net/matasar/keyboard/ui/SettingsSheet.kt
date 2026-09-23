@@ -1,18 +1,11 @@
 package net.matasar.keyboard.ui
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
@@ -20,11 +13,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import net.matasar.keyboard.R
@@ -48,99 +41,82 @@ fun SettingsSheet(
     onToggleNumberRow: () -> Unit,
     onOpenSettings: () -> Unit,
     onDismiss: () -> Unit,
+    sidePadding: Dp,
 ) {
     val colors = LocalKeyboardColors.current
-    Box(modifier = Modifier.fillMaxSize()) {
+    KeyboardSheet(onDismiss = onDismiss, sidePadding = sidePadding) {
         Box(
             modifier = Modifier
-                .fillMaxSize()
-                .background(Color.Black.copy(alpha = 0.32f))
-                .clickable(onClick = onDismiss),
+                .align(Alignment.CenterHorizontally)
+                .width(32.dp)
+                .height(4.dp)
+                .clip(RoundedCornerShape(2.dp))
+                .background(colors.subtle.copy(alpha = 0.4f)),
         )
-        Column(
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
-                .background(colors.popup)
-                .navigationBarsPadding()
-                .padding(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 16.dp)
-                // A short keyboard (the 80% height setting) has less room than the rows need.
-                .verticalScroll(rememberScrollState()),
+        Text(
+            text = "Keyboard",
+            color = colors.subtle,
+            fontSize = 13.sp,
+            fontWeight = FontWeight.Medium,
+            modifier = Modifier.padding(top = 12.dp, bottom = 4.dp, start = 4.dp),
+        )
+        SheetRow(
+            icon = R.drawable.ic_code,
+            title = "Developer mode",
+            subtitle = "Ctrl, Alt, Fn and arrows above the keys",
+            onClick = onToggleDeveloperMode,
         ) {
-            Box(
-                modifier = Modifier
-                    .align(Alignment.CenterHorizontally)
-                    .width(32.dp)
-                    .height(4.dp)
-                    .clip(RoundedCornerShape(2.dp))
-                    .background(colors.subtle.copy(alpha = 0.4f)),
-            )
-            Text(
-                text = "Keyboard",
-                color = colors.subtle,
-                fontSize = 13.sp,
-                fontWeight = FontWeight.Medium,
-                modifier = Modifier.padding(top = 12.dp, bottom = 4.dp, start = 4.dp),
-            )
-            SheetRow(
-                icon = R.drawable.ic_code,
-                title = "Developer mode",
-                subtitle = "Ctrl, Alt, Fn and arrows above the keys",
-                onClick = onToggleDeveloperMode,
-            ) {
-                // Shows the state only: the row takes the tap, so there is one target, not two. A
-                // switch without a callback says nothing to TalkBack, so the state is spelled out
-                // and merges into the row.
-                val onOff = stringResource(if (developerMode) R.string.a11y_state_on else R.string.a11y_state_off)
-                Switch(
-                    checked = developerMode,
-                    onCheckedChange = null,
-                    modifier = Modifier.semantics { stateDescription = onOff },
-                    colors = SwitchDefaults.colors(
-                        checkedThumbColor = colors.onArmed,
-                        checkedTrackColor = colors.armedRing,
-                        uncheckedThumbColor = colors.subtle,
-                        uncheckedTrackColor = colors.functionKey,
-                        uncheckedBorderColor = colors.subtle,
-                    ),
-                )
-            }
-            // Only where it would change something: the field asked for no suggestions and
-            // nothing else is in the way. Elsewhere the row would be a switch that does nothing.
-            if (suggestInAppOffered) {
-                SheetRow(
-                    icon = R.drawable.ic_spellcheck,
-                    title = "Suggest in this app",
-                    subtitle = "This app asked the keyboard not to suggest",
-                    onClick = onToggleSuggestInApp,
-                ) {
-                    StateSwitch(suggestInApp)
-                }
-            }
-            SheetRow(
-                icon = R.drawable.ic_tune,
-                title = "Always show toolbar buttons",
-                subtitle = "Never fold them behind ›",
-                onClick = onToggleToolbarAlwaysShown,
-            ) {
-                StateSwitch(toolbarAlwaysShown)
-            }
-            SheetRow(
-                icon = R.drawable.ic_numbers,
-                title = "Number row",
-                subtitle = "Digits above the letters",
-                onClick = onToggleNumberRow,
-            ) {
-                StateSwitch(numberRow)
-            }
-            SheetRow(
-                icon = R.drawable.ic_settings,
-                title = "Settings",
-                subtitle = "Look, feel, languages, suggestions, macros",
-                onClick = onOpenSettings,
+            // Shows the state only: the row takes the tap, so there is one target, not two. A
+            // switch without a callback says nothing to TalkBack, so the state is spelled out
+            // and merges into the row.
+            val onOff = stringResource(if (developerMode) R.string.a11y_state_on else R.string.a11y_state_off)
+            Switch(
+                checked = developerMode,
+                onCheckedChange = null,
+                modifier = Modifier.semantics { stateDescription = onOff },
+                colors = SwitchDefaults.colors(
+                    checkedThumbColor = colors.onArmed,
+                    checkedTrackColor = colors.armedRing,
+                    uncheckedThumbColor = colors.subtle,
+                    uncheckedTrackColor = colors.functionKey,
+                    uncheckedBorderColor = colors.subtle,
+                ),
             )
         }
+        // Only where it would change something: the field asked for no suggestions and
+        // nothing else is in the way. Elsewhere the row would be a switch that does nothing.
+        if (suggestInAppOffered) {
+            SheetRow(
+                icon = R.drawable.ic_spellcheck,
+                title = "Suggest in this app",
+                subtitle = "This app asked the keyboard not to suggest",
+                onClick = onToggleSuggestInApp,
+            ) {
+                StateSwitch(suggestInApp)
+            }
+        }
+        SheetRow(
+            icon = R.drawable.ic_tune,
+            title = "Always show toolbar buttons",
+            subtitle = "Never fold them behind ›",
+            onClick = onToggleToolbarAlwaysShown,
+        ) {
+            StateSwitch(toolbarAlwaysShown)
+        }
+        SheetRow(
+            icon = R.drawable.ic_numbers,
+            title = "Number row",
+            subtitle = "Digits above the letters",
+            onClick = onToggleNumberRow,
+        ) {
+            StateSwitch(numberRow)
+        }
+        SheetRow(
+            icon = R.drawable.ic_settings,
+            title = "Settings",
+            subtitle = "Look, feel, languages, suggestions, macros",
+            onClick = onOpenSettings,
+        )
     }
 }
 
