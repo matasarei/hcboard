@@ -136,21 +136,28 @@ jobs:
           # upload (seen at 0 s, gone at 20 s, four pushes in a row), most likely GitHub's
           # background clean-up of the release deleted just before, which has the same tag and
           # the same asset name. So a missing APK is uploaded again, and the job passes only once
-          # it has stayed on the release for two looks 20 s apart. A draft or a lost pre-release
-          # flag still fails at once: that is the tag conversion described above.
+          # it has stayed on the release for two looks 20 s apart; every re-upload gets its own two
+          # looks, and after three re-uploads the job gives up. A draft or a lost pre-release flag
+          # still fails at once: that is the tag conversion described above.
           say "checking what the release ended up as"
           seen=0
-          for pause in 0 20 20 20 20 20; do
-            sleep "$pause"
+          uploads=0
+          while [ "$seen" -lt 2 ]; do
             state="$(gh release view dev --json isDraft,isPrerelease,assets -q '"\(.isDraft) \(.isPrerelease) \(.assets | length)"')"
             say "draft/prerelease/assets = $state"
             case "$state" in
-              "false true 1") seen=$((seen + 1)); if [ "$seen" -ge 2 ]; then break; fi ;;
-              "false true 0") seen=0; say "the APK is gone; uploading it again"; upload ;;
+              "false true 1") seen=$((seen + 1)) ;;
+              "false true 0")
+                seen=0
+                if [ "$uploads" -ge 3 ]; then
+                  echo "The APK did not stay on the dev release." >&2
+                  exit 1
+                fi
+                uploads=$((uploads + 1))
+                say "the APK is gone; uploading it again"
+                upload
+                ;;
               *) echo "The dev release is not a published pre-release with one APK." >&2; exit 1 ;;
             esac
+            if [ "$seen" -lt 2 ]; then sleep 20; fi
           done
-          if [ "$seen" -lt 2 ]; then
-            echo "The APK did not stay on the dev release." >&2
-            exit 1
-          fi
