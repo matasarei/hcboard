@@ -162,7 +162,6 @@ fun KeyboardScreen(
         }
         if (controller.managerSheetOpen) {
             // Covers the keys, not the overhang: the sheet starts under the toolbar like the mock.
-            // Full width: the sheet keeps the keys' side padding inside it (KeyboardSheet).
             Box(
                 modifier = Modifier
                     .matchParentSize()
