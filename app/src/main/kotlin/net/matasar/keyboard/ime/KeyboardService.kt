@@ -367,7 +367,6 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
                         feel = KeyboardFeel(
                             haptics = settings.haptics,
                             previews = settings.previews,
-                            keyBorders = settings.keyBorders,
                             heightScale = settings.heightScale,
                             widthScale = settings.widthScale,
                             glide = settings.glide,

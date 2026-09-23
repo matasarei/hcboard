@@ -59,7 +59,7 @@ data class KeyboardColors(
      * looked up rather than read. Fn arming a key still tints it [armedRing].
      */
     val legend: Color,
-    /** The one-pixel shadow under keys ("key borders"). */
+    /** The one-pixel shadow under keys. */
     val keyShadow: Color,
 )
 

@@ -54,12 +54,11 @@ import net.matasar.keyboard.settings.SplitMode
 import net.matasar.keyboard.ui.theme.KeyboardColors
 import net.matasar.keyboard.ui.theme.LocalKeyboardColors
 
-/** The feel settings: haptics, press previews, key borders. Step 6 reads them from prefs. */
+/** The feel settings: haptics, press previews, sizes, glide. Step 6 reads them from prefs. */
 @Immutable
 data class KeyboardFeel(
     val haptics: Boolean = true,
     val previews: Boolean = true,
-    val keyBorders: Boolean = true,
     val heightScale: Float = 1f,
     val widthScale: Float = 1f,
     val glide: Boolean = true,
@@ -340,7 +339,6 @@ private fun LayerGrid(
                     height = keyHeight,
                     callbacks = callbacks,
                     haptics = feel.haptics,
-                    keyBorders = feel.keyBorders,
                     showLabel = !controller.trackpad,
                     legendBand = wide,
                     // Only symbols are printed as Fn legends (see printedFnLegend); the live one

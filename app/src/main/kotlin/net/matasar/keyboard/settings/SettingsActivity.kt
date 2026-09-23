@@ -170,7 +170,6 @@ private fun SettingsScreen(settings: Settings, prefs: Prefs) {
                 steps = Settings.MAX_BOTTOM_PADDING_DP / 4 - 1,
             )
         }
-        SwitchRow(stringResource(R.string.settings_key_borders), settings.keyBorders) { scope.launch { prefs.setKeyBorders(it) } }
         SwitchRow(stringResource(R.string.settings_number_row), settings.numberRow) { scope.launch { prefs.setNumberRow(it) } }
         Text(stringResource(R.string.settings_number_row_hint), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
 

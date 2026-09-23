@@ -40,7 +40,6 @@ fun ModifierStrip(
             height = keyHeight,
             callbacks = callbacks,
             haptics = feel.haptics,
-            keyBorders = feel.keyBorders,
             showLabel = !controller.trackpad,
             repeats = controller.repeats(key),
             stateDescription = keyState(key, controller),

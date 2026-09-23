@@ -80,7 +80,7 @@ from the password manager you already use, and the keyboard never shows or keeps
   can also fill a login into the field in front of you, open the manager, or change which one
   Android uses.
 - **Fits your hands:** set the keyboard's height, the space under the keys (or let it follow the
-  system bar), key borders, the haptic tick and the key preview in Settings, and try each change in
+  system bar), the haptic tick and the key preview in Settings, and try each change in
   the field at the bottom of the screen, or in its password field.
 
 ## When you want to tinker
