@@ -133,11 +133,9 @@ class SuggestionControllerTest {
         type("chek")
         assertEquals("check", controller.candidates?.correction)
         controller.pickCandidate("chek")
-        assertEquals("chek", port.before)
+        assertEquals("chek ", port.before)
         assertNull(controller.candidates)
-        controller.onSelectionChanged() // a stray cursor report brings the strip back without the correction
-        assertNull(controller.candidates?.correction)
-        controller.onKey(space)
+        controller.onKey(space) // the pick's space is already there
         assertEquals("chek ", port.before)
         controller.onKey(keys.first { it.action == KeyAction.Shift })
         type("chek")
@@ -146,13 +144,74 @@ class SuggestionControllerTest {
     }
 
     @Test
-    fun `tapping a candidate replaces the word with no space`() {
+    fun `tapping a candidate replaces the word and puts a space after it, in one batch`() {
+        textField()
+        type("spel")
+        port.edits.clear()
+        controller.pickCandidate("spelling")
+        assertEquals("spelling ", port.before)
+        assertEquals(listOf("begin", "begin", "delete:4,0", "commit:spelling", "end", "commit: ", "end"), port.edits)
+        assertNull(controller.candidates)
+    }
+
+    @Test
+    fun `punctuation after a picked word takes the place of its space`() {
+        val bang = dot.copy(label = "!", action = KeyAction.Text("!"))
+        val comma = dot.copy(label = ",", action = KeyAction.Text(","))
+        val close = dot.copy(label = ")", action = KeyAction.Text(")"))
+        val quote = dot.copy(label = "\"", action = KeyAction.Text("\""))
+        for ((mark, expected) in listOf(bang to "spelling! ", comma to "spelling, ", dot to "spelling. ", close to "spelling)", quote to "spelling \"")) {
+            textField()
+            port.before = ""
+            type("spel")
+            controller.pickCandidate("spelling")
+            port.edits.clear()
+            controller.onKey(mark)
+            assertEquals(expected, port.before, "after ${mark.label}")
+            if (mark != quote) assertEquals(listOf("begin", "delete:1,0", "commit:${expected.removePrefix("spelling")}", "end"), port.edits)
+        }
+    }
+
+    @Test
+    fun `space after a picked word is absorbed once, and backspace deletes the space`() {
         textField()
         type("spel")
         controller.pickCandidate("spelling")
-        // No trailing space: what follows the word is the user's to type.
+        controller.onKey(space)
+        assertEquals("spelling ", port.before)
+        controller.onKey(space)
+        assertEquals("spelling  ", port.before) // only the first press finds it there
+        type("spel")
+        controller.pickCandidate("spelled")
+        controller.onKey(backspace)
+        assertEquals("spelling  spelled", port.before)
+    }
+
+    @Test
+    fun `no space is added where the field already has one or a mark follows`() {
+        textField()
+        type("spel")
+        port.after = " rest"
+        controller.pickCandidate("spelling")
         assertEquals("spelling", port.before)
-        assertNull(controller.candidates)
+        controller.onKey(space) // nothing of ours to find: an ordinary space
+        assertEquals("spelling ", port.before)
+        port.before = ""
+        port.after = ","
+        type("spel")
+        controller.pickCandidate("spelled")
+        assertEquals("spelled", port.before)
+    }
+
+    @Test
+    fun `a moved cursor makes the next key ordinary`() {
+        val bang = dot.copy(label = "!", action = KeyAction.Text("!"))
+        textField()
+        type("spel")
+        controller.pickCandidate("spelling")
+        port.before = "elsewhere "
+        controller.onKey(bang)
+        assertEquals("elsewhere !", port.before)
     }
 
     @Test

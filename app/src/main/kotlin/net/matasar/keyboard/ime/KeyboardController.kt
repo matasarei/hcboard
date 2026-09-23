@@ -310,6 +310,12 @@ class KeyboardController(
     private data class Autocorrect(val typed: String, val correction: String, val separator: String)
 
     /**
+     * The picked word and the space the pick put after it, until the next key: punctuation
+     * then takes the space's place, and Space finds it already there.
+     */
+    private var autoSpace: String? = null
+
+    /**
      * Words whose correction the user refused in this field (lowercased): an undone correction,
      * or the typed word tapped in the strip. Only a new field forgets them, never a read of the
      * field: some apps answer from a copy that lags our own edits, and a single stale read used
@@ -613,6 +619,8 @@ class KeyboardController(
         candidatesCollapsed = false
         val undo = lastAutocorrect
         lastAutocorrect = null
+        val spaced = autoSpace
+        autoSpace = null
         val glidedWord = lastGlideWord
         val glideCommit = lastGlideCommit
         if (glidedWord != null) clearCandidates()
@@ -624,6 +632,10 @@ class KeyboardController(
         if (undo != null && key.action == KeyAction.Backspace && !modifiers.anyActive) {
             undoAutocorrect(undo)
             refreshAutoCapital()
+            return
+        }
+        if (spaced != null && !modifiers.anyActive && takeBackAutoSpace(key, spaced)) {
+            afterKey()
             return
         }
         val fnAction = key.fnAction
@@ -859,9 +871,10 @@ class KeyboardController(
 
     /**
      * The user tapped a word in the strip: after a glide it swaps the glided word (and the
-     * alternatives stay); while typing it replaces the word being typed. Neither adds a space —
-     * the user decides what comes after a word. The typed word itself is already in the field, so
-     * tapping it only keeps it: the strip closes and the next separator applies no correction.
+     * alternatives stay, and glide keeps its own spacing); while typing it replaces the word
+     * being typed and puts a space after it, unless the field already has one there or a mark
+     * that takes none. The typed word itself is already in the field, so tapping it keeps it,
+     * with its space, and the field corrects it no more.
      */
     fun pickCandidate(word: String) {
         val current = candidates ?: return
@@ -881,15 +894,44 @@ class KeyboardController(
             refreshAutoCapital()
             return
         }
-        if (word == current.typed) {
-            // Keeping the word as typed: the next separator must not correct it after all.
-            decline(word)
-        } else if (dispatcher.textEndsWith(current.typed)) {
-            // The field may have changed under the strip; replace only what is still there.
-            dispatcher.replaceWordBeforeCursor(current.typed, word)
+        // Keeping the word as typed: the next separator must not correct it after all.
+        if (word == current.typed) decline(word)
+        // The field may have changed under the strip; replace only what is still there.
+        if (dispatcher.textEndsWith(current.typed)) {
+            // The word and its space are one change to the app.
+            dispatcher.batch {
+                if (word != current.typed) dispatcher.replaceWordBeforeCursor(current.typed, word)
+                if (!dispatcher.nextCharAvoidsSpace()) {
+                    dispatcher.commitText(" ")
+                    autoSpace = "$word "
+                }
+            }
         }
         candidates = null
         refreshAutoCapital()
+    }
+
+    /**
+     * The key after a pick's space: a mark that ends a word swaps places with the space
+     * ("hello! "), a closing bracket takes its place ("hello)"), and Space finds one already
+     * there. False for any other key, and when the text no longer ends with the pick (the cursor
+     * moved), so a space the user typed is never taken.
+     */
+    private fun takeBackAutoSpace(key: Key, spaced: String): Boolean {
+        val text = when (val action = key.action) {
+            KeyAction.Space -> " "
+            is KeyAction.Text -> if (shiftActive && action.shifted != null) action.shifted else action.text
+            else -> return false
+        }
+        if (text != " " && text !in SWAP_BEFORE_SPACE && text !in CLOSE_ON_WORD) return false
+        if (!dispatcher.textEndsWith(spaced)) return false
+        when (text) {
+            " " -> Unit
+            in SWAP_BEFORE_SPACE -> dispatcher.replaceWordBeforeCursor(" ", "$text ")
+            else -> dispatcher.replaceWordBeforeCursor(" ", text)
+        }
+        candidates = null
+        return true
     }
 
     /**
@@ -1004,6 +1046,7 @@ class KeyboardController(
         lastGlideWord = null
         lastGlideCommit = null
         lastAutocorrect = null
+        autoSpace = null
     }
 
     /** The accent candidates a long press on [key] offers, in the current case; none in passwords. */
@@ -1099,6 +1142,12 @@ class KeyboardController(
 
         /** The characters that end a word and apply its correction. */
         private val SEPARATORS = setOf(" ", ".", ",", "!", "?")
+
+        /** Marks that follow a picked word before its space: "hello " and "!" make "hello! ". */
+        private val SWAP_BEFORE_SPACE = setOf(".", ",", "!", "?", ";", ":")
+
+        /** Closing brackets, which replace a picked word's space: "hello " and ")" make "hello)". */
+        private val CLOSE_ON_WORD = setOf(")", "]", "}")
 
         /** How many refused words a field remembers; the oldest goes first. */
         private const val MAX_DECLINED = 32

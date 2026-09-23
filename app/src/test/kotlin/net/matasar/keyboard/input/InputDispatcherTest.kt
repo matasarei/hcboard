@@ -118,6 +118,16 @@ class InputDispatcherTest {
     }
 
     @Test
+    fun `a picked word gets no space before whitespace or a mark that follows a word`() {
+        for (after in listOf(" there", "\nthere", ",", ".", "!", "?", ";", ":", ")", "]", "}")) {
+            assertTrue(InputDispatcher(FakeEditorPort(before = "hello", after = after)).nextCharAvoidsSpace(), "before $after")
+        }
+        for (after in listOf("", "there", "(", "\"", "-", "7")) {
+            assertFalse(InputDispatcher(FakeEditorPort(before = "hello", after = after)).nextCharAvoidsSpace(), "before $after")
+        }
+    }
+
+    @Test
     fun `a word needs a space in front of it only after something that ends a word`() {
         for (text in listOf("hello", "hello,", "hello.", "hello!", "hello?", "don't", "(hello)", "7", "\u201chello\u201d", "\u00abhello\u00bb")) {
             val port = FakeEditorPort(before = text)
