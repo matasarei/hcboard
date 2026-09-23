@@ -13,6 +13,7 @@ Filled in on a device. The first row was checked on the emulator on 2026-09-22.
 | Emulator `medium_phone`, Android 16 (API 36) | 16.0 | ✓ (touch on Q and W, lift: `Qw`) | | ✓ (connected test: Q while the automatic capital is on) | ✓ (connected test: Space, Shift) | ✓ (connected test: Off → On for the next key) | ✓ pane title present (connected test); not listened to | Speech itself was not heard: the emulator runs without audio |
 | Phone, One UI / Pixel | | | | | | | | |
 | 60% board (Fold inner screen or a tablet) | | | | | | | | Fn meanings (Del, Home) should be what is read |
+| 60% board: gear sheet, dimmed row (Developer mode) | | | | | | | | Should say it is disabled, and a double tap should do nothing; the row's switch also says on/off |
 | Developer mode strip | | | | | | | | Ctrl/Alt/Fn states |
 | Any phone: keyboard shown again in the same field | | | | | | | | Is the page title ("Letters, English") spoken on every show, not only on a switch? If it is noisy, move it to a live region that speaks changes only |
 | Any phone: password field | | | | | | | | Speaker: keys say Dot; with headphones: the characters |
