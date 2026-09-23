@@ -73,11 +73,6 @@ fun Toolbar(
     sheetOpen: Boolean = false,
     macroSheetOpen: Boolean = false,
     settingsSheetOpen: Boolean = false,
-    /**
-     * Whether the gear opens its sheet with the developer-mode switch. The 60% board carries its
-     * modifiers itself, so there the sheet would hold Settings alone and the gear opens it directly.
-     */
-    settingsMenu: Boolean = true,
     center: (@Composable () -> Unit)? = null,
     candidates: WordCandidates? = null,
     onPickCandidate: (String) -> Unit = {},
@@ -106,7 +101,7 @@ fun Toolbar(
             if (showButtons) {
                 Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                     ToolbarButton(R.drawable.ic_settings, "Settings", active = settingsSheetOpen, haptics = haptics) {
-                        if (settingsMenu) actions.toggleSettingsSheet() else actions.openSettings()
+                        actions.toggleSettingsSheet()
                     }
                     ToolbarButton(R.drawable.ic_key, "Password manager", active = sheetOpen, haptics = haptics) { actions.toggleManagerSheet() }
                     ToolbarButton(R.drawable.ic_macro, "Macros", active = macroSheetOpen, haptics = haptics) { actions.toggleMacroSheet() }

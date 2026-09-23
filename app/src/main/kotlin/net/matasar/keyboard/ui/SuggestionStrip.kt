@@ -21,6 +21,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -121,6 +122,8 @@ internal fun SheetRow(
     title: String,
     subtitle: String,
     onClick: () -> Unit,
+    /** False for a row that does nothing here: dimmed, takes no tap, and is marked disabled for accessibility. */
+    enabled: Boolean = true,
     /** Drawn at the row's end, such as a switch showing a setting; the whole row takes the tap. */
     trailing: (@Composable () -> Unit)? = null,
 ) {
@@ -129,7 +132,8 @@ internal fun SheetRow(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(12.dp))
-            .clickable(onClick = onClick)
+            .clickable(enabled = enabled, onClick = onClick)
+            .alpha(if (enabled) 1f else DISABLED_ALPHA)
             .padding(horizontal = 4.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(14.dp),
@@ -147,3 +151,6 @@ internal fun SheetRow(
         trailing?.invoke()
     }
 }
+
+/** How a row that does nothing on this board is drawn: Material's disabled content alpha. */
+private const val DISABLED_ALPHA = 0.38f
