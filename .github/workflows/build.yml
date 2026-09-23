@@ -91,8 +91,9 @@ jobs:
       # The tag is moved, never deleted: GitHub turns a release into a draft when its tag is
       # deleted, and it did so asynchronously to a release re-created seconds later. Only the
       # release object is removed, and the new one is created on the tag that is already there.
-      # The last loop fails the job if the new release is a draft, is not a pre-release, or has
-      # no APK on it, and looks again after a pause, because that conversion arrived late.
+      # The last loop fails the job if the new release is a draft or is not a pre-release, and
+      # looks again after a pause, because that conversion arrived late; an APK that vanished
+      # is uploaded again (see the note at the loop).
       - name: Re-create the dev release
         env:
           GH_TOKEN: ${{ github.token }}
@@ -123,15 +124,40 @@ jobs:
           # the same asset for weeks). Turning it on means giving up either the short window or
           # the re-created release: upload to a draft and publish afterwards, or stop deleting
           # the release and edit it in place, which costs the top spot on the releases page.
-          say "uploading the APK"
-          gh release upload dev hcboard-dev.apk --clobber || {
-            echo "The upload failed. If release immutability has been enabled since this was written, see the note above: a published release's assets cannot be replaced." >&2
-            exit 1
+          upload() {
+            gh release upload dev hcboard-dev.apk --clobber || {
+              echo "The upload failed. If release immutability has been enabled since this was written, see the note above: a published release's assets cannot be replaced." >&2
+              exit 1
+            }
           }
+          say "uploading the APK"
+          upload
+          # Since 2026-09-23 the APK has vanished from the new release within 20 s of a successful
+          # upload (seen at 0 s, gone at 20 s, four pushes in a row), most likely GitHub's
+          # background clean-up of the release deleted just before, which has the same tag and
+          # the same asset name. So a missing APK is uploaded again, and the job passes only once
+          # it has stayed on the release for two looks 20 s apart; every re-upload gets its own two
+          # looks, and after three re-uploads the job gives up. A draft or a lost pre-release flag
+          # still fails at once: that is the tag conversion described above.
           say "checking what the release ended up as"
-          for pause in 0 20; do
-            sleep "$pause"
+          seen=0
+          uploads=0
+          while [ "$seen" -lt 2 ]; do
             state="$(gh release view dev --json isDraft,isPrerelease,assets -q '"\(.isDraft) \(.isPrerelease) \(.assets | length)"')"
-            echo "dev release after ${pause}s: draft/prerelease/assets = $state"
-            test "$state" = "false true 1"
+            say "draft/prerelease/assets = $state"
+            case "$state" in
+              "false true 1") seen=$((seen + 1)) ;;
+              "false true 0")
+                seen=0
+                if [ "$uploads" -ge 3 ]; then
+                  echo "The APK did not stay on the dev release." >&2
+                  exit 1
+                fi
+                uploads=$((uploads + 1))
+                say "the APK is gone; uploading it again"
+                upload
+                ;;
+              *) echo "The dev release is not a published pre-release with one APK." >&2; exit 1 ;;
+            esac
+            if [ "$seen" -lt 2 ]; then sleep 20; fi
           done
