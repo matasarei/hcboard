@@ -129,7 +129,7 @@ jobs:
           # the release and edit it in place, which costs the top spot on the releases page.
           say "uploading the APK"
           gh release upload dev hcboard-dev.apk --clobber || {
-            echo "The upload failed. If release immutability has been enabled since this was written, see the note above: a published release's assets cannot be replaced." >&2
+            echo "The upload failed; GitHub's own error is above. \"already exists\" means the APK is on the release already; a refusal to change a published release means release immutability was turned on (see the note above)." >&2
             exit 1
           }
           # Read by id, never by tag or from the list. Since 2026-09-23 GitHub has answered
