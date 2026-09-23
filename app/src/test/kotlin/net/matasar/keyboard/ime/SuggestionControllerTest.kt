@@ -228,6 +228,40 @@ class SuggestionControllerTest {
     }
 
     @Test
+    fun `a field reached by a restart is read afresh, and the last field's words leave the strip`() {
+        textField()
+        type("chek")
+        assertNotNull(controller.candidates)
+        assertFalse(controller.numberRowShown)
+        // Focus moved to the password field of the same screen: a restart, not a new start.
+        controller.onRestartInput(EditorInfo().apply { inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD })
+        assertTrue(controller.numberRowShown)
+        assertNull(controller.candidates) // the text field's words, still on the strip over a password
+        controller.onRestartInput(EditorInfo().apply { inputType = InputType.TYPE_CLASS_TEXT })
+        assertFalse(controller.numberRowShown)
+    }
+
+    @Test
+    fun `a restart in the same field keeps the correction's undo and the pick's space`() {
+        // An app may restart input without the user leaving the field; what the last key set up
+        // must survive it, and it checks the text still ends as expected before it acts.
+        textField()
+        type("chek")
+        controller.onKey(space)
+        assertEquals("check ", port.before)
+        controller.onRestartInput(EditorInfo().apply { inputType = InputType.TYPE_CLASS_TEXT })
+        controller.onKey(backspace)
+        assertEquals("chek", port.before)
+
+        controller.onKey(space)
+        type("spel")
+        controller.pickCandidate("spelling")
+        controller.onRestartInput(EditorInfo().apply { inputType = InputType.TYPE_CLASS_TEXT })
+        controller.onKey(dot)
+        assertEquals("chek spelling. ", port.before)
+    }
+
+    @Test
     fun `no candidates and no read of the field where they are not allowed`() {
         for (inputType in listOf(
             InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD,

@@ -260,6 +260,42 @@ class KeyboardSmokeTest {
     }
 
     /**
+     * On the wide board (a phone turned sideways) the gear opens the same sheet as on the phone,
+     * with the three switches that only change the phone board dimmed: they say so, and a tap on
+     * one does nothing.
+     */
+    @Test
+    fun theWideBoardsGearSheetDimsThePhoneOnlyRows() {
+        val context = ApplicationProvider.getApplicationContext<android.content.Context>()
+        try {
+            device.setOrientationLandscape()
+            context.startActivity(
+                Intent(context, net.matasar.keyboard.debug.PlainFieldActivity::class.java)
+                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK),
+            )
+            assertTrue("the plain field never came up", device.wait(Until.hasObject(By.clazz("android.widget.EditText")), 5_000))
+            focusFieldAndShowKeyboard()
+            openGearSheet()
+            assertTrue(
+                "the wide board's sheet does not mark three rows as phone-only; texts: ${describeImeTexts()}",
+                waitUntil(3_000) { describeImeTexts().split("'Phone board only'").size - 1 == 3 },
+            )
+
+            val bounds = android.graphics.Rect()
+            imeNodeWithText("Developer mode")!!.getBoundsInScreen(bounds)
+            device.click(bounds.centerX(), bounds.centerY())
+            device.waitForIdle()
+            Thread.sleep(500)
+            assertNotNull("a tap on a dimmed row closed the sheet; texts: ${describeImeTexts()}", imeNodeWithText("Developer mode"))
+            assertTrue("a tap on a dimmed row turned developer mode on", KeyboardService.instance?.controller?.developerMode == false)
+        } finally {
+            InstrumentationRegistry.getInstrumentation().runOnMainSync { KeyboardService.instance?.controller?.settingsSheetOpen = false }
+            device.setOrientationNatural()
+            device.unfreezeRotation()
+        }
+    }
+
+    /**
      * A field that asks for no suggestions gets none — until the gear sheet's row says this app
      * may. `0xa4001` is what YouTube's comment box declares: text, sentence caps, multi-line, no
      * suggestions, and no autocorrect to contradict it.
@@ -303,19 +339,31 @@ class KeyboardSmokeTest {
                 "no candidate after allowing the app; the keyboard shows: ${describeImeTexts()}",
                 waitUntil(3_000) { imeHasCandidate("check") },
             )
+        } finally {
+            // The answer is persisted for this package, so it would outlive the test.
+            kotlinx.coroutines.runBlocking { Prefs(context).setSuggestInApp(context.packageName, false) }
+        }
+    }
 
-            // And again in a field opened afresh: that answer is read back from the store, not
-            // left over in the state the tap set.
+    /**
+     * An app allowed earlier suggests in a field opened afresh: the answer is read back from the
+     * store when the field starts, not left over in the state a tap set.
+     */
+    @Test
+    fun aFieldAllowedEarlierSuggestsWhenOpenedAgain() {
+        val context = ApplicationProvider.getApplicationContext<android.content.Context>()
+        kotlinx.coroutines.runBlocking { Prefs(context).setSuggestInApp(context.packageName, true) }
+        try {
             context.startActivity(
                 Intent(context, net.matasar.keyboard.debug.PlainFieldActivity::class.java)
                     .putExtra(net.matasar.keyboard.debug.PlainFieldActivity.EXTRA_INPUT_TYPE, 0xa4001)
                     .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK),
             )
-            assertTrue("the plain field never came back", device.wait(Until.hasObject(By.clazz("android.widget.EditText")), 5_000))
+            assertTrue("the plain field never came up", device.wait(Until.hasObject(By.clazz("android.widget.EditText")), 5_000))
             focusFieldAndShowKeyboard()
-            typeOnKeys(" chek")
+            typeOnKeys("chek")
             assertTrue(
-                "the answer did not come back with the field; the keyboard shows: ${describeImeTexts()}",
+                "the stored answer did not come back with the field; the keyboard shows: ${describeImeTexts()}",
                 waitUntil(3_000) { imeHasCandidate("check") },
             )
         } finally {
