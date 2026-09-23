@@ -50,7 +50,6 @@
     <string name="settings_try_password_label">Try a password field</string>
     <string name="settings_height">Keyboard height: %1$d%%</string>
     <string name="settings_width">Keyboard width: %1$d%%</string>
-    <string name="settings_key_borders">Key borders</string>
     <string name="settings_number_row">Number row</string>
     <string name="settings_number_row_hint">Digits above the letters on a phone. Password fields always show them. You can also switch this from the keyboard\'s gear.</string>
     <string name="settings_bottom_padding_auto">Automatic space under the keys</string>

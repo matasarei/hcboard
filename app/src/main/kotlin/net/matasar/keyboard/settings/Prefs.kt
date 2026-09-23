@@ -1,6 +1,7 @@
 package net.matasar.keyboard.settings
 
 import android.content.Context
+import androidx.datastore.core.DataMigration
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
@@ -35,7 +36,6 @@ data class Settings(
     /** The room under the keys, in dp, when [bottomPaddingAuto] is off. */
     val bottomPaddingDp: Int = 0,
     val haptics: Boolean = true,
-    val keyBorders: Boolean = true,
     /** The digits across the top of the phone letters page; password fields show them regardless. */
     val numberRow: Boolean = false,
     val previews: Boolean = true,
@@ -100,7 +100,26 @@ fun Set<String>.withLanguage(tag: String, enabled: Boolean): Set<String> = when 
     else -> this - tag
 }
 
-private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
+private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(
+    name = "settings",
+    produceMigrations = { listOf(DropRemovedSettings) },
+)
+
+/**
+ * Removes stored values for settings that no longer exist, once, on the first read after an
+ * update: nothing reads or writes them any more, so they would otherwise stay in the file for
+ * good. "key_borders" went with the Key borders switch.
+ */
+internal object DropRemovedSettings : DataMigration<Preferences> {
+    private val removed = listOf(booleanPreferencesKey("key_borders"))
+
+    override suspend fun shouldMigrate(currentData: Preferences): Boolean = removed.any { it in currentData }
+
+    override suspend fun migrate(currentData: Preferences): Preferences =
+        currentData.toMutablePreferences().apply { removed.forEach { remove(it) } }.toPreferences()
+
+    override suspend fun cleanUp() = Unit
+}
 
 /** The one place preferences are read and written. */
 class Prefs(private val context: Context) {
@@ -112,7 +131,6 @@ class Prefs(private val context: Context) {
             bottomPaddingAuto = p[BOTTOM_PADDING_AUTO] ?: true,
             bottomPaddingDp = (p[BOTTOM_PADDING_DP] ?: 0).coerceIn(0, Settings.MAX_BOTTOM_PADDING_DP),
             haptics = p[HAPTICS] ?: true,
-            keyBorders = p[KEY_BORDERS] ?: true,
             numberRow = p[NUMBER_ROW] ?: false,
             previews = p[PREVIEWS] ?: true,
             foldToolbar = p[FOLD_TOOLBAR] ?: true,
@@ -140,7 +158,6 @@ class Prefs(private val context: Context) {
     suspend fun setBottomPaddingAuto(value: Boolean) = context.dataStore.edit { it[BOTTOM_PADDING_AUTO] = value }
     suspend fun setBottomPaddingDp(value: Int) = context.dataStore.edit { it[BOTTOM_PADDING_DP] = value.coerceIn(0, Settings.MAX_BOTTOM_PADDING_DP) }
     suspend fun setHaptics(value: Boolean) = context.dataStore.edit { it[HAPTICS] = value }
-    suspend fun setKeyBorders(value: Boolean) = context.dataStore.edit { it[KEY_BORDERS] = value }
     suspend fun setNumberRow(value: Boolean) = context.dataStore.edit { it[NUMBER_ROW] = value }
     suspend fun setPreviews(value: Boolean) = context.dataStore.edit { it[PREVIEWS] = value }
     suspend fun setFoldToolbar(value: Boolean) = context.dataStore.edit { it[FOLD_TOOLBAR] = value }
@@ -167,7 +184,6 @@ class Prefs(private val context: Context) {
             p[BOTTOM_PADDING_AUTO] = s.bottomPaddingAuto
             p[BOTTOM_PADDING_DP] = s.bottomPaddingDp
             p[HAPTICS] = s.haptics
-            p[KEY_BORDERS] = s.keyBorders
             p[NUMBER_ROW] = s.numberRow
             p[PREVIEWS] = s.previews
             p[FOLD_TOOLBAR] = s.foldToolbar
@@ -226,7 +242,6 @@ class Prefs(private val context: Context) {
         val BOTTOM_PADDING_AUTO = booleanPreferencesKey("bottom_padding_auto")
         val BOTTOM_PADDING_DP = intPreferencesKey("bottom_padding_dp")
         val HAPTICS = booleanPreferencesKey("haptics")
-        val KEY_BORDERS = booleanPreferencesKey("key_borders")
         val NUMBER_ROW = booleanPreferencesKey("number_row")
         val PREVIEWS = booleanPreferencesKey("previews")
         val FOLD_TOOLBAR = booleanPreferencesKey("fold_toolbar")

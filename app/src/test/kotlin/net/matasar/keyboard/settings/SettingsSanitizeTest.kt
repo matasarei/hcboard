@@ -50,5 +50,7 @@ class SettingsSanitizeTest {
         )
         assertEquals(settings, json.decodeFromString(Settings.serializer(), json.encodeToString(Settings.serializer(), settings)))
         assertEquals(Settings(haptics = false), json.decodeFromString(Settings.serializer(), """{"haptics":false,"fromTheFuture":1}"""))
+        // Key borders was removed: a backup made before still reads, the old field ignored.
+        assertEquals(Settings(haptics = false), json.decodeFromString(Settings.serializer(), """{"haptics":false,"keyBorders":false}"""))
     }
 }

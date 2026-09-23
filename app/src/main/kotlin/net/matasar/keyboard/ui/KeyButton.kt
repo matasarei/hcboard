@@ -87,7 +87,6 @@ fun KeyButton(
     modifier: Modifier = Modifier,
     icon: KeyIcon? = key.icon,
     haptics: Boolean = true,
-    keyBorders: Boolean = true,
     showLabel: Boolean = true,
     /**
      * Sizing hint: on the 60% board every letter in a row is sized as though it carried legends,
@@ -201,7 +200,7 @@ fun KeyButton(
             .onGloballyPositioned { bounds = it.boundsInRoot(); onBounds?.invoke(key, bounds) }
             .graphicsLayer { scaleX = scale; scaleY = scale }
             .shadow(
-                elevation = if (keyBorders && !pressed) 1.dp else 0.dp,
+                elevation = if (!pressed) 1.dp else 0.dp,
                 shape = shape,
                 clip = false,
                 ambientColor = colors.keyShadow,
