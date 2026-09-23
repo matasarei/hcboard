@@ -36,25 +36,24 @@ from the password manager you already use, and the keyboard never shows or keeps
 
 ## What it looks like
 
-<p>
-<img src="docs/screenshots/fold-fn.jpg" alt="The 60% board under a terminal session on a foldable with Fn armed: the number row shows F1 to F12, the letters show arrows, Home, End, PgUp and PgDn, and the toolbar says Fn · next key" height="440">
-<img src="docs/screenshots/fold-split.jpg" alt="The 60% board split into a left and a right half on a foldable: Esc and 1 to 6 on the left, 7 to Backspace on the right, each half with its own space bar" height="440">
-</p>
-
 | Fn armed on a foldable | Split in two |
-|---|---|
-| Every key of a 60% board, with the symbols printed where a PC keyboard has them. Arm Fn and the keys show what they will type. | Or in two halves, one under each thumb: where a hinge crosses the screen, on a phone turned sideways, or always. |
+|:---:|:---:|
+| <img src="docs/screenshots/fold-fn.jpg" alt="The 60% board under a terminal session on a foldable with Fn armed: the number row shows F1 to F12, the letters show arrows, Home, End, PgUp and PgDn, and the toolbar says Fn · next key" width="360"> | <img src="docs/screenshots/fold-split.jpg" alt="The 60% board split into a left and a right half on a foldable: Esc and 1 to 6 on the left, 7 to Backspace on the right, each half with its own space bar" width="360"> |
 
-<p>
-<img src="docs/screenshots/phone-suggestions.jpg" alt="The phone board under the setup screen's try field: after Hello World the toolbar offers World, Worldwide and Worlds" height="440">
-<img src="docs/screenshots/phone-gear-sheet.jpg" alt="The sheet the toolbar's gear opens: a Developer mode switch and a way to Settings" height="440">
-<img src="docs/screenshots/phone-macro-sheet.jpg" alt="The macro sheet over a terminal: the built-in password generator and a macro that types neofetch and presses Enter" height="440">
-<img src="docs/screenshots/phone-macro-editor.jpg" alt="The macro editor with a Type text block and a Press key block for Enter, and a field to try it" height="440">
-</p>
+- **Fn armed on a foldable:** every key of a 60% board, with the symbols printed where a PC keyboard
+  has them. Arm Fn and the keys show what they will type.
+- **Split in two:** the same board in two halves, one under each thumb: where a hinge crosses the
+  screen, on a phone turned sideways, or always.
 
 | Word suggestions | The gear | Macros, one tap | Building a macro |
-|---|---|---|---|
-| Words to pick while you type: the word as typed, its correction and completions. | Developer mode and Settings, behind one button. | Play a macro into any field, a terminal included. | Snap blocks together, then try the macro right there. |
+|:---:|:---:|:---:|:---:|
+| <img src="docs/screenshots/phone-suggestions.jpg" alt="The phone board under the setup screen's try field: after Hello World the toolbar offers World, Worldwide and Worlds" width="170"> | <img src="docs/screenshots/phone-gear-sheet.jpg" alt="The sheet the toolbar's gear opens: a Developer mode switch and a way to Settings" width="170"> | <img src="docs/screenshots/phone-macro-sheet.jpg" alt="The macro sheet over a terminal: the built-in password generator and a macro that types neofetch and presses Enter" width="170"> | <img src="docs/screenshots/phone-macro-editor.jpg" alt="The macro editor with a Type text block and a Press key block for Enter, and a field to try it" width="170"> |
+
+- **Word suggestions:** words to pick while you type: the word as typed, its correction and
+  completions.
+- **The gear:** Developer mode and Settings, behind one button.
+- **Macros, one tap:** play a macro into any field, a terminal included.
+- **Building a macro:** snap blocks together, then try the macro right there.
 
 ## Everyday typing
 
