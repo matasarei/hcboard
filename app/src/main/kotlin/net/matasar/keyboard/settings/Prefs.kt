@@ -1,6 +1,7 @@
 package net.matasar.keyboard.settings
 
 import android.content.Context
+import androidx.datastore.core.DataMigration
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
@@ -99,7 +100,26 @@ fun Set<String>.withLanguage(tag: String, enabled: Boolean): Set<String> = when 
     else -> this - tag
 }
 
-private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
+private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(
+    name = "settings",
+    produceMigrations = { listOf(DropRemovedSettings) },
+)
+
+/**
+ * Removes stored values for settings that no longer exist, once, on the first read after an
+ * update: nothing reads or writes them any more, so they would otherwise stay in the file for
+ * good. "key_borders" went with the Key borders switch.
+ */
+internal object DropRemovedSettings : DataMigration<Preferences> {
+    private val removed = listOf(booleanPreferencesKey("key_borders"))
+
+    override suspend fun shouldMigrate(currentData: Preferences): Boolean = removed.any { it in currentData }
+
+    override suspend fun migrate(currentData: Preferences): Preferences =
+        currentData.toMutablePreferences().apply { removed.forEach { remove(it) } }.toPreferences()
+
+    override suspend fun cleanUp() = Unit
+}
 
 /** The one place preferences are read and written. */
 class Prefs(private val context: Context) {
