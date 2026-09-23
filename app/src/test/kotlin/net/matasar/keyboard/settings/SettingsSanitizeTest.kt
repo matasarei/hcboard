@@ -46,6 +46,7 @@ class SettingsSanitizeTest {
             theme = ThemeChoice.BLACK, splitKeyboard = SplitMode.ALWAYS, voiceKeyboard = "com.example/.Voice",
             developerModePackages = setOf("com.termux"), glide = false, enabledLanguages = setOf("en_US", "bg"),
             suggestInPackages = setOf("com.google.android.youtube"),
+            numberRow = true,
         )
         assertEquals(settings, json.decodeFromString(Settings.serializer(), json.encodeToString(Settings.serializer(), settings)))
         assertEquals(Settings(haptics = false), json.decodeFromString(Settings.serializer(), """{"haptics":false,"fromTheFuture":1}"""))
