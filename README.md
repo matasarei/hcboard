@@ -32,6 +32,8 @@ And it stays private. The app has no network permission at all, so nothing you t
 phone — there is no analytics, no sync, no account, and nothing is written to a log. Passwords come
 from the password manager you already use, and the keyboard never shows or keeps them.
 
+[Read the story behind this project](https://hcnotes.cc/article/articles-the-keyboard-i-always-needed).
+
 ## What it looks like
 
 <p>
@@ -59,11 +61,16 @@ from the password manager you already use, and the keyboard never shows or keeps
 - **Glide typing** across the letters of every language, each with its own bundled word list.
 - **Word suggestions** while you type: the word as typed, its correction and completions, in the
   toolbar behind a chevron. Space applies the highlighted correction and one backspace takes it
-  back. Both parts can be turned off, and neither runs in password, terminal, number, address or
-  e-mail fields.
+  back, and a word you took back is left alone for the rest of that field. A word you tap gets a
+  space after it; a following `.` `,` `!` `?` `;` `:` takes that space's place, so you never get
+  "hello !". Both parts can be turned off, and neither runs in password, terminal, number, address
+  or e-mail fields. An app that asks for no suggestions gets none, unless you allow that one app
+  with Suggest in this app in the gear's sheet.
 - **Your own words,** per language (Settings → Suggestions → Custom words): add a word and it is
   suggested, glide-typed and never corrected away; block one and it is never suggested or used as
   a correction.
+- **A number row** of 1 to 0 above the letters on a phone, switched on in Settings or the gear's
+  sheet; password fields always show it. The 60% board always has its digits.
 - **Capitals where a sentence starts,** in fields that ask for them (chat boxes do): the Shift key
   lights up, one tap on it cancels the capital, and terminals, addresses and code get none. It can
   be turned off in Settings.
@@ -75,11 +82,15 @@ from the password manager you already use, and the keyboard never shows or keeps
   who prefer typing on the Russian ЙЦУКЕН layout, an optional setting enables combined Bulgarian
   vocabulary with collision-safe autocorrect.
   *(Want your language or a feature? [Create an issue](https://github.com/matasarei/hcboard/issues) and tell me!)*
+- **Works with TalkBack:** every key is read as what it types now, with the state of Shift and the
+  modifiers, and what a long press holds (accents, the cursor trackpad, the language list) is an
+  action on the key.
 - **The feel of a phone keyboard:** a preview above the key you press, a spring under your finger,
   a light haptic tick, accents on a long press, and a cursor trackpad when you hold the space bar.
 - **Your phone's look:** Material 3, with dynamic colour on Android 12 and later. Four themes —
   System, Light, Dark and Black — and the dark board is built on the same background your apps use.
-- **A toolbar that stays out of the way:** the gear (Developer mode and Settings), your password
+- **A toolbar that stays out of the way:** the gear (Developer mode, the number row and Settings,
+  the same sheet on every board, with the phone-only switches dimmed on a wide one), your password
   manager and your macros on the left; the microphone (when a voice keyboard such as Google voice
   typing is enabled; Settings picks which one when you have several, or turns the button off),
   paste and hide on the right. On a phone the left buttons fold behind a › until you tap it, and
@@ -89,8 +100,8 @@ from the password manager you already use, and the keyboard never shows or keeps
 - **Your password manager, one tap away.** Logins it offers appear above the keys. The key button
   can also fill a login into the field in front of you, open the manager, or change which one
   Android uses.
-- **Fits your hands:** set the keyboard's height, the space under the keys (or let it follow the
-  system bar), the haptic tick and the key preview in Settings, and try each change in
+- **Fits your hands:** set the keyboard's height and width, the space under the keys (or let it
+  follow the system bar), the haptic tick and the key preview in Settings, and try each change in
   the field at the bottom of the screen, or in its password field.
 
 ## When you want to tinker
@@ -201,7 +212,8 @@ The instrumented smoke test needs an emulator or device: `./gradlew :app:connect
 
 hcboard is licensed under the [Apache License 2.0](LICENSE). It includes code and data from other
 projects, under Apache-2.0 and, for the Ukrainian word list, CC BY 4.0; the exact attributions are
-in [NOTICE](NOTICE).
+in [NOTICE](NOTICE), and the app shows them, with the libraries it is built on and their licences,
+under Settings → About → Open-source licences.
 
 | What | From | Licence |
 |---|---|---|
