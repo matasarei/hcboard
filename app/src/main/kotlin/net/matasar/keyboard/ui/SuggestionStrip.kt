@@ -122,7 +122,7 @@ internal fun SheetRow(
     title: String,
     subtitle: String,
     onClick: () -> Unit,
-    /** False for a row that does nothing here: dimmed, and it takes no tap (TalkBack says so). */
+    /** False for a row that does nothing here: dimmed, takes no tap, and is marked disabled for accessibility. */
     enabled: Boolean = true,
     /** Drawn at the row's end, such as a switch showing a setting; the whole row takes the tap. */
     trailing: (@Composable () -> Unit)? = null,
