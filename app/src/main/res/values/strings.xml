@@ -161,6 +161,10 @@
     <string name="key_group_modifier">Modifiers on their own</string>
     <string name="settings_section_macros">Macros</string>
     <string name="settings_words_open">Custom words</string>
+    <string name="settings_languages_open">Choose languages</string>
+    <string name="languages_title">Languages</string>
+    <string name="languages_section_on">On</string>
+    <string name="languages_section_more">More languages</string>
     <string name="words_title">Custom words</string>
     <string name="words_hint">Added words are suggested, glide-typed and never corrected away. Blocked words are never suggested or used as corrections. Each language has its own list. Add a word in lowercase unless it always starts with a capital: a capitalised word is offered only when you start it with one.</string>
     <string name="words_field">A word in %1$s</string>
