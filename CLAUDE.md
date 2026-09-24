@@ -120,7 +120,11 @@ emulator profile is `medium_phone`; boot it headless with
   symbol pages are the iPhone's 123 and #+= (`LayerId.CODE`).
   Bulgarian has two boards, Phonetic (default) and Standard/БДС (`Settings.bulgarianLayout`,
   `Languages.resolve`): one language, tag and subtype, so the Standard copy is not in
-  `Languages.all`, and the layout caches key on the resolved language. The globe key exists only with two or more languages enabled; the persisted
+  `Languages.all`, and the layout caches key on the resolved language. Portuguese (`pt`) has two
+  spellings, Portugal (default, `pt_PT.txt`) and Brazil (`pt_BR.txt`), picked by
+  `Settings.portugueseSpelling`: a word list, not a layout, chosen with Russian's Bulgarian vocabulary
+  in `Languages.assetFor`. It was `pt_BR` before; `Languages.migrateTag` carries stored settings,
+  custom words and backups over. The globe key exists only with two or more languages enabled; the persisted
   current language is authoritative and the service follows changes to it. The enabled set is the
   keyboard's own, and Android mirrors it: `method.xml` declares a subtype per language (native-name
   label, fixed `subtypeId` = `Language.subtypeId` = its hash code; `MethodXmlTest` pins both, run it
