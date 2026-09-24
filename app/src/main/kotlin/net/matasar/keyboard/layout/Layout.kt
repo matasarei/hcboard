@@ -119,8 +119,21 @@ internal fun letters(chars: String): Array<Key> =
         )
     }.toTypedArray()
 
-internal fun symbols(chars: String): Array<Key> =
-    chars.map { c -> Key(label = c.toString(), action = KeyAction.Text(c.toString())) }.toTypedArray()
+internal fun symbols(chars: String, alternates: Map<Char, List<String>> = SymbolAlternates): Array<Key> =
+    chars.map { c -> Key(label = c.toString(), action = KeyAction.Text(c.toString()), longPress = alternates[c].orEmpty()) }.toTypedArray()
+
+/**
+ * Long presses on the symbol pages, so what the iPhone's two pages leave out is still in reach:
+ * the backtick on the apostrophe, typographic quotes and dashes.
+ */
+internal val SymbolAlternates: Map<Char, List<String>> = mapOf(
+    '\'' to listOf("`", "’", "‘"),
+    '"' to listOf("«", "»", "„", "“", "”"),
+    '-' to listOf("–", "—"),
+    '?' to listOf("¿"),
+    '!' to listOf("¡"),
+    '.' to listOf("…"),
+)
 
 internal fun function(label: String, action: KeyAction, width: Float = 1f, icon: KeyIcon? = null) =
     Key(label, action, width, KeyStyle.FUNCTION, icon)

@@ -87,7 +87,7 @@ class DeveloperModeTest {
         terminal()
         controller.onKey(ctrl)
         controller.onKey(symbolsKey)
-        controller.onKey(Key("{ }", KeyAction.SwitchLayer(LayerId.CODE)))
+        controller.onKey(Key("#+=", KeyAction.SwitchLayer(LayerId.CODE)))
         assertEquals(LayerId.CODE, controller.layer)
         assertEquals("Ctrl · next key", controller.modifiers.chipText())
         controller.onKey(CodeLayer.rows[0].keys.first { it.label == "]" })

@@ -1,40 +1,45 @@
 package net.matasar.keyboard.layout
 
 /**
- * The bottom row every phone layer shares: page switch, comma, the globe when more than one
- * language is enabled, space named after the language, period, enter. Scales to the layer's units.
+ * The bottom row every phone layer shares, as on the iPhone: the page switch, the globe when more
+ * than one language is enabled (where the iPhone has its emoji key), space named after the
+ * language, and a wide return. No comma or period: a double space types ". ", and both are on
+ * the symbol pages. Scales to the layer's units.
  */
 internal fun bottomRow(switchTo: LayerId, switchLabel: String, units: Float, spaceLabel: String, withGlobe: Boolean): Row {
-    val fixed = 1.5f + 1f + 1f + 1.5f + (if (withGlobe) 1f else 0f)
-    val keys = mutableListOf(
-        function(switchLabel, KeyAction.SwitchLayer(switchTo), 1.5f),
-        function(",", KeyAction.Text(",")),
-    )
-    if (withGlobe) keys += Key("globe", KeyAction.SwitchLanguage, 1f, KeyStyle.FUNCTION, KeyIcon.GLOBE)
+    val fixed = SWITCH_KEY + RETURN_KEY + (if (withGlobe) GLOBE_KEY else 0f)
+    val keys = mutableListOf(function(switchLabel, KeyAction.SwitchLayer(switchTo), SWITCH_KEY))
+    if (withGlobe) keys += Key("globe", KeyAction.SwitchLanguage, GLOBE_KEY, KeyStyle.FUNCTION, KeyIcon.GLOBE)
     keys += spaceKey(units - fixed, spaceLabel)
-    keys += function(".", KeyAction.Text("."))
-    keys += enterKey()
+    keys += enterKey(RETURN_KEY)
     return Row(keys)
 }
 
-/** Digits and common punctuation, as in the Symbols mock. Shared by every language. */
+private const val SWITCH_KEY = 1.25f
+private const val GLOBE_KEY = 1.25f
+private const val RETURN_KEY = 2.5f
+
+/** The five marks on the third row of both symbol pages, a little wider than a key, as on the iPhone. */
+private fun marks(): Array<Key> = symbols(".,?!'").map { it.copy(width = 1.4f) }.toTypedArray()
+
+/** Digits and common punctuation: the iPhone's 123 page. Shared by every language. */
 fun symbolsLayer(spaceLabel: String, withGlobe: Boolean) = Layer(
     id = LayerId.SYMBOLS,
     rows = listOf(
         row(*symbols("1234567890")),
-        row(*symbols("@#$%&-+()/")),
-        row(function("{ }", KeyAction.SwitchLayer(LayerId.CODE), 1.5f), *symbols("*\"':;!?"), backspaceKey()),
+        row(*symbols("-/:;()$&@\"")),
+        row(function("#+=", KeyAction.SwitchLayer(LayerId.CODE), 1.5f), *marks(), backspaceKey()),
         bottomRow(LayerId.LETTERS, "ABC", 10f, spaceLabel, withGlobe),
     ),
 )
 
-/** The code page: braces, brackets, pipes and the rest that is slow to reach elsewhere. */
+/** Brackets, maths and the rest: the iPhone's #+= page. */
 fun codeLayer(spaceLabel: String, withGlobe: Boolean) = Layer(
     id = LayerId.CODE,
     rows = listOf(
-        row(*symbols("{}[]|\\~`<>")),
-        row(*symbols("!@#$%^&*-=")),
-        row(function("?123", KeyAction.SwitchLayer(LayerId.SYMBOLS), 1.5f), *symbols(";:'\"/_+"), backspaceKey()),
+        row(*symbols("[]{}#%^*+=")),
+        row(*symbols("_\\|~<>€£¥•")),
+        row(function("123", KeyAction.SwitchLayer(LayerId.SYMBOLS), 1.5f), *marks(), backspaceKey()),
         bottomRow(LayerId.LETTERS, "ABC", 10f, spaceLabel, withGlobe),
     ),
 )
@@ -57,7 +62,7 @@ fun phoneLayout(language: Language, withGlobe: Boolean, numberRow: Boolean = fal
     ),
 )
 
-/** QWERTY letters, as in the Main mock: English with no globe. */
+/** QWERTY letters: English with no globe. */
 val LettersLayer: Layer = Languages.english.lettersLayer(withGlobe = false)
 
 val SymbolsLayer: Layer = symbolsLayer("English", withGlobe = false)

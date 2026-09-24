@@ -12,6 +12,7 @@ import net.matasar.keyboard.layout.KeyAction
 import net.matasar.keyboard.layout.Languages
 import net.matasar.keyboard.layout.LettersLayer
 import net.matasar.keyboard.layout.ModifierKey
+import net.matasar.keyboard.layout.SymbolsLayer
 import net.matasar.keyboard.layout.phoneLayout
 import net.matasar.keyboard.layout.sixtyPercentLayer
 import kotlin.test.Test
@@ -126,7 +127,7 @@ class KeySpeechTest {
     fun `in a password spoken out loud a character key says Dot, and named keys keep their names`() {
         val p = letters.first { it.label == "p" }
         val space = letters.first { it.action == KeyAction.Space }
-        val comma = letters.first { it.label == "," }
+        val comma = SymbolsLayer.rows.flatMap { it.keys }.first { it.label == "," }
         val tab = Key("Tab", KeyAction.KeyCode(android.view.KeyEvent.KEYCODE_TAB))
         assertEquals(Spoken.Named(R.string.a11y_key_dot), spokenKey(p, "p", iconShown = false, obscured = true))
         assertEquals(Spoken.Named(R.string.a11y_key_dot), spokenKey(comma, ",", iconShown = false, obscured = true))

@@ -198,7 +198,7 @@
     <string name="a11y_key_fn">Function</string>
     <string name="a11y_key_letters">Letters</string>
     <string name="a11y_key_symbols">Symbols</string>
-    <string name="a11y_key_code">Code symbols</string>
+    <string name="a11y_key_code">More symbols</string>
     <string name="a11y_key_hide">Hide keyboard</string>
     <string name="a11y_key_next_language">Next language</string>
     <string name="a11y_key_left">Left arrow</string>
