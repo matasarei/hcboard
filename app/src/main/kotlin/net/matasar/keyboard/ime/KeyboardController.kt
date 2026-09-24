@@ -218,9 +218,13 @@ class KeyboardController(
     /** Setting: glide typing on the letters layer. */
     var glideEnabled: Boolean by mutableStateOf(true)
 
-    /** Whether a finger on the letters may glide right now. */
+    /**
+     * Whether a finger on the letters may glide right now: in a plain text field only, as the
+     * field report says. A number field opens on the letters too, and a word glided into a
+     * phone number is never what was meant.
+     */
     val glideAvailable: Boolean
-        get() = glideEnabled && glideEngine != null && !passwordField && !terminalField && !modifiers.anyActive && !trackpad
+        get() = glideEnabled && glideEngine != null && fieldKind == FieldKind.TEXT && !modifiers.anyActive && !trackpad
 
     /** Setting: the mic button in the strip, for handing dictation to a voice keyboard. */
     var voiceInputEnabled: Boolean by mutableStateOf(true)
