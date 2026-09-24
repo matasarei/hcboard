@@ -123,6 +123,10 @@ fun KeyButton(
     val currentCallbacks by rememberUpdatedState(callbacks)
     val currentHaptics by rememberUpdatedState(haptics)
     val currentRepeats by rememberUpdatedState(repeats)
+    // The listener lives as long as the key's id, and two keys can share one: ь on the Ukrainian
+    // board and on the Russian one are the same letter with different accents. It reads the key
+    // as it is now, or a long press offers the accents of the board it was built on.
+    val currentKey by rememberUpdatedState(key)
     val shape = RoundedCornerShape(Dimens.keyRadius)
     val scale by animateFloatAsState(
         targetValue = if (pressed) 0.96f else 1f,
@@ -139,13 +143,13 @@ fun KeyButton(
                 pressed = true
                 repeated = false
                 if (currentHaptics) view.keyDownTick()
-                currentCallbacks.onPressStart(key, bounds)
+                currentCallbacks.onPressStart(currentKey, bounds)
                 if (currentRepeats) {
                     repeatJob = scope.launch {
                         delay(REPEAT_DELAY_MS)
                         while (isActive) {
                             repeated = true
-                            currentCallbacks.onRepeat(key)
+                            currentCallbacks.onRepeat(currentKey)
                             delay(REPEAT_INTERVAL_MS)
                         }
                     }
@@ -156,25 +160,25 @@ fun KeyButton(
                 pressed = false
                 repeatJob?.cancel()
                 repeatJob = null
-                currentCallbacks.onPressEnd(key)
+                currentCallbacks.onPressEnd(currentKey)
             }
 
             override fun onTap() {
-                if (!repeated) currentCallbacks.onTap(key)
+                if (!repeated) currentCallbacks.onTap(currentKey)
             }
 
             override fun onLongPress(): LongPressResult {
                 if (currentRepeats) return LongPressResult.HANDLED
-                return currentCallbacks.onLongPress(key, bounds)
+                return currentCallbacks.onLongPress(currentKey, bounds)
             }
 
             override fun onLongPressMove(position: Offset) =
-                currentCallbacks.onLongPressMove(key, bounds.topLeft + position)
+                currentCallbacks.onLongPressMove(currentKey, bounds.topLeft + position)
 
             override fun onLongPressRelease(position: Offset) =
-                currentCallbacks.onLongPressRelease(key, bounds.topLeft + position)
+                currentCallbacks.onLongPressRelease(currentKey, bounds.topLeft + position)
 
-            override fun onLongPressCancel() = currentCallbacks.onLongPressCancel(key)
+            override fun onLongPressCancel() = currentCallbacks.onLongPressCancel(currentKey)
         }
     }
 
