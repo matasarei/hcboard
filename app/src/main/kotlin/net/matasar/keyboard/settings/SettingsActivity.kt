@@ -27,7 +27,6 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -64,9 +63,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import net.matasar.keyboard.R
 import net.matasar.keyboard.ime.KeyboardDiagnostics
-import net.matasar.keyboard.layout.BulgarianLayout
 import net.matasar.keyboard.layout.Languages
-import net.matasar.keyboard.layout.PortugueseSpelling
 import net.matasar.keyboard.macro.MacrosActivity
 import net.matasar.keyboard.ui.theme.KeyboardTheme
 import kotlin.math.roundToInt
@@ -200,60 +197,13 @@ private fun SettingsScreen(settings: Settings, prefs: Prefs) {
         Text(stringResource(R.string.settings_split_hint), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
 
         Section(stringResource(R.string.settings_section_languages))
-        Text(stringResource(R.string.settings_languages_hint), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        for (language in Languages.all.filter { it != Languages.english }) {
-            val enabled = language.tag in settings.enabledLanguages
-            SwitchRow("${language.nativeName} · ${language.englishName}", enabled) { scope.launch { prefs.setLanguageEnabled(language.tag, it) } }
-            if (language.tag == "ru" && enabled) {
-                Column(modifier = Modifier.padding(start = 16.dp, top = 4.dp, bottom = 4.dp)) {
-                    SwitchRow(stringResource(R.string.settings_ru_bg_vocabulary), settings.ruBulgarianVocabulary) {
-                        scope.launch { prefs.setRuBulgarianVocabulary(it) }
-                    }
-                    Text(
-                        stringResource(R.string.settings_ru_bg_vocabulary_hint),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-            }
-            if (language.tag == Languages.bulgarian.tag && enabled) {
-                Column(modifier = Modifier.padding(start = 16.dp, top = 4.dp, bottom = 4.dp)) {
-                    Text(stringResource(R.string.settings_bg_layout), style = MaterialTheme.typography.bodyLarge)
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        BulgarianLayout.entries.forEach { layout ->
-                            FilterChip(
-                                selected = settings.bulgarianLayout == layout,
-                                onClick = { scope.launch { prefs.setBulgarianLayout(layout) } },
-                                label = { Text(layout.label()) },
-                            )
-                        }
-                    }
-                    Text(
-                        stringResource(R.string.settings_bg_layout_hint),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-            }
-            if (language.tag == Languages.portuguese.tag && enabled) {
-                Column(modifier = Modifier.padding(start = 16.dp, top = 4.dp, bottom = 4.dp)) {
-                    Text(stringResource(R.string.settings_pt_spelling), style = MaterialTheme.typography.bodyLarge)
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        PortugueseSpelling.entries.forEach { spelling ->
-                            FilterChip(
-                                selected = settings.portugueseSpelling == spelling,
-                                onClick = { scope.launch { prefs.setPortugueseSpelling(spelling) } },
-                                label = { Text(spelling.label()) },
-                            )
-                        }
-                    }
-                    Text(
-                        stringResource(R.string.settings_pt_spelling_hint),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-            }
+        // The list is on its own screen: 21 languages and their options would bury everything below.
+        Text(
+            Languages.all.filter { it == Languages.english || it.tag in settings.enabledLanguages }.joinToString(", ") { it.nativeName },
+            style = MaterialTheme.typography.bodyLarge,
+        )
+        OutlinedButton(onClick = { context.startActivity(LanguagesActivity.intent(context)) }) {
+            Text(stringResource(R.string.settings_languages_open))
         }
 
         Section(stringResource(R.string.settings_section_suggestions))

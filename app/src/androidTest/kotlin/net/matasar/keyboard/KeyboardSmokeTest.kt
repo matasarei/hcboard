@@ -12,6 +12,7 @@ import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.uiautomator.By
 import androidx.test.uiautomator.UiDevice
 import androidx.test.uiautomator.Until
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import net.matasar.keyboard.settings.Prefs
 import net.matasar.keyboard.settings.SettingsActivity
@@ -783,6 +784,72 @@ class KeyboardSmokeTest {
             }
             Thread.sleep(1_500)
         }
+    }
+
+    /**
+     * The languages are on their own screen: Settings shows the enabled ones and a button.
+     * Switching Croatian on there turns it on for the keyboard, keeps its row where it was (under
+     * More languages, until the screen opens again), and Settings names it on the way back.
+     * Named to run last: the test after it in the same run could not find the Settings field,
+     * for a reason not yet found (it passes alone, and so do the others).
+     */
+    @Test
+    fun zzLanguagesScreenSwitchesALanguageInPlace() {
+        val context = ApplicationProvider.getApplicationContext<android.content.Context>()
+        val prefs = Prefs(context)
+        try {
+            // Hide the keyboard the field opened; Back with none up would leave Settings instead.
+            if (device.executeShellCommand("dumpsys input_method").contains("mIsInputViewShown=true")) {
+                device.pressBack()
+                waitUntil(2_000) { !device.executeShellCommand("dumpsys input_method").contains("mIsInputViewShown=true") }
+            }
+            var button = device.findObject(By.text("Choose languages"))
+            repeat(20) {
+                if (button != null) return@repeat
+                slowScroll(up = true)
+                button = device.findObject(By.text("Choose languages"))
+            }
+            assertNotNull("no Choose languages button on the Settings screen", button)
+            // Near the bottom edge a tap lands on the navigation bar: bring the button up first.
+            if (button!!.visibleCenter.y > device.displayHeight * 2 / 3) slowScroll(up = false)
+            var opened = false
+            repeat(2) {
+                if (opened) return@repeat
+                device.findObject(By.text("Choose languages"))?.click()
+                opened = device.wait(Until.hasObject(By.text("More languages")), 3_000)
+            }
+            assertTrue("the Languages screen never opened", opened)
+            val croatian = "Hrvatski · Croatian"
+            var row = device.findObject(By.text(croatian))
+            repeat(20) {
+                if (row != null) return@repeat
+                slowScroll(up = false)
+                row = device.findObject(By.text(croatian))
+            }
+            assertNotNull("no Croatian row", row)
+            val before = row!!.visibleBounds
+            // The switch sits at the row's end, apart from the text.
+            device.click(device.displayWidth - before.height(), before.centerY())
+            val on = waitUntil(3_000) { runBlocking { "hr" in prefs.settings.first().enabledLanguages } }
+            assertTrue("Croatian was not switched on", on)
+            device.waitForIdle()
+            assertEquals("the Croatian row moved when switched", before.top, device.findObject(By.text(croatian)).visibleBounds.top)
+            device.pressBack()
+            assertTrue("Settings does not name Croatian after the switch", device.wait(Until.hasObject(By.textContains("Hrvatski")), 5_000))
+        } finally {
+            runBlocking { prefs.setLanguageEnabled("hr", false) }
+        }
+    }
+
+    /**
+     * Scrolls a screen by about a third, slowly enough not to fling: a quick drag flings past what
+     * is being looked for, and the next one cannot bring it back.
+     */
+    private fun slowScroll(up: Boolean) {
+        val x = device.displayWidth / 2
+        val (from, to) = device.displayHeight * 2 / 3 to device.displayHeight / 3
+        if (up) device.swipe(x, to, x, from, 100) else device.swipe(x, from, x, to, 100)
+        device.waitForIdle()
     }
 
     /**
