@@ -1233,10 +1233,10 @@ class KeyboardController(
         const val DOUBLE_SPACE_WINDOW_MS = 400L
 
         /** The characters that end a word and apply its correction. */
-        private val SEPARATORS = setOf(" ", ".", ",", "!", "?")
+        private val SEPARATORS = setOf(" ", ".", ",", "!", "?", "…")
 
         /** Marks that follow a picked word before its space: "hello " and "!" make "hello! ". */
-        private val SWAP_BEFORE_SPACE = setOf(".", ",", "!", "?", ";", ":")
+        private val SWAP_BEFORE_SPACE = setOf(".", ",", "!", "?", ";", ":", "…")
 
         /** Closing brackets, which replace a picked word's space: "hello " and ")" make "hello)". */
         private val CLOSE_ON_WORD = setOf(")", "]", "}")
