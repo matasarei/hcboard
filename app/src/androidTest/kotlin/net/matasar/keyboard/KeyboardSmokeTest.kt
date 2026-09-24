@@ -701,6 +701,51 @@ class KeyboardSmokeTest {
     }
 
     /**
+     * Runs after [zGlidesUkrainian] (name order), and like it switches the language and back.
+     * Ukrainian ь and Russian ь are the same key to Compose (label and action), so the key that
+     * stays on screen across the switch must still hold Russian ь's accents: before the fix it
+     * kept Ukrainian ь's listener, and a long press typed ь (no accents there) instead of ъ.
+     */
+    @Test
+    fun zLongPressOffersTheAccentsOfTheLanguageOnScreen() {
+        val context = ApplicationProvider.getApplicationContext<android.content.Context>()
+        val prefs = Prefs(context)
+        runBlocking {
+            prefs.setLanguageEnabled("uk", true)
+            prefs.setLanguageEnabled("ru", true)
+            prefs.setCurrentLanguage("uk")
+        }
+        try {
+            Thread.sleep(2_000) // the Ukrainian board is composed, ь included
+            keyCentre("ь")
+            runBlocking { prefs.setCurrentLanguage("ru") }
+            assertNotNull("the Russian board never showed: ${describeImeNodes()}", waitForImeNode("ы", ignoreCase = true)) // no ы key on the Ukrainian board
+            val key = keyCentre("ь")
+            val instrumentation = InstrumentationRegistry.getInstrumentation()
+            val downTime = SystemClock.uptimeMillis()
+            fun inject(action: Int) {
+                val event = MotionEvent.obtain(downTime, SystemClock.uptimeMillis(), action, key.x.toFloat(), key.y.toFloat(), 0)
+                event.source = InputDevice.SOURCE_TOUCHSCREEN
+                assertTrue("injecting action $action failed", instrumentation.uiAutomation.injectInputEvent(event, true))
+                event.recycle()
+            }
+            inject(MotionEvent.ACTION_DOWN)
+            SystemClock.sleep(ViewConfiguration.getLongPressTimeout().toLong() + 400)
+            inject(MotionEvent.ACTION_UP)
+            // Releasing where the finger went down picks the first accent; the field may capitalise it.
+            val typed = waitUntil(3_000) { fieldText()?.lowercase() == "ъ" }
+            assertTrue("expected ъ from a long press on Russian ь, field holds '${fieldText()}'", typed)
+        } finally {
+            runBlocking {
+                prefs.setCurrentLanguage("en_US")
+                prefs.setLanguageEnabled("ru", false)
+                prefs.setLanguageEnabled("uk", false)
+            }
+            Thread.sleep(1_500)
+        }
+    }
+
+    /**
      * Keys live in the IME window, which the accessibility tree does not always expose, so the
      * tap lands on the key's computed position: rows from the bottom of the screen, columns
      * from the layer geometry (4 dp side padding, 6 dp gaps, 42 dp keys, 12 dp gaps, the
