@@ -18,6 +18,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -46,18 +47,21 @@ internal fun AccentSwatches(selected: AccentColour, theme: ThemeChoice, onPick: 
     // Below Android 12 the phone's palette is the fixed blue, so the blue swatch stands for it.
     val shown = if (phonePalette || selected != AccentColour.SYSTEM) selected else AccentColour.BLUE
     val context = LocalContext.current
+    // The phone's own accent, built once per mode rather than on every redraw of the row.
+    val phonePrimary = remember(context, dark) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            (if (dark) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)).primary
+        } else {
+            null
+        }
+    }
     FlowRow(
         modifier = Modifier.selectableGroup(),
         horizontalArrangement = Arrangement.spacedBy(4.dp),
     ) {
         for (accent in AccentColour.entries) {
             val fill = when (accent) {
-                AccentColour.SYSTEM ->
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                        (if (dark) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)).primary
-                    } else {
-                        continue
-                    }
+                AccentColour.SYSTEM -> phonePrimary ?: continue
                 else -> Accents.getValue(accent).of(dark).primary
             }
             Swatch(
