@@ -27,6 +27,7 @@ import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.coroutines.withContext
 import net.matasar.keyboard.input.keyStrokeFor
 import net.matasar.keyboard.layout.BulgarianLayout
+import net.matasar.keyboard.layout.FieldMarks
 import net.matasar.keyboard.layout.Key
 import net.matasar.keyboard.layout.KeyAction
 import net.matasar.keyboard.layout.KeyIcon
@@ -92,14 +93,19 @@ class KeyboardController(
     /** The current language as its keys are laid out: Bulgarian's standard board when the setting asks for it. */
     private val keysLanguage: Language get() = Languages.resolve(language, bulgarianLayout)
 
-    private val layoutCache = HashMap<Triple<Language, Boolean, Boolean>, KeyboardLayout>()
+    /** The marks the focused field keeps beside the space bar: `@` or `/` and `.` in an address field. */
+    var fieldMarks: FieldMarks by mutableStateOf(FieldMarks.NONE)
+        private set
+
+    private data class PhoneLayoutKey(val language: Language, val withGlobe: Boolean, val numberRow: Boolean, val marks: FieldMarks)
+
+    private val layoutCache = HashMap<PhoneLayoutKey, KeyboardLayout>()
     private val wideLayoutCache = HashMap<Pair<Language, Boolean>, KeyboardLayout>()
 
-    /** The phone layout for the current language, built once per language, layout, globe and number row. */
+    /** The phone layout for the current language, built once per language, layout, globe, number row and field marks. */
     val phoneLayout: KeyboardLayout
-        get() = numberRowShown.let { digits ->
-            val keys = keysLanguage
-            layoutCache.getOrPut(Triple(keys, withGlobe, digits)) { phoneLayout(keys, withGlobe, digits) }
+        get() = PhoneLayoutKey(keysLanguage, withGlobe, numberRowShown, fieldMarks).let { key ->
+            layoutCache.getOrPut(key) { phoneLayout(key.language, key.withGlobe, key.numberRow, key.marks) }
         }
 
     /** The 60% board for the current language, built the same way. */
@@ -244,6 +250,7 @@ class KeyboardController(
      */
     fun updateFieldKind(info: EditorInfo?) {
         fieldKind = info?.let { fieldKindOf(it.inputType) } ?: FieldKind.TEXT
+        fieldMarks = info?.let { fieldMarksOf(it.inputType) } ?: FieldMarks.NONE
     }
 
     /**

@@ -2,6 +2,7 @@ package net.matasar.keyboard.ime
 
 import android.text.InputType
 import android.view.inputmethod.EditorInfo
+import net.matasar.keyboard.layout.FieldMarks
 import net.matasar.keyboard.layout.KeyIcon
 import net.matasar.keyboard.layout.LayerId
 import kotlin.test.Test
@@ -79,6 +80,17 @@ class EditorInfoMappingTest {
         val report = fieldReport(EditorInfo().apply { inputType = InputType.TYPE_CLASS_TEXT })
         assertTrue(report.contains("suggestions allowed"), report)
         assertTrue(report.contains("glide allowed"), report)
+    }
+
+    @Test
+    fun `address fields keep their marks beside the space bar, other fields none`() {
+        assertEquals(FieldMarks.EMAIL, fieldMarksOf(InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS))
+        assertEquals(FieldMarks.EMAIL, fieldMarksOf(InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_WEB_EMAIL_ADDRESS))
+        assertEquals(FieldMarks.URL, fieldMarksOf(InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_URI))
+        assertEquals(FieldMarks.NONE, fieldMarksOf(InputType.TYPE_CLASS_TEXT))
+        assertEquals(FieldMarks.NONE, fieldMarksOf(InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD))
+        assertEquals(FieldMarks.NONE, fieldMarksOf(InputType.TYPE_CLASS_NUMBER))
+        assertEquals(FieldMarks.NONE, fieldMarksOf(InputType.TYPE_NULL))
     }
 
     @Test

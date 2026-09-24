@@ -34,9 +34,10 @@ data class Language(
 
     /**
      * The letters layer for this language, with a globe key when more than one language is
-     * enabled, and the digits across the top when [numberRow] asks for them.
+     * enabled, the digits across the top when [numberRow] asks for them, and an address field's
+     * [marks] beside the space bar.
      */
-    fun lettersLayer(withGlobe: Boolean, numberRow: Boolean = false): Layer {
+    fun lettersLayer(withGlobe: Boolean, numberRow: Boolean = false, marks: FieldMarks = FieldMarks.NONE): Layer {
         val units = units
         // Shift and backspace take what the letters leave, up to a key and a half each, as on the
         // iPhone; anything beyond that is a gap between them and the letters.
@@ -50,7 +51,7 @@ data class Language(
                 row(*phoneKeys(0), leading = (units - phoneRows[0].length) / 2f, trailing = (units - phoneRows[0].length) / 2f),
                 row(*phoneKeys(1), leading = (units - phoneRows[1].length) / 2f, trailing = (units - phoneRows[1].length) / 2f),
                 Row(listOf(shiftKey(edge), *phoneKeys(2), backspaceKey(edge)), innerGapUnits = side - edge),
-                bottomRow(LayerId.SYMBOLS, "123", units, nativeName, withGlobe),
+                bottomRow(LayerId.SYMBOLS, "123", units, nativeName, withGlobe, marks),
             ),
         )
     }

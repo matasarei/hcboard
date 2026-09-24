@@ -85,5 +85,19 @@ class LayersTest {
         assertTrue(LettersLayer.rows.flatMap { it.keys }.none { it.label == "," || it.label == "." })
     }
 
+    @Test
+    fun `an address field gets its marks around the space bar on the letters page only`() {
+        fun labels(marks: FieldMarks) =
+            phoneLayout(Languages.english, withGlobe = true, marks = marks).layers.getValue(LayerId.LETTERS).rows[3].keys.map { it.label }
+        assertEquals(listOf("123", "globe", "English", "enter"), labels(FieldMarks.NONE))
+        assertEquals(listOf("123", "globe", "@", "English", ".", "enter"), labels(FieldMarks.EMAIL))
+        assertEquals(listOf("123", "globe", "/", "English", ".", "enter"), labels(FieldMarks.URL))
+        for (marks in FieldMarks.entries) {
+            val layout = phoneLayout(Languages.ukrainian, withGlobe = false, marks = marks)
+            for (layer in layout.layers.values) for (row in layer.rows) assertEquals(layer.units, row.totalUnits, 0.001f, "$marks ${layer.id}")
+            assertEquals(symbolsLayer(Languages.ukrainian.nativeName, withGlobe = false), layout.layers.getValue(LayerId.SYMBOLS))
+        }
+    }
+
     private fun Row.rows() = keys
 }
