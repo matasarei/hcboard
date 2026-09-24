@@ -83,8 +83,9 @@ from the password manager you already use, and the keyboard never shows or keeps
   Portuguese, Polish, Dutch, Swedish, Danish, Finnish, Czech, Romanian, Greek, Croatian, Slovenian,
   Lithuanian and Latvian, each with its own layout and long-press accents. English is always on; add
   the others in Settings → Languages → Choose languages. With two or more, a globe key switches
-  them: with three or more, a tap goes back to the language you came from, as on an iPhone, or on
-  to the next one, as on Gboard (chosen on the Languages screen). Holding it opens the list, and the
+  them: with three or more, a first tap goes back to the language you came from and further taps
+  in a row go on through all of them, as on an iPhone, or every tap goes on to the next one, as on
+  Gboard (chosen on the Languages screen). Holding it opens the list, and the
   space bar names the one you are typing in; Android's keyboard list and its switcher show the
   same languages. Bulgarian comes on two boards, phonetic (я в е р т) or the
   standard БДС one the iPhone uses (у е и ш щ), picked under Bulgarian in Settings. Portuguese

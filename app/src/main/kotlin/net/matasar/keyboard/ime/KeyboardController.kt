@@ -88,6 +88,9 @@ class KeyboardController(
     /** The language typed in before the current one, where [GlobeTap.LAST_USED] goes back to. */
     var previousLanguage: Language? = null
 
+    /** Whether the last key was the globe: taps in a row go on through the list rather than back. */
+    private var globeTapsInARow = false
+
     /** Whether the language picker sheet is open. */
     var languageSheetOpen: Boolean by mutableStateOf(false)
 
@@ -125,7 +128,9 @@ class KeyboardController(
 
     fun switchLanguage(to: Language) {
         languageSheetOpen = false
+        // Android echoes each switch back as a subtype change to the same language: that must not end a run of globe taps.
         if (to == language) return
+        globeTapsInARow = false
         previousLanguage = language
         language = to
         // The symbols and code pages are the same in every language, so a language picked there
@@ -141,15 +146,19 @@ class KeyboardController(
     }
 
     /**
-     * The globe tap: back to the language used before, as on an iPhone, or on to the next in the
-     * list, as on Gboard. With no language to go back to (the first switch, or it was switched
-     * off) Last used goes on to the next one too.
+     * The globe tap. With Last used, as on an iPhone, a first tap goes back to the language used
+     * before, and taps in a row after it go on through the list, all the way round; with Next
+     * language, as on Gboard, every tap goes on. With no language to go back to (the first
+     * switch, or it was switched off) a first tap goes on too.
      */
-    fun nextLanguage() = switchLanguage(globeTarget())
+    fun nextLanguage() {
+        switchLanguage(globeTarget())
+        globeTapsInARow = true
+    }
 
     /** Where a globe tap goes now, by [nextLanguage]'s rule; what TalkBack names the globe. */
     fun globeTarget(): Language =
-        previousLanguage?.takeIf { globeTap == GlobeTap.LAST_USED && it.tag in enabledLanguages && it != language }
+        previousLanguage?.takeIf { globeTap == GlobeTap.LAST_USED && !globeTapsInARow && it.tag in enabledLanguages && it != language }
             ?: Languages.next(language, enabledLanguages)
 
     var shift: Latch by mutableStateOf(Latch())
@@ -522,6 +531,7 @@ class KeyboardController(
         layer = LayerId.LETTERS
         shift = Latch()
         lastSpaceAt = null
+        globeTapsInARow = false
         modifiers = Modifiers()
         usedHolds.clear()
         pendingLocks.clear()
@@ -702,6 +712,7 @@ class KeyboardController(
     private val doubleTapWindowMs: Long get() = if (doubleTapLock) Latch.DOUBLE_TAP_WINDOW_MS else 0L
 
     fun onKey(key: Key) {
+        if (key.action != KeyAction.SwitchLanguage) globeTapsInARow = false
         passwordTyped = false
         candidatesCollapsed = false
         val undo = lastAutocorrect
@@ -932,6 +943,7 @@ class KeyboardController(
 
     /** A glide ended over the letter keys [keys]: classify off the main thread, then commit the best word. */
     fun onGlideEnd(path: List<GlidePoint>, keys: List<GlideKey>) {
+        globeTapsInARow = false
         val engine = glideEngine ?: return
         val scope = scope ?: return
         if (!glideAvailable || path.size < 2) return
