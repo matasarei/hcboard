@@ -134,6 +134,14 @@ class SixtyPercentLayoutTest {
     }
 
     @Test
+    fun `bulgarian standard fills the slots left to right, with the nine-letter shift row`() {
+        val layer = sixtyPercentLayer(Languages.bulgarianStandard, withGlobe = false)
+        assertEquals("Tab у е и ш щ к с д з ц б ] \\", layer.rows[1].keys.joinToString(" ") { it.label })
+        assertEquals("Shift ю й ъ э ф х п р л . / Shift", layer.rows[3].keys.joinToString(" ") { it.label })
+        assertEquals('[', layer.rows[1].keys.first { it.label == "б" }.slot)
+    }
+
+    @Test
     fun `english renders the standard board and its letters carry their own slot`() {
         assertEquals("Shift z x c v b n m , . / Shift", SixtyPercentLayer.rows[3].keys.joinToString(" ") { it.label })
         assertEquals(listOf(2.75f, 2.25f), listOf(SixtyPercentLayer.rows[3].keys.first().width, SixtyPercentLayer.rows[3].keys.last().width))

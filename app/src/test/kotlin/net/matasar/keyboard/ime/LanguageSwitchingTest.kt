@@ -57,7 +57,7 @@ class LanguageSwitchingTest {
         val letters = controller.phoneLayout.layer(net.matasar.keyboard.layout.LayerId.LETTERS)
         assertEquals("й", letters.rows[0].keys.first().label)
         assertEquals("Русский", letters.rows[3].keys.first { it.action == KeyAction.Space }.label)
-        assertEquals(12f, letters.units)
+        assertEquals(11f, letters.units) // the iPhone's eleven keys, ъ on a long press
     }
 
     @Test
