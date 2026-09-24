@@ -76,7 +76,7 @@ class LanguagesActivity : ComponentActivity() {
  * The languages switched on in [enabled], in the globe's order, and every other language by its
  * English name. English is in neither: it is always on, and the screen says so instead.
  */
-fun languageGroups(enabled: Set<String>): Pair<List<Language>, List<Language>> {
+internal fun languageGroups(enabled: Set<String>): Pair<List<Language>, List<Language>> {
     val (on, off) = (Languages.all - Languages.english).partition { it.tag in enabled }
     return on to off.sortedBy { it.englishName }
 }
