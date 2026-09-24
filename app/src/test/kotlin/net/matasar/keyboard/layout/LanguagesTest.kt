@@ -43,10 +43,10 @@ class LanguagesTest {
         assertEquals(12, Languages.russian.rows[0].length)
         assertEquals(11f, Languages.russian.units)
         assertEquals(1f, Languages.russian.lettersLayer(false).rows[2].keys.first().width)
-        // Ukrainian: twelve keys on every row, the apostrophe and ґ included.
-        assertEquals(listOf(12, 12, 10), Languages.ukrainian.phoneRows.map { it.length })
+        // Ukrainian: twelve keys on the upper rows, the apostrophe included; ґ is a long press on г.
+        assertEquals(listOf(12, 12, 9), Languages.ukrainian.phoneRows.map { it.length })
         assertEquals("'", Languages.ukrainian.lettersLayer(false).rows[1].keys.last().label)
-        assertEquals("ґ", Languages.ukrainian.lettersLayer(false).rows[2].keys.dropLast(1).last().label)
+        assertTrue("ґ" !in letters(Languages.ukrainian))
         assertEquals("a", Languages.french.rows[0].first().toString())
         assertTrue(letters(Languages.spanish).contains("ñ"))
         assertTrue(letters(Languages.german).containsAll(listOf("ü", "ö", "ä")))
