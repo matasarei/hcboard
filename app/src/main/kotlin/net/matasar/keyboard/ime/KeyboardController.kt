@@ -145,10 +145,12 @@ class KeyboardController(
      * list, as on Gboard. With no language to go back to (the first switch, or it was switched
      * off) Last used goes on to the next one too.
      */
-    fun nextLanguage() {
-        val back = previousLanguage?.takeIf { globeTap == GlobeTap.LAST_USED && it.tag in enabledLanguages && it != language }
-        switchLanguage(back ?: Languages.next(language, enabledLanguages))
-    }
+    fun nextLanguage() = switchLanguage(globeTarget())
+
+    /** Where a globe tap goes now, by [nextLanguage]'s rule; what TalkBack names the globe. */
+    fun globeTarget(): Language =
+        previousLanguage?.takeIf { globeTap == GlobeTap.LAST_USED && it.tag in enabledLanguages && it != language }
+            ?: Languages.next(language, enabledLanguages)
 
     var shift: Latch by mutableStateOf(Latch())
         private set

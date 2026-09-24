@@ -111,6 +111,8 @@ fun KeyButton(
     obscured: Boolean = false,
     /** The field's action (`EditorInfo.IME_ACTION_*`), which Enter says instead of its own name. */
     editorAction: Int? = null,
+    /** The language a globe tap goes to, in its own name, which the globe says instead of "Next language". */
+    globeTarget: String? = null,
     /** What a screen reader can do with the key besides typing it (see keyActions); usually none. */
     customActions: List<CustomAccessibilityAction> = emptyList(),
 ) {
@@ -185,8 +187,9 @@ fun KeyButton(
     // One node per key for TalkBack: what the key types now, or its name, and a click that types
     // it, which is what both double-tap and TalkBack's lift-to-type perform. The glyph and the
     // legends under it are not read on their own.
-    val description = when (val spoken = spokenKey(key, label, iconShown = icon != null, obscured = obscured, editorAction = editorAction)) {
+    val description = when (val spoken = spokenKey(key, label, iconShown = icon != null, obscured = obscured, editorAction = editorAction, globeTarget = globeTarget)) {
         is Spoken.Named -> stringResource(spoken.id)
+        is Spoken.NamedFor -> stringResource(spoken.id, spoken.arg)
         is Spoken.Text -> spoken.text
     }
 

@@ -229,6 +229,7 @@
     <string name="a11y_key_code">More symbols</string>
     <string name="a11y_key_hide">Hide keyboard</string>
     <string name="a11y_key_next_language">Next language</string>
+    <string name="a11y_key_switch_to">Switch to %1$s</string>
     <string name="a11y_key_left">Left arrow</string>
     <string name="a11y_key_right">Right arrow</string>
     <string name="a11y_key_up">Up arrow</string>

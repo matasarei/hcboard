@@ -102,6 +102,19 @@ class LanguageSwitchingTest {
     }
 
     @Test
+    fun `the globe's target, which TalkBack names, is where a tap goes in either setting`() {
+        controller.enabledLanguages = setOf("en_US", "uk", "fr")
+        for (tap in GlobeTap.entries) {
+            controller.globeTap = tap
+            repeat(4) {
+                val target = controller.globeTarget()
+                controller.onKey(globe()!!)
+                assertEquals(target, controller.language, "$tap")
+            }
+        }
+    }
+
+    @Test
     fun `a language to go back to that was switched off, or is the current one, is passed over for the next`() {
         controller.enabledLanguages = setOf("en_US", "uk", "fr")
         controller.previousLanguage = Languages.german // not enabled
