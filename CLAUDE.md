@@ -169,7 +169,8 @@ emulator profile is `medium_phone`; boot it headless with
   long press never reaches the keys through it.
 - **Colours** (`ui/theme/KeyboardTheme.kt`): the Material scheme is the phone's (dynamic, API 31+)
   or a fixed blue below that; `Settings.accent` (`AccentColour`, swatches in
-  `settings/AccentSwatches.kt`) replaces only its four accent roles with a tonal palette from
+  `settings/AccentSwatches.kt`) replaces only its four accent roles (and the secondary container,
+  for Material's selected chips) with a tonal palette from
   `ui/theme/Accents.kt`, generated from each seed with material-color-utilities and kept as
   numbers (regenerate, never hand-tune one role; `AccentsTest` checks 4.5:1). The dark and Black
   surfaces never come from the accent, and Black keeps Enter grey. `KeyboardThemeFor(theme,

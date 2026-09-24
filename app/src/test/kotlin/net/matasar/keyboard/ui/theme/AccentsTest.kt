@@ -38,14 +38,17 @@ class AccentsTest {
     }
 
     @Test
-    fun `a fixed accent changes the four accent roles and nothing else`() {
+    fun `a fixed accent changes the four accent roles and the chips' container, and nothing else`() {
         val scheme = darkColorScheme()
         val red = scheme.withAccent(AccentColour.RED, dark = true)
         val tones = Accents.getValue(AccentColour.RED).dark
         assertEquals(tones, AccentTones(red.primary, red.onPrimary, red.primaryContainer, red.onPrimaryContainer))
         // ColorScheme has no equals of its own; its toString lists every role.
         assertEquals(
-            scheme.copy(primary = red.primary, onPrimary = red.onPrimary, primaryContainer = red.primaryContainer, onPrimaryContainer = red.onPrimaryContainer).toString(),
+            scheme.copy(
+                primary = tones.primary, onPrimary = tones.onPrimary, primaryContainer = tones.primaryContainer, onPrimaryContainer = tones.onPrimaryContainer,
+                secondaryContainer = tones.primaryContainer, onSecondaryContainer = tones.onPrimaryContainer,
+            ).toString(),
             red.toString(),
         )
         assertTrue(scheme.toString() != red.toString())

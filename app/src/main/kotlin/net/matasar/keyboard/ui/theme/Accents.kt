@@ -61,7 +61,11 @@ internal val Accents: Map<AccentColour, AccentPair> = mapOf(
     ),
 )
 
-/** This scheme with [accent]'s four roles in place of its own; [AccentColour.SYSTEM] keeps it as it is. */
+/**
+ * This scheme with [accent]'s four roles in place of its own; [AccentColour.SYSTEM] keeps it as it is.
+ * The secondary container takes the accent's container too: the keyboard never reads it, but
+ * Material's selected chips on the settings screens do, and would stay the phone's colour.
+ */
 internal fun ColorScheme.withAccent(accent: AccentColour, dark: Boolean): ColorScheme {
     val tones = Accents[accent]?.of(dark) ?: return this
     return copy(
@@ -69,5 +73,7 @@ internal fun ColorScheme.withAccent(accent: AccentColour, dark: Boolean): ColorS
         onPrimary = tones.onPrimary,
         primaryContainer = tones.primaryContainer,
         onPrimaryContainer = tones.onPrimaryContainer,
+        secondaryContainer = tones.primaryContainer,
+        onSecondaryContainer = tones.onPrimaryContainer,
     )
 }
