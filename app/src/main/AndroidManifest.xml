@@ -52,6 +52,11 @@
             android:label="@string/words_title"
             android:windowSoftInputMode="adjustResize" />
 
+        <activity
+            android:name=".settings.LanguagesActivity"
+            android:exported="false"
+            android:label="@string/languages_title" />
+
         <!-- The licence and notice texts the APK carries; opened from settings. -->
         <activity
             android:name=".settings.LicencesActivity"
