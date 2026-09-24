@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
@@ -116,6 +117,30 @@ private fun MacroList(macros: List<Macro>, scope: CoroutineScope, store: MacroSt
     val newName = stringResource(R.string.macros_new_name)
     val undo = stringResource(R.string.macros_undo)
     val deletedFormat = stringResource(R.string.macros_deleted)
+    // The macro whose delete button was tapped: it goes only once the dialog says so, because a
+    // macro can hold a sealed secret that exists nowhere else.
+    var confirming by remember { mutableStateOf<Macro?>(null) }
+    confirming?.let { macro ->
+        AlertDialog(
+            onDismissRequest = { confirming = null },
+            title = { Text(stringResource(R.string.macros_delete_confirm_title, macro.name)) },
+            text = { Text(stringResource(R.string.macros_delete_confirm)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    confirming = null
+                    val index = macros.indexOf(macro)
+                    scope.launch {
+                        if (!store.delete(macro.id)) return@launch saved(false)
+                        val result = snackbar.showSnackbar(deletedFormat.format(macro.name), actionLabel = undo, withDismissAction = true)
+                        if (result == SnackbarResult.ActionPerformed) saved(store.restore(macro, index))
+                    }
+                }) { Text(stringResource(R.string.macros_delete)) }
+            },
+            dismissButton = {
+                TextButton(onClick = { confirming = null }) { Text(stringResource(R.string.macros_delete_cancel)) }
+            },
+        )
+    }
     Scaffold(snackbarHost = { SnackbarHost(snackbar) }) { padding ->
         Column(
             modifier = Modifier
@@ -135,14 +160,7 @@ private fun MacroList(macros: List<Macro>, scope: CoroutineScope, store: MacroSt
                             Text(macro.name, style = MaterialTheme.typography.titleMedium)
                             Text(macro.summary(), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
-                        IconButton(onClick = {
-                            val index = macros.indexOf(macro)
-                            scope.launch {
-                                if (!store.delete(macro.id)) return@launch saved(false)
-                                val result = snackbar.showSnackbar(deletedFormat.format(macro.name), actionLabel = undo, withDismissAction = true)
-                                if (result == SnackbarResult.ActionPerformed) saved(store.restore(macro, index))
-                            }
-                        }) {
+                        IconButton(onClick = { confirming = macro }) {
                             Icon(painterResource(R.drawable.ic_close), stringResource(R.string.macros_delete), modifier = Modifier.size(20.dp))
                         }
                     }

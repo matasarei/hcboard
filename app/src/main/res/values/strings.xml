@@ -115,6 +115,9 @@
     <string name="macros_deleted">Deleted %1$s</string>
     <string name="macros_undo">Undo</string>
     <string name="macros_delete">Delete</string>
+    <string name="macros_delete_confirm_title">Delete %1$s?</string>
+    <string name="macros_delete_confirm">The macro and its blocks, secret texts included, are removed from the keyboard.</string>
+    <string name="macros_delete_cancel">Cancel</string>
     <string name="macros_back">Back</string>
     <string name="macros_name">Name</string>
     <string name="macros_script">Blocks</string>
