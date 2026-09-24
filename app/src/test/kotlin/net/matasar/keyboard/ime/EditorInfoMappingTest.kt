@@ -94,6 +94,21 @@ class EditorInfoMappingTest {
     }
 
     @Test
+    fun `a double space may type a full stop in prose only`() {
+        assertTrue(periodShortcutAllowed(InputType.TYPE_CLASS_TEXT))
+        assertTrue(periodShortcutAllowed(InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_SHORT_MESSAGE))
+        assertTrue(periodShortcutAllowed(InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS))
+        assertFalse(periodShortcutAllowed(InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_URI))
+        assertFalse(periodShortcutAllowed(InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_WEB_EMAIL_ADDRESS))
+        assertFalse(periodShortcutAllowed(InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_WEB_PASSWORD))
+        assertFalse(periodShortcutAllowed(InputType.TYPE_CLASS_NUMBER))
+        assertFalse(periodShortcutAllowed(InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_VARIATION_PASSWORD))
+        assertFalse(periodShortcutAllowed(InputType.TYPE_CLASS_PHONE))
+        assertFalse(periodShortcutAllowed(InputType.TYPE_CLASS_DATETIME))
+        assertFalse(periodShortcutAllowed(InputType.TYPE_NULL))
+    }
+
+    @Test
     fun `candidates are allowed in plain text only`() {
         assertTrue(suggestionsAllowed(InputType.TYPE_CLASS_TEXT))
         assertTrue(suggestionsAllowed(InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_MULTI_LINE or InputType.TYPE_TEXT_FLAG_AUTO_CORRECT))
