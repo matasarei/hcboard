@@ -546,8 +546,6 @@ class KeyboardSmokeTest {
             assertNotNull("no globe on the board with two languages on; saw: ${describeImeNodes()}", waitForImeNode(globe))
             // The board rebuilds when the second language arrives, so the node is looked up again
             // for each attempt: an action performed on a node from the older tree goes nowhere.
-            // The board rebuilds when the second language arrives, so the node is looked up again
-            // for each attempt: an action performed on a node from the older tree goes nowhere.
             // The sheet's rows carry text, not a description, which is what to look for.
             var opened = false
             repeat(5) {
