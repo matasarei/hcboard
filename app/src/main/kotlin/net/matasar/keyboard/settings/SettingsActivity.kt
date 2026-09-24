@@ -64,6 +64,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import net.matasar.keyboard.R
 import net.matasar.keyboard.ime.KeyboardDiagnostics
+import net.matasar.keyboard.layout.BulgarianLayout
 import net.matasar.keyboard.layout.Languages
 import net.matasar.keyboard.macro.MacrosActivity
 import net.matasar.keyboard.ui.theme.KeyboardTheme
@@ -214,6 +215,25 @@ private fun SettingsScreen(settings: Settings, prefs: Prefs) {
                     )
                 }
             }
+            if (language.tag == Languages.bulgarian.tag && enabled) {
+                Column(modifier = Modifier.padding(start = 16.dp, top = 4.dp, bottom = 4.dp)) {
+                    Text(stringResource(R.string.settings_bg_layout), style = MaterialTheme.typography.bodyLarge)
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        BulgarianLayout.entries.forEach { layout ->
+                            FilterChip(
+                                selected = settings.bulgarianLayout == layout,
+                                onClick = { scope.launch { prefs.setBulgarianLayout(layout) } },
+                                label = { Text(layout.label()) },
+                            )
+                        }
+                    }
+                    Text(
+                        stringResource(R.string.settings_bg_layout_hint),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
         }
 
         Section(stringResource(R.string.settings_section_suggestions))
@@ -316,6 +336,14 @@ private fun SplitMode.label(): String = stringResource(
         SplitMode.OFF -> R.string.settings_split_off
         SplitMode.AUTO -> R.string.settings_split_auto
         SplitMode.ALWAYS -> R.string.settings_split_always
+    },
+)
+
+@Composable
+private fun BulgarianLayout.label(): String = stringResource(
+    when (this) {
+        BulgarianLayout.PHONETIC -> R.string.settings_bg_layout_phonetic
+        BulgarianLayout.STANDARD -> R.string.settings_bg_layout_standard
     },
 )
 

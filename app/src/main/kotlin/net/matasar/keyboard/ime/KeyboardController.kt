@@ -26,6 +26,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.coroutines.withContext
 import net.matasar.keyboard.input.keyStrokeFor
+import net.matasar.keyboard.layout.BulgarianLayout
 import net.matasar.keyboard.layout.Key
 import net.matasar.keyboard.layout.KeyAction
 import net.matasar.keyboard.layout.KeyIcon
@@ -85,18 +86,25 @@ class KeyboardController(
     /** The globe key exists only when there is something to switch to. */
     val withGlobe: Boolean get() = enabledLanguages.size > 1
 
-    private val layoutCache = HashMap<Triple<String, Boolean, Boolean>, KeyboardLayout>()
-    private val wideLayoutCache = HashMap<Pair<String, Boolean>, KeyboardLayout>()
+    /** Setting: which board Bulgarian is typed on. */
+    var bulgarianLayout: BulgarianLayout by mutableStateOf(BulgarianLayout.PHONETIC)
 
-    /** The phone layout for the current language, built once per language, globe and number row. */
+    /** The current language as its keys are laid out: Bulgarian's standard board when the setting asks for it. */
+    private val keysLanguage: Language get() = Languages.resolve(language, bulgarianLayout)
+
+    private val layoutCache = HashMap<Triple<Language, Boolean, Boolean>, KeyboardLayout>()
+    private val wideLayoutCache = HashMap<Pair<Language, Boolean>, KeyboardLayout>()
+
+    /** The phone layout for the current language, built once per language, layout, globe and number row. */
     val phoneLayout: KeyboardLayout
         get() = numberRowShown.let { digits ->
-            layoutCache.getOrPut(Triple(language.tag, withGlobe, digits)) { phoneLayout(language, withGlobe, digits) }
+            val keys = keysLanguage
+            layoutCache.getOrPut(Triple(keys, withGlobe, digits)) { phoneLayout(keys, withGlobe, digits) }
         }
 
     /** The 60% board for the current language, built the same way. */
     val wideLayout: KeyboardLayout
-        get() = wideLayoutCache.getOrPut(language.tag to withGlobe) { wideLayout(language, withGlobe) }
+        get() = keysLanguage.let { keys -> wideLayoutCache.getOrPut(keys to withGlobe) { wideLayout(keys, withGlobe) } }
 
     /** The enabled languages in cycling order. */
     val enabledLanguageList: List<Language>

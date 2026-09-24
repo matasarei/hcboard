@@ -1,5 +1,6 @@
 package net.matasar.keyboard.backup
 
+import net.matasar.keyboard.layout.BulgarianLayout
 import net.matasar.keyboard.macro.Block
 import net.matasar.keyboard.macro.Macro
 import net.matasar.keyboard.macro.MacroStore
@@ -16,7 +17,10 @@ import kotlin.test.assertTrue
 
 class BackupCodecTest {
 
-    private val settings = Settings(theme = ThemeChoice.DARK, enabledLanguages = setOf("en_US", "uk"), currentLanguage = "uk")
+    private val settings = Settings(
+        theme = ThemeChoice.DARK, enabledLanguages = setOf("en_US", "uk"), currentLanguage = "uk",
+        bulgarianLayout = BulgarianLayout.STANDARD, doubleSpacePeriod = false,
+    )
     private val words = mapOf("en_US" to mapOf("kubectl" to 230, "tube" to 0))
     private val login = Macro(
         "login", "Login",
@@ -42,6 +46,16 @@ class BackupCodecTest {
         val old = text.replaceFirst(Regex("\"settings\":\\s*\\{"), "\"settings\": { \"keyBorders\": false,")
         assertTrue(old != text && "\"keyBorders\": false" in old, "the old field was not put into the file")
         assertEquals(settings, BackupCodec.open(BackupCodec.read(old), null).settings)
+    }
+
+    @Test
+    fun `a backup made before the bulgarian layout and the double-space setting reads their defaults`() {
+        val text = encode(emptyList(), passphrase = null)
+        val old = text.replace(Regex(",?\\s*\"(bulgarianLayout|doubleSpacePeriod)\":\\s*(\"[A-Z]+\"|false)"), "")
+        assertTrue("bulgarianLayout" !in old && "doubleSpacePeriod" !in old, "the new fields were not taken out of the file")
+        val restored = BackupCodec.open(BackupCodec.read(old), null).settings
+        assertEquals(BulgarianLayout.PHONETIC, restored.bulgarianLayout)
+        assertTrue(restored.doubleSpacePeriod)
     }
 
     @Test

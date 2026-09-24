@@ -248,6 +248,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
                 controller.glideEnabled = settings.glide
                 controller.foldToolbar = settings.foldToolbar
                 controller.numberRow = settings.numberRow
+                controller.bulgarianLayout = settings.bulgarianLayout
                 controller.voiceInputEnabled = settings.voiceInput
                 preferredVoiceKeyboard = settings.voiceKeyboard
                 controller.suggestionsEnabled = settings.suggestions

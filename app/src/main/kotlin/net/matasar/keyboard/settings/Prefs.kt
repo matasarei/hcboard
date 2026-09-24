@@ -11,6 +11,7 @@ import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import net.matasar.keyboard.layout.BulgarianLayout
 import net.matasar.keyboard.layout.Languages
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -65,6 +66,8 @@ data class Settings(
     val currentLanguage: String = DEFAULT_LANGUAGE,
     /** Whether the Russian keyboard loads the combined RU+BG dictionary. */
     val ruBulgarianVocabulary: Boolean = false,
+    /** Which board Bulgarian is typed on: phonetic, or the standard one (БДС) the iPhone ships. */
+    val bulgarianLayout: BulgarianLayout = BulgarianLayout.PHONETIC,
 ) {
     companion object {
         const val DEFAULT_LANGUAGE = "en_US"
@@ -153,6 +156,7 @@ class Prefs(private val context: Context) {
             enabledLanguages = p[ENABLED_LANGUAGES]?.takeIf { it.isNotEmpty() } ?: defaultEnabledLanguages(),
             currentLanguage = p[CURRENT_LANGUAGE] ?: Settings.DEFAULT_LANGUAGE,
             ruBulgarianVocabulary = p[RU_BULGARIAN_VOCABULARY] ?: false,
+            bulgarianLayout = p[BULGARIAN_LAYOUT]?.let { runCatching { BulgarianLayout.valueOf(it) }.getOrNull() } ?: BulgarianLayout.PHONETIC,
         )
     }
 
@@ -178,6 +182,7 @@ class Prefs(private val context: Context) {
     suspend fun setGlideTrail(value: Boolean) = context.dataStore.edit { it[GLIDE_TRAIL] = value }
     suspend fun setCurrentLanguage(tag: String) = context.dataStore.edit { it[CURRENT_LANGUAGE] = tag }
     suspend fun setRuBulgarianVocabulary(value: Boolean) = context.dataStore.edit { it[RU_BULGARIAN_VOCABULARY] = value }
+    suspend fun setBulgarianLayout(value: BulgarianLayout) = context.dataStore.edit { it[BULGARIAN_LAYOUT] = value.name }
 
     /** Writes every setting at once, from a restored backup, within [sanitized]'s limits. */
     suspend fun replaceAll(settings: Settings) {
@@ -208,6 +213,7 @@ class Prefs(private val context: Context) {
             p[ENABLED_LANGUAGES] = s.enabledLanguages
             p[CURRENT_LANGUAGE] = s.currentLanguage
             p[RU_BULGARIAN_VOCABULARY] = s.ruBulgarianVocabulary
+            p[BULGARIAN_LAYOUT] = s.bulgarianLayout.name
         }
     }
 
@@ -267,5 +273,6 @@ class Prefs(private val context: Context) {
         val ENABLED_LANGUAGES = stringSetPreferencesKey("enabled_languages")
         val CURRENT_LANGUAGE = stringPreferencesKey("current_language")
         val RU_BULGARIAN_VOCABULARY = booleanPreferencesKey("ru_bulgarian_vocabulary")
+        val BULGARIAN_LAYOUT = stringPreferencesKey("bulgarian_layout")
     }
 }

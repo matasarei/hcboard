@@ -2,9 +2,11 @@ package net.matasar.keyboard.ime
 
 import net.matasar.keyboard.input.FakeEditorPort
 import net.matasar.keyboard.input.InputDispatcher
+import net.matasar.keyboard.layout.BulgarianLayout
 import net.matasar.keyboard.layout.KeyAction
 import net.matasar.keyboard.layout.Language
 import net.matasar.keyboard.layout.Languages
+import net.matasar.keyboard.layout.LayerId
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -58,6 +60,24 @@ class LanguageSwitchingTest {
         assertEquals("й", letters.rows[0].keys.first().label)
         assertEquals("Русский", letters.rows[3].keys.first { it.action == KeyAction.Space }.label)
         assertEquals(11f, letters.units) // the iPhone's eleven keys, ъ on a long press
+    }
+
+    @Test
+    fun `bulgarian's layout setting swaps its boards and leaves the other languages alone`() {
+        controller.enabledLanguages = setOf("en_US", "ru", "bg")
+        controller.switchLanguage(Languages.bulgarian)
+        fun topRow() = controller.phoneLayout.layer(LayerId.LETTERS).rows[0].keys.joinToString("") { it.label }
+        fun wideTop() = controller.wideLayout.layer(LayerId.LETTERS).rows[1].keys.drop(1).take(11).joinToString("") { it.label }
+        assertEquals("явертъуиопч", topRow())
+        controller.bulgarianLayout = BulgarianLayout.STANDARD
+        assertEquals("уеишщксдзцб", topRow())
+        assertEquals("уеишщксдзцб", wideTop())
+        assertEquals(Languages.bulgarian, controller.language) // the same language, on another board
+        controller.switchLanguage(Languages.russian)
+        assertEquals("йцукенгшщзх", topRow())
+        controller.switchLanguage(Languages.bulgarian)
+        controller.bulgarianLayout = BulgarianLayout.PHONETIC
+        assertEquals("явертъуиопч", topRow())
     }
 
     @Test
