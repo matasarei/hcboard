@@ -70,6 +70,7 @@ class LanguagesTest {
         assertEquals(listOf("і", "ї", "ѝ"), accents(Languages.russian, "и"))
         assertEquals("ъ", accents(Languages.russian, "ь").first())
         assertEquals(listOf("ʼ", "’"), accents(Languages.ukrainian, "'"))
+        assertEquals(emptyList(), accents(Languages.ukrainian, "ь"))
     }
 
     @Test
