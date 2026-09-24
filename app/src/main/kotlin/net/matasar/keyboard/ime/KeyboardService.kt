@@ -144,7 +144,9 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
             withContext(Dispatchers.Main) {
                 if (version != customWordsVersion) return@withContext
                 engines[assetTag] = loaded
-                if (controller.language.tag == tag) use(loaded)
+                // A setting may have changed the list while this one loaded (the Portuguese
+                // spelling, Russian's Bulgarian words): only the list the settings ask for now is used.
+                if (controller.language.tag == tag && Languages.assetFor(tag, ruBulgarianVocabulary, portugueseSpelling) == assetTag) use(loaded)
             }
         }
     }
