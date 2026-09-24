@@ -40,7 +40,7 @@ class LayersTest {
         val page = symbolsBesideDigitsLayer("English", withGlobe = false)
         val labels = page.rows.flatMap { it.keys }.map { it.label }
         assertTrue(labels.none { it.length == 1 && it[0].isDigit() })
-        for (symbol in "-/:;()$&@\"[]{}#%^*+=_\\|~<>€£¥•`.,?!'") assertTrue(symbol.toString() in labels, "missing $symbol")
+        for (symbol in "-/:;()$&@\"[]{}#%^*+=_\\|~<>€£¥•`?!'…") assertTrue(symbol.toString() in labels, "missing $symbol")
         assertEquals(5, page.rows.size)
         assertEquals(phoneLayout(Languages.english, withGlobe = false, numberRow = true).layers.getValue(LayerId.LETTERS).rows.size, page.rows.size)
         for (row in page.rows) assertEquals(10f, row.totalUnits, 0.001f)
@@ -72,14 +72,24 @@ class LayersTest {
     }
 
     @Test
+    fun `comma and period are only on the bottom row of a symbol page`() {
+        for (page in listOf(SymbolsLayer, CodeLayer, symbolsBesideDigitsLayer("English", withGlobe = false))) {
+            val above = page.rows.dropLast(1).flatMap { it.keys }.map { it.label }
+            assertTrue(above.none { it == "." || it == "," }, "${page.id}: $above")
+            assertEquals(1, page.rows.last().keys.count { it.label == "." })
+            assertEquals(1, page.rows.last().keys.count { it.label == "," })
+        }
+    }
+
+    @Test
     fun `the symbol pages are the iPhone's 123 and #+= pages`() {
         fun labels(layer: Layer, index: Int) = layer.rows[index].keys.joinToString(" ") { it.label }
         assertEquals("1 2 3 4 5 6 7 8 9 0", labels(SymbolsLayer, 0))
         assertEquals("- / : ; ( ) $ & @ \"", labels(SymbolsLayer, 1))
-        assertEquals("#+= . , ? ! ' backspace", labels(SymbolsLayer, 2))
+        assertEquals("#+= ? ! ' * # backspace", labels(SymbolsLayer, 2))
         assertEquals("[ ] { } # % ^ * + =", labels(CodeLayer, 0))
         assertEquals("_ \\ | ~ < > € £ ¥ •", labels(CodeLayer, 1))
-        assertEquals("123 . , ? ! ' backspace", labels(CodeLayer, 2))
+        assertEquals("123 ? ! ' ` … backspace", labels(CodeLayer, 2))
         // What the two pages leave out is a long press away.
         val apostrophe = SymbolsLayer.rows[2].keys.first { it.label == "'" }
         assertEquals("`", apostrophe.longPress.first())
