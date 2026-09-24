@@ -27,7 +27,6 @@ import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.coroutines.withContext
 import net.matasar.keyboard.input.keyStrokeFor
 import net.matasar.keyboard.layout.BulgarianLayout
-import net.matasar.keyboard.settings.GlobeTap
 import net.matasar.keyboard.layout.FieldMarks
 import net.matasar.keyboard.layout.Key
 import net.matasar.keyboard.layout.KeyAction
@@ -50,6 +49,7 @@ import kotlin.random.Random
 import kotlin.random.asKotlinRandom
 import net.matasar.keyboard.nlp.Candidates
 import net.matasar.keyboard.nlp.WordCandidates
+import net.matasar.keyboard.settings.GlobeTap
 
 /** The two things a key can ask of the service rather than the editor. */
 interface SystemActions {
