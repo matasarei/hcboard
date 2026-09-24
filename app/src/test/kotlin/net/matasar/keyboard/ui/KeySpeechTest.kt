@@ -45,6 +45,9 @@ class KeySpeechTest {
         assertEquals(Spoken.Named(R.string.a11y_key_backspace), named(KeyAction.Backspace))
         assertEquals(Spoken.Named(R.string.a11y_key_shift), named(KeyAction.Shift))
         assertEquals(Spoken.Named(R.string.a11y_key_next_language), named(KeyAction.SwitchLanguage))
+        // Given where a tap goes, the globe says so: back or on, whichever the setting makes it.
+        val globe = Key("globe", KeyAction.SwitchLanguage)
+        assertEquals(Spoken.NamedFor(R.string.a11y_key_switch_to, "Русский"), spokenKey(globe, "", iconShown = true, globeTarget = "Русский"))
         assertEquals(Spoken.Named(R.string.a11y_key_symbols), named(KeyAction.SwitchLayer(net.matasar.keyboard.layout.LayerId.SYMBOLS)))
         assertEquals(Spoken.Named(R.string.a11y_key_letters), named(KeyAction.SwitchLayer(net.matasar.keyboard.layout.LayerId.LETTERS)))
     }

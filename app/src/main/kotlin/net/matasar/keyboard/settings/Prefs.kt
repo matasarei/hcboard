@@ -71,6 +71,10 @@ data class Settings(
     val bulgarianLayout: BulgarianLayout = BulgarianLayout.PHONETIC,
     /** Which Portuguese the word list spells: Portugal's, or Brazil's. */
     val portugueseSpelling: PortugueseSpelling = PortugueseSpelling.PORTUGAL,
+    /** What a globe tap does with three or more languages on. */
+    val globeTap: GlobeTap = GlobeTap.LAST_USED,
+    /** The language typed in before the current one, where [GlobeTap.LAST_USED] goes back to; null before any switch. */
+    val previousLanguage: String? = null,
 ) {
     companion object {
         const val DEFAULT_LANGUAGE = "en_US"
@@ -102,6 +106,7 @@ fun Settings.sanitized(): Settings {
         enabledLanguages = languages,
         currentLanguage = current.takeIf { it in languages } ?: languages.first(),
         portugueseSpelling = if (legacyPortuguese) PortugueseSpelling.BRAZIL else portugueseSpelling,
+        previousLanguage = previousLanguage?.let(Languages::migrateTag)?.takeIf { it in languages && it != current },
     )
 }
 
@@ -187,6 +192,8 @@ class Prefs(private val context: Context) {
             ruBulgarianVocabulary = p[RU_BULGARIAN_VOCABULARY] ?: false,
             bulgarianLayout = p[BULGARIAN_LAYOUT]?.let { runCatching { BulgarianLayout.valueOf(it) }.getOrNull() } ?: BulgarianLayout.PHONETIC,
             portugueseSpelling = p[PORTUGUESE_SPELLING]?.let { runCatching { PortugueseSpelling.valueOf(it) }.getOrNull() } ?: PortugueseSpelling.PORTUGAL,
+            globeTap = p[GLOBE_TAP]?.let { runCatching { GlobeTap.valueOf(it) }.getOrNull() } ?: GlobeTap.LAST_USED,
+            previousLanguage = p[PREVIOUS_LANGUAGE],
         )
     }
 
@@ -210,7 +217,13 @@ class Prefs(private val context: Context) {
     suspend fun setDoubleSpacePeriod(value: Boolean) = context.dataStore.edit { it[DOUBLE_SPACE_PERIOD] = value }
     suspend fun setGlide(value: Boolean) = context.dataStore.edit { it[GLIDE] = value }
     suspend fun setGlideTrail(value: Boolean) = context.dataStore.edit { it[GLIDE_TRAIL] = value }
-    suspend fun setCurrentLanguage(tag: String) = context.dataStore.edit { it[CURRENT_LANGUAGE] = tag }
+    /** Makes [tag] the current language; the one it replaces becomes the previous one, for the globe to go back to. */
+    suspend fun setCurrentLanguage(tag: String) = context.dataStore.edit { p ->
+        val was = p[CURRENT_LANGUAGE] ?: Settings.DEFAULT_LANGUAGE
+        if (was != tag) p[PREVIOUS_LANGUAGE] = was
+        p[CURRENT_LANGUAGE] = tag
+    }
+    suspend fun setGlobeTap(value: GlobeTap) = context.dataStore.edit { it[GLOBE_TAP] = value.name }
     suspend fun setRuBulgarianVocabulary(value: Boolean) = context.dataStore.edit { it[RU_BULGARIAN_VOCABULARY] = value }
     suspend fun setBulgarianLayout(value: BulgarianLayout) = context.dataStore.edit { it[BULGARIAN_LAYOUT] = value.name }
     suspend fun setPortugueseSpelling(value: PortugueseSpelling) = context.dataStore.edit { it[PORTUGUESE_SPELLING] = value.name }
@@ -246,6 +259,8 @@ class Prefs(private val context: Context) {
             p[RU_BULGARIAN_VOCABULARY] = s.ruBulgarianVocabulary
             p[BULGARIAN_LAYOUT] = s.bulgarianLayout.name
             p[PORTUGUESE_SPELLING] = s.portugueseSpelling.name
+            p[GLOBE_TAP] = s.globeTap.name
+            if (s.previousLanguage == null) p.remove(PREVIOUS_LANGUAGE) else p[PREVIOUS_LANGUAGE] = s.previousLanguage
         }
     }
 
@@ -307,5 +322,7 @@ class Prefs(private val context: Context) {
         val RU_BULGARIAN_VOCABULARY = booleanPreferencesKey("ru_bulgarian_vocabulary")
         val BULGARIAN_LAYOUT = stringPreferencesKey("bulgarian_layout")
         val PORTUGUESE_SPELLING = stringPreferencesKey("portuguese_spelling")
+        val GLOBE_TAP = stringPreferencesKey("globe_tap")
+        val PREVIOUS_LANGUAGE = stringPreferencesKey("previous_language")
     }
 }

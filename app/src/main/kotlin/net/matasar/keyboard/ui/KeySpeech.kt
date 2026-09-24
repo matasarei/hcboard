@@ -17,6 +17,9 @@ import net.matasar.keyboard.layout.ModifierKey
 sealed interface Spoken {
     data class Text(val text: String) : Spoken
     data class Named(@StringRes val id: Int) : Spoken
+
+    /** A name that says what it acts on: [id] formatted with [arg] ("Switch to Русский"). */
+    data class NamedFor(@StringRes val id: Int, val arg: String) : Spoken
 }
 
 /**
@@ -29,16 +32,25 @@ sealed interface Spoken {
  * does not hear the password. Named keys keep their names.
  *
  * Enter says the field's own action when it has one ([editorAction], an `EditorInfo.IME_ACTION_*`),
- * as its icon shows it: Search, Send, Go, Next, Done.
+ * as its icon shows it: Search, Send, Go, Next, Done. The globe says where a tap goes
+ * ([globeTarget], a language's own name): back or on, depending on the Globe key setting.
  */
-internal fun spokenKey(key: Key, shown: String, iconShown: Boolean, obscured: Boolean = false, editorAction: Int? = null): Spoken {
+internal fun spokenKey(
+    key: Key,
+    shown: String,
+    iconShown: Boolean,
+    obscured: Boolean = false,
+    editorAction: Int? = null,
+    globeTarget: String? = null,
+): Spoken {
     when (val action = key.action) {
         KeyAction.Space -> return Spoken.Named(R.string.a11y_key_space)
         KeyAction.Enter -> return Spoken.Named(enterName(editorAction))
         KeyAction.Shift -> return Spoken.Named(R.string.a11y_key_shift)
         KeyAction.CapsLock -> return Spoken.Named(R.string.a11y_key_caps_lock)
         KeyAction.HideKeyboard -> return Spoken.Named(R.string.a11y_key_hide)
-        KeyAction.SwitchLanguage -> return Spoken.Named(R.string.a11y_key_next_language)
+        KeyAction.SwitchLanguage ->
+            return globeTarget?.let { Spoken.NamedFor(R.string.a11y_key_switch_to, it) } ?: Spoken.Named(R.string.a11y_key_next_language)
         KeyAction.Backspace -> if (iconShown) return Spoken.Named(R.string.a11y_key_backspace)
         is KeyAction.Modifier -> return Spoken.Named(modifierName(action.modifier))
         is KeyAction.SwitchLayer -> return Spoken.Named(

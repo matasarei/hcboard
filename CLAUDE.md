@@ -125,7 +125,10 @@ emulator profile is `medium_phone`; boot it headless with
   spellings, Portugal (default, `pt_PT.txt`) and Brazil (`pt_BR.txt`), picked by
   `Settings.portugueseSpelling`: a word list, not a layout, chosen with Russian's Bulgarian vocabulary
   in `Languages.assetFor`. It was `pt_BR` before; `Languages.migrateTag` carries stored settings,
-  custom words and backups over. The globe key exists only with two or more languages enabled; the persisted
+  custom words and backups over. The globe key exists only with two or more languages enabled; a
+  tap goes back to `Settings.previousLanguage` (`GlobeTap.LAST_USED`, the default, as on an iPhone;
+  `setCurrentLanguage` stores the language it replaces) or on to `Languages.next` (`NEXT`, as on
+  Gboard), a choice on the Languages screen from three languages up. The persisted
   current language is authoritative and the service follows changes to it. The enabled set is the
   keyboard's own, and Android mirrors it: `method.xml` declares a subtype per language (native-name
   label, fixed `subtypeId` = `Language.subtypeId` = its hash code; `MethodXmlTest` pins both, run it

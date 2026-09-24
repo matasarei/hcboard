@@ -53,4 +53,13 @@ class SettingsSanitizeTest {
         // Key borders was removed: a backup made before still reads, the old field ignored.
         assertEquals(Settings(haptics = false), json.decodeFromString(Settings.serializer(), """{"haptics":false,"keyBorders":false}"""))
     }
+
+    @Test
+    fun `a previous language is kept only while it is enabled and is not the current one`() {
+        val base = Settings(enabledLanguages = setOf("en_US", "uk", "ru"), currentLanguage = "uk")
+        assertEquals("ru", base.copy(previousLanguage = "ru").sanitized().previousLanguage)
+        assertEquals(null, base.copy(previousLanguage = "de").sanitized().previousLanguage)
+        assertEquals(null, base.copy(previousLanguage = "uk").sanitized().previousLanguage)
+        assertEquals(null, base.copy(previousLanguage = "klingon").sanitized().previousLanguage)
+    }
 }

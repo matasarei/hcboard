@@ -26,6 +26,14 @@ internal fun PortugueseSpelling.label(): String = stringResource(
 )
 
 @Composable
+internal fun GlobeTap.label(): String = stringResource(
+    when (this) {
+        GlobeTap.LAST_USED -> R.string.languages_globe_tap_last_used
+        GlobeTap.NEXT -> R.string.languages_globe_tap_next
+    },
+)
+
+@Composable
 internal fun BulgarianLayout.label(): String = stringResource(
     when (this) {
         BulgarianLayout.PHONETIC -> R.string.settings_bg_layout_phonetic

@@ -27,6 +27,7 @@ import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.coroutines.withContext
 import net.matasar.keyboard.input.keyStrokeFor
 import net.matasar.keyboard.layout.BulgarianLayout
+import net.matasar.keyboard.settings.GlobeTap
 import net.matasar.keyboard.layout.FieldMarks
 import net.matasar.keyboard.layout.Key
 import net.matasar.keyboard.layout.KeyAction
@@ -81,6 +82,12 @@ class KeyboardController(
     /** Called when the language changes by a key, the picker or the system, so the service can persist and reload. */
     var onLanguageChanged: ((Language) -> Unit)? = null
 
+    /** Setting: what a globe tap does with three or more languages on. */
+    var globeTap: GlobeTap = GlobeTap.LAST_USED
+
+    /** The language typed in before the current one, where [GlobeTap.LAST_USED] goes back to. */
+    var previousLanguage: Language? = null
+
     /** Whether the language picker sheet is open. */
     var languageSheetOpen: Boolean by mutableStateOf(false)
 
@@ -119,6 +126,7 @@ class KeyboardController(
     fun switchLanguage(to: Language) {
         languageSheetOpen = false
         if (to == language) return
+        previousLanguage = language
         language = to
         // The symbols and code pages are the same in every language, so a language picked there
         // is a request for its letters.
@@ -132,7 +140,17 @@ class KeyboardController(
         language = to
     }
 
-    fun nextLanguage() = switchLanguage(Languages.next(language, enabledLanguages))
+    /**
+     * The globe tap: back to the language used before, as on an iPhone, or on to the next in the
+     * list, as on Gboard. With no language to go back to (the first switch, or it was switched
+     * off) Last used goes on to the next one too.
+     */
+    fun nextLanguage() = switchLanguage(globeTarget())
+
+    /** Where a globe tap goes now, by [nextLanguage]'s rule; what TalkBack names the globe. */
+    fun globeTarget(): Language =
+        previousLanguage?.takeIf { globeTap == GlobeTap.LAST_USED && it.tag in enabledLanguages && it != language }
+            ?: Languages.next(language, enabledLanguages)
 
     var shift: Latch by mutableStateOf(Latch())
         private set

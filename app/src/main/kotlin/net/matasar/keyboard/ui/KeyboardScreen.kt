@@ -350,6 +350,7 @@ private fun LayerGrid(
                     customActions = if (exploring) keyCustomActions(key, controller) else emptyList(),
                     obscured = obscured,
                     editorAction = controller.editorActionId,
+                    globeTarget = if (key.action == KeyAction.SwitchLanguage && controller.withGlobe) controller.globeTarget().nativeName else null,
                 )
             }
             if (split == null) {
