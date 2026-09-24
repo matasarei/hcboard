@@ -132,7 +132,6 @@ internal val SymbolAlternates: Map<Char, List<String>> = mapOf(
     '-' to listOf("–", "—"),
     '?' to listOf("¿"),
     '!' to listOf("¡"),
-    '.' to listOf("…"),
 )
 
 internal fun function(label: String, action: KeyAction, width: Float = 1f, icon: KeyIcon? = null) =

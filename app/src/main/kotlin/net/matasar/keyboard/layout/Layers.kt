@@ -41,8 +41,12 @@ private const val MARK_KEY = 1f
 private const val GLOBE_KEY = 1f
 private const val RETURN_KEY = 2f
 
-/** The five marks on the third row of both symbol pages, a little wider than a key, as on the iPhone. */
-private fun marks(): Array<Key> = symbols(".,?!'").map { it.copy(width = 1.4f) }.toTypedArray()
+/**
+ * The five marks on the third row of both symbol pages, a little wider than a key, as on the
+ * iPhone: ? ! ' and two the page has nowhere else. Comma and period are on the bottom row of
+ * every page, so they are not here a second time.
+ */
+private fun marks(extra: String): Array<Key> = symbols("?!'$extra").map { it.copy(width = 1.4f) }.toTypedArray()
 
 /** Digits and common punctuation: the iPhone's 123 page. Shared by every language. */
 fun symbolsLayer(spaceLabel: String, withGlobe: Boolean, marks: FieldMarks = FieldMarks.NONE) = Layer(
@@ -50,7 +54,7 @@ fun symbolsLayer(spaceLabel: String, withGlobe: Boolean, marks: FieldMarks = Fie
     rows = listOf(
         row(*symbols("1234567890")),
         row(*symbols("-/:;()$&@\"")),
-        row(function("#+=", KeyAction.SwitchLayer(LayerId.CODE), 1.5f), *marks(), backspaceKey()),
+        row(function("#+=", KeyAction.SwitchLayer(LayerId.CODE), 1.5f), *marks("*#"), backspaceKey()),
         bottomRow(LayerId.LETTERS, "ABC", 10f, spaceLabel, withGlobe, marks),
     ),
 )
@@ -61,7 +65,7 @@ fun codeLayer(spaceLabel: String, withGlobe: Boolean, marks: FieldMarks = FieldM
     rows = listOf(
         row(*symbols("[]{}#%^*+=")),
         row(*symbols("_\\|~<>€£¥•")),
-        row(function("123", KeyAction.SwitchLayer(LayerId.SYMBOLS), 1.5f), *marks(), backspaceKey()),
+        row(function("123", KeyAction.SwitchLayer(LayerId.SYMBOLS), 1.5f), *marks("`…"), backspaceKey()),
         bottomRow(LayerId.LETTERS, "ABC", 10f, spaceLabel, withGlobe, marks),
     ),
 )
@@ -77,7 +81,8 @@ fun symbolsBesideDigitsLayer(spaceLabel: String, withGlobe: Boolean, marks: Fiel
         row(*symbols("-/:;()$&@\"")),
         row(*symbols("[]{}#%^*+=")),
         row(*symbols("_\\|~<>€£¥•")),
-        row(*symbols("`.,?!'").map { it.copy(width = 1.4f) }.toTypedArray(), backspaceKey(1.6f)),
+        // Comma and period are on the bottom row; * and # are above already.
+        row(*symbols("`?!'…").map { it.copy(width = 1.68f) }.toTypedArray(), backspaceKey(1.6f)),
         bottomRow(LayerId.LETTERS, "ABC", 10f, spaceLabel, withGlobe, marks),
     ),
 )

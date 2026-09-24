@@ -163,7 +163,8 @@ class SuggestionControllerTest {
         val comma = dot.copy(label = ",", action = KeyAction.Text(","))
         val close = dot.copy(label = ")", action = KeyAction.Text(")"))
         val quote = dot.copy(label = "\"", action = KeyAction.Text("\""))
-        for ((mark, expected) in listOf(bang to "spelling! ", comma to "spelling, ", dot to "spelling. ", close to "spelling)", quote to "spelling \"")) {
+        val ellipsis = dot.copy(label = "…", action = KeyAction.Text("…"))
+        for ((mark, expected) in listOf(bang to "spelling! ", comma to "spelling, ", dot to "spelling. ", ellipsis to "spelling… ", close to "spelling)", quote to "spelling \"")) {
             textField()
             port.before = ""
             type("spel")
