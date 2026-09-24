@@ -13,6 +13,7 @@ import androidx.test.uiautomator.By
 import androidx.test.uiautomator.UiDevice
 import androidx.test.uiautomator.Until
 import kotlinx.coroutines.runBlocking
+import net.matasar.keyboard.layout.Languages
 import net.matasar.keyboard.settings.Prefs
 import net.matasar.keyboard.settings.SettingsActivity
 import net.matasar.keyboard.ui.Dimens
@@ -537,7 +538,8 @@ class KeyboardSmokeTest {
             prefs.setLanguageEnabled("uk", true)
             prefs.setCurrentLanguage("en_US")
         }
-        val globe = context.getString(R.string.a11y_key_switch_to, "Українська")
+        val ukrainian = Languages.ukrainian.nativeName
+        val globe = context.getString(R.string.a11y_key_switch_to, ukrainian)
         focusFieldAndShowKeyboard()
         exploreByTouch(true)
         try {
@@ -551,7 +553,7 @@ class KeyboardSmokeTest {
             repeat(5) {
                 if (opened) return@repeat
                 performOnKey(globe, "Choose language")
-                opened = waitUntil(2_000) { device.hasObject(By.text("Українська")) }
+                opened = waitUntil(2_000) { device.hasObject(By.text(ukrainian)) }
             }
             assertTrue("the language sheet did not open; saw: ${describeImeNodes()}", opened)
         } finally {
