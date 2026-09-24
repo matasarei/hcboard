@@ -42,7 +42,7 @@ class LicencesActivity : ComponentActivity() {
         val prefs = Prefs(applicationContext)
         setContent {
             val settings by prefs.settings.collectAsState(initial = Settings())
-            KeyboardThemeFor(settings.theme) {
+            KeyboardThemeFor(settings.theme, settings.accent) {
                 Surface(modifier = Modifier.fillMaxSize()) {
                     LicencesScreen()
                 }

@@ -5,6 +5,7 @@ import net.matasar.keyboard.layout.PortugueseSpelling
 import net.matasar.keyboard.macro.Block
 import net.matasar.keyboard.macro.Macro
 import net.matasar.keyboard.macro.MacroStore
+import net.matasar.keyboard.settings.AccentColour
 import net.matasar.keyboard.settings.GlobeTap
 import net.matasar.keyboard.settings.Settings
 import net.matasar.keyboard.settings.ThemeChoice
@@ -20,7 +21,7 @@ import kotlin.test.assertTrue
 class BackupCodecTest {
 
     private val settings = Settings(
-        theme = ThemeChoice.DARK, enabledLanguages = setOf("en_US", "uk"), currentLanguage = "uk",
+        theme = ThemeChoice.DARK, accent = AccentColour.TEAL, enabledLanguages = setOf("en_US", "uk"), currentLanguage = "uk",
         bulgarianLayout = BulgarianLayout.STANDARD, doubleSpacePeriod = false, portugueseSpelling = PortugueseSpelling.BRAZIL,
         globeTap = GlobeTap.NEXT, previousLanguage = "en_US",
     )
@@ -59,6 +60,14 @@ class BackupCodecTest {
         val restored = BackupCodec.open(BackupCodec.read(old), null).settings
         assertEquals(BulgarianLayout.PHONETIC, restored.bulgarianLayout)
         assertTrue(restored.doubleSpacePeriod)
+    }
+
+    @Test
+    fun `a backup made before the accent colour reads the phone's palette`() {
+        val text = encode(emptyList(), passphrase = null)
+        val old = text.replace(Regex(",?\\s*\"accent\":\\s*\"[A-Z]+\""), "")
+        assertTrue("accent" !in old, "the accent was not taken out of the file")
+        assertEquals(AccentColour.SYSTEM, BackupCodec.open(BackupCodec.read(old), null).settings.accent)
     }
 
     @Test

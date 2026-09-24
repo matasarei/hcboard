@@ -82,7 +82,7 @@ class SettingsActivity : ComponentActivity() {
         }
         setContent {
             val settings by prefs.settings.collectAsState(initial = Settings())
-            KeyboardThemeFor(settings.theme) {
+            KeyboardThemeFor(settings.theme, settings.accent) {
                 Surface(modifier = Modifier.fillMaxSize()) {
                     SettingsScreen(settings, prefs)
                 }
@@ -91,10 +91,10 @@ class SettingsActivity : ComponentActivity() {
     }
 }
 
-/** The keyboard's theme for the user's [ThemeChoice]: the one place the choice becomes colours. */
+/** The keyboard's theme for the user's [ThemeChoice] and [AccentColour]: the one place the choices become colours. */
 @Composable
-fun KeyboardThemeFor(theme: ThemeChoice, content: @Composable () -> Unit) =
-    KeyboardTheme(darkTheme = theme.asDarkTheme(), black = theme == ThemeChoice.BLACK, content = content)
+fun KeyboardThemeFor(theme: ThemeChoice, accent: AccentColour, content: @Composable () -> Unit) =
+    KeyboardTheme(darkTheme = theme.asDarkTheme(), black = theme == ThemeChoice.BLACK, accent = accent, content = content)
 
 fun ThemeChoice.asDarkTheme(): Boolean? = when (this) {
     ThemeChoice.SYSTEM -> null
@@ -135,6 +135,7 @@ private fun SettingsScreen(settings: Settings, prefs: Prefs) {
                 )
             }
         }
+        AccentSwatches(selected = settings.accent, theme = settings.theme) { scope.launch { prefs.setAccent(it) } }
         Text(
             stringResource(R.string.settings_height, (settings.heightScale * 100).roundToInt()),
             style = MaterialTheme.typography.bodyLarge,

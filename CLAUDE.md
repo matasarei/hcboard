@@ -167,6 +167,14 @@ emulator profile is `medium_phone`; boot it headless with
   the cursor trackpad on Space, the language picker on the globe — is also an accessibility
   action on the key (`ui/KeyActions.kt`), built only while touch exploration is on, because a
   long press never reaches the keys through it.
+- **Colours** (`ui/theme/KeyboardTheme.kt`): the Material scheme is the phone's (dynamic, API 31+)
+  or a fixed blue below that; `Settings.accent` (`AccentColour`, swatches in
+  `settings/AccentSwatches.kt`) replaces only its four accent roles (and the secondary container,
+  for Material's selected chips) with a tonal palette from
+  `ui/theme/Accents.kt`, generated from each seed with material-color-utilities and kept as
+  numbers (regenerate, never hand-tune one role; `AccentsTest` checks 4.5:1). The dark and Black
+  surfaces never come from the accent, and Black keeps Enter grey. `KeyboardThemeFor(theme,
+  accent)` is the one place the choices become colours, for the keyboard and every screen.
 - **A key is a legend line and a glyph** (`ui/KeyButton.kt`), never a stack of paddings: the
   shifted symbol sits top-left, the Fn meaning top-right only when it is a symbol, both of the pair
   (`[{`, `` `~ ``; `printedFnLegend`) — named meanings (F1, arrows, Home, Del) show as the glyph
