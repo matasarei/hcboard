@@ -58,6 +58,17 @@
     <string name="settings_theme_light">Light</string>
     <string name="settings_theme_dark">Dark</string>
     <string name="settings_theme_black">Black</string>
+    <!-- The accent swatches have no visible names; these are what TalkBack reads. -->
+    <string name="settings_accent_system">Phone colours</string>
+    <string name="settings_accent_red">Red</string>
+    <string name="settings_accent_orange">Orange</string>
+    <string name="settings_accent_yellow">Yellow</string>
+    <string name="settings_accent_green">Green</string>
+    <string name="settings_accent_teal">Teal</string>
+    <string name="settings_accent_blue">Blue</string>
+    <string name="settings_accent_indigo">Indigo</string>
+    <string name="settings_accent_purple">Purple</string>
+    <string name="settings_accent_pink">Pink</string>
     <string name="settings_try_password_label">Try a password field</string>
     <string name="settings_height">Keyboard height: %1$d%%</string>
     <string name="settings_width">Keyboard width: %1$d%%</string>

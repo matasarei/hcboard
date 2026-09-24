@@ -135,6 +135,7 @@ private fun SettingsScreen(settings: Settings, prefs: Prefs) {
                 )
             }
         }
+        AccentSwatches(selected = settings.accent, theme = settings.theme) { scope.launch { prefs.setAccent(it) } }
         Text(
             stringResource(R.string.settings_height, (settings.heightScale * 100).roundToInt()),
             style = MaterialTheme.typography.bodyLarge,
