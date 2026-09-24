@@ -11,6 +11,7 @@ import androidx.test.uiautomator.UiObject2
 import androidx.test.uiautomator.Until
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
+import net.matasar.keyboard.settings.GlobeTap
 import net.matasar.keyboard.settings.Prefs
 import net.matasar.keyboard.settings.SettingsActivity
 import org.junit.Assert.assertEquals
@@ -65,6 +66,38 @@ class LanguagesScreenTest {
             assertTrue("Settings does not name Croatian after the switch", device.wait(Until.hasObject(By.textContains("Hrvatski")), 5_000))
         } finally {
             runBlocking { prefs.setLanguageEnabled("hr", false) }
+        }
+    }
+
+    /** With three languages on, the screen offers the globe's two ways, and a tap stores the choice. */
+    @Test
+    fun theGlobeKeyChoiceShowsWithThreeLanguagesAndIsStored() {
+        val context = ApplicationProvider.getApplicationContext<android.content.Context>()
+        val prefs = Prefs(context)
+        runBlocking {
+            prefs.setLanguageEnabled("uk", true)
+            prefs.setLanguageEnabled("ru", true)
+            prefs.setGlobeTap(GlobeTap.LAST_USED)
+        }
+        try {
+            context.startActivity(
+                Intent(context, SettingsActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK),
+            )
+            val button = scrollTo("Choose languages", down = true)
+            assertNotNull("no Choose languages button on the Settings screen", button)
+            button!!.click()
+            assertTrue("no Globe key choice with three languages on", device.wait(Until.hasObject(By.text("Globe key")), 5_000))
+            device.findObject(By.text("Next language")).click()
+            assertTrue(
+                "Next language was not stored",
+                waitUntil(3_000) { runBlocking { prefs.settings.first().globeTap == GlobeTap.NEXT } },
+            )
+        } finally {
+            runBlocking {
+                prefs.setGlobeTap(GlobeTap.LAST_USED)
+                prefs.setLanguageEnabled("ru", false)
+                prefs.setLanguageEnabled("uk", false)
+            }
         }
     }
 

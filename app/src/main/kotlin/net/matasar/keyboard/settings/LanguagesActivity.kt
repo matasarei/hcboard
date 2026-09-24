@@ -108,6 +108,20 @@ private fun LanguagesScreen(settings: Settings, prefs: Prefs) {
     ) {
         Text(stringResource(R.string.languages_title), style = MaterialTheme.typography.headlineSmall)
         Text(stringResource(R.string.settings_languages_hint), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        // With two languages both ways toggle between them; the choice matters from three.
+        if (settings.enabledLanguages.size > 2) {
+            Section(stringResource(R.string.languages_globe_tap))
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                GlobeTap.entries.forEach { tap ->
+                    FilterChip(
+                        selected = settings.globeTap == tap,
+                        onClick = { scope.launch { prefs.setGlobeTap(tap) } },
+                        label = { Text(tap.label()) },
+                    )
+                }
+            }
+            OptionHint(stringResource(R.string.languages_globe_tap_hint))
+        }
         if (on.isNotEmpty()) {
             Section(stringResource(R.string.languages_section_on))
             on.forEach { LanguageRow(it) }

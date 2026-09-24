@@ -165,6 +165,10 @@
     <string name="languages_title">Languages</string>
     <string name="languages_section_on">On</string>
     <string name="languages_section_more">More languages</string>
+    <string name="languages_globe_tap">Globe key</string>
+    <string name="languages_globe_tap_last_used">Last used</string>
+    <string name="languages_globe_tap_next">Next language</string>
+    <string name="languages_globe_tap_hint">Last used goes back to the language you came from, as on an iPhone; Next language goes through all of them in turn. Hold the globe for the full list.</string>
     <string name="words_title">Custom words</string>
     <string name="words_hint">Added words are suggested, glide-typed and never corrected away. Blocked words are never suggested or used as corrections. Each language has its own list. Add a word in lowercase unless it always starts with a capital: a capitalised word is offered only when you start it with one.</string>
     <string name="words_field">A word in %1$s</string>
