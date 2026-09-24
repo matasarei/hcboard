@@ -73,11 +73,11 @@ class LanguagesActivity : ComponentActivity() {
 }
 
 /**
- * The languages switched on in [enabled], English first and then in the globe's order, and every
- * other language by its English name.
+ * The languages switched on in [enabled], in the globe's order, and every other language by its
+ * English name. English is in neither: it is always on, and the screen says so instead.
  */
 fun languageGroups(enabled: Set<String>): Pair<List<Language>, List<Language>> {
-    val (on, off) = Languages.all.partition { it == Languages.english || it.tag in enabled }
+    val (on, off) = (Languages.all - Languages.english).partition { it.tag in enabled }
     return on to off.sortedBy { it.englishName }
 }
 
@@ -90,15 +90,10 @@ private fun LanguagesScreen(settings: Settings, prefs: Prefs) {
 
     @Composable
     fun LanguageRow(language: Language) {
-        val enabled = language == Languages.english || language.tag in settings.enabledLanguages
+        val enabled = language.tag in settings.enabledLanguages
         Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             Text("${language.nativeName} · ${language.englishName}", style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
-            // English is always on: the switch says so and cannot turn it off.
-            Switch(
-                checked = enabled,
-                enabled = language != Languages.english,
-                onCheckedChange = { scope.launch { prefs.setLanguageEnabled(language.tag, it) } },
-            )
+            Switch(checked = enabled, onCheckedChange = { scope.launch { prefs.setLanguageEnabled(language.tag, it) } })
         }
         if (enabled) LanguageOptions(language, settings, prefs)
     }
@@ -113,8 +108,10 @@ private fun LanguagesScreen(settings: Settings, prefs: Prefs) {
     ) {
         Text(stringResource(R.string.languages_title), style = MaterialTheme.typography.headlineSmall)
         Text(stringResource(R.string.settings_languages_hint), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        Section(stringResource(R.string.languages_section_on))
-        on.forEach { LanguageRow(it) }
+        if (on.isNotEmpty()) {
+            Section(stringResource(R.string.languages_section_on))
+            on.forEach { LanguageRow(it) }
+        }
         if (more.isNotEmpty()) {
             Section(stringResource(R.string.languages_section_more))
             more.forEach { LanguageRow(it) }
