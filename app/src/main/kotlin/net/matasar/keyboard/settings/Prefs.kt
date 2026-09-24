@@ -48,6 +48,8 @@ data class Settings(
     /** The keyboard the mic hands off to, by input method id; null picks one automatically. */
     val voiceKeyboard: String? = null,
     val theme: ThemeChoice = ThemeChoice.SYSTEM,
+    /** The highlight colour: the phone's palette, or one of the swatches. */
+    val accent: AccentColour = AccentColour.SYSTEM,
     val splitKeyboard: SplitMode = SplitMode.AUTO,
     val editingShortcuts: Boolean = true,
     val doubleTapLock: Boolean = true,
@@ -176,6 +178,7 @@ class Prefs(private val context: Context) {
             voiceInput = p[VOICE_INPUT] ?: true,
             voiceKeyboard = p[VOICE_KEYBOARD],
             theme = p[THEME]?.let { runCatching { ThemeChoice.valueOf(it) }.getOrNull() } ?: ThemeChoice.SYSTEM,
+            accent = p[ACCENT]?.let { runCatching { AccentColour.valueOf(it) }.getOrNull() } ?: AccentColour.SYSTEM,
             splitKeyboard = p[SPLIT_KEYBOARD]?.let { runCatching { SplitMode.valueOf(it) }.getOrNull() } ?: SplitMode.AUTO,
             editingShortcuts = p[EDITING_SHORTCUTS] ?: true,
             doubleTapLock = p[DOUBLE_TAP_LOCK] ?: true,
@@ -208,6 +211,7 @@ class Prefs(private val context: Context) {
     suspend fun setVoiceInput(value: Boolean) = context.dataStore.edit { it[VOICE_INPUT] = value }
     suspend fun setVoiceKeyboard(imeId: String?) = context.dataStore.edit { if (imeId == null) it.remove(VOICE_KEYBOARD) else it[VOICE_KEYBOARD] = imeId }
     suspend fun setTheme(value: ThemeChoice) = context.dataStore.edit { it[THEME] = value.name }
+    suspend fun setAccent(value: AccentColour) = context.dataStore.edit { it[ACCENT] = value.name }
     suspend fun setSplitKeyboard(value: SplitMode) = context.dataStore.edit { it[SPLIT_KEYBOARD] = value.name }
     suspend fun setEditingShortcuts(value: Boolean) = context.dataStore.edit { it[EDITING_SHORTCUTS] = value }
     suspend fun setDoubleTapLock(value: Boolean) = context.dataStore.edit { it[DOUBLE_TAP_LOCK] = value }
@@ -243,6 +247,7 @@ class Prefs(private val context: Context) {
             p[VOICE_INPUT] = s.voiceInput
             if (s.voiceKeyboard == null) p.remove(VOICE_KEYBOARD) else p[VOICE_KEYBOARD] = s.voiceKeyboard
             p[THEME] = s.theme.name
+            p[ACCENT] = s.accent.name
             p[SPLIT_KEYBOARD] = s.splitKeyboard.name
             p[EDITING_SHORTCUTS] = s.editingShortcuts
             p[DOUBLE_TAP_LOCK] = s.doubleTapLock
@@ -306,6 +311,7 @@ class Prefs(private val context: Context) {
         val VOICE_INPUT = booleanPreferencesKey("voice_input")
         val VOICE_KEYBOARD = stringPreferencesKey("voice_keyboard")
         val THEME = stringPreferencesKey("theme")
+        val ACCENT = stringPreferencesKey("accent")
         val SPLIT_KEYBOARD = stringPreferencesKey("split_keyboard")
         val EDITING_SHORTCUTS = booleanPreferencesKey("editing_shortcuts")
         val DOUBLE_TAP_LOCK = booleanPreferencesKey("double_tap_lock")
