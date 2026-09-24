@@ -41,14 +41,14 @@ class LanguageGeometry(language: Language) {
 
 class MultilingualGlideTest {
 
-    private fun list(asset: String) = File("src/main/assets/dictionaries/$asset.txt").bufferedReader().useLines { WordList.parse(it) }
+    private fun wordList(asset: String) = File("src/main/assets/dictionaries/$asset.txt").bufferedReader().useLines { WordList.parse(it) }
 
     /** Every list [language] can load: both Portuguese spellings, Russian with and without Bulgarian words. */
     private fun assets(language: Language): Set<String> =
         listOf(false, true).flatMap { ruBg -> PortugueseSpelling.entries.map { Languages.assetFor(language.tag, ruBg, it) } }.toSet()
 
     private fun classifier(language: Language): Pair<GlideClassifier, LanguageGeometry> {
-        val list = list(Languages.assetFor(language.tag, false, PortugueseSpelling.PORTUGAL))
+        val list = wordList(Languages.assetFor(language.tag, false, PortugueseSpelling.PORTUGAL))
         assertTrue(list.size > 30_000, "${language.tag}: only ${list.size} words")
         val geometry = LanguageGeometry(language)
         return GlideClassifier(list).apply { setLayout(geometry.keys) } to geometry
@@ -119,7 +119,7 @@ class MultilingualGlideTest {
     @Test
     fun `every language's list is typeable on its layer`() {
         for (language in Languages.all) for (asset in assets(language)) {
-            val list = list(asset)
+            val list = wordList(asset)
             val keys = LanguageGeometry(language).keys.associateBy { it.char }
             val untypeable = list.words.take(5_000).filter { word -> word.any { c -> baseKeyChar(c, keys) == null } }
             assertTrue(untypeable.size < 50, "$asset: ${untypeable.size} of the top 5000 words need a missing key, e.g. ${untypeable.take(8)}")
