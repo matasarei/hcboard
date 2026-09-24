@@ -359,22 +359,6 @@ private fun SplitMode.label(): String = stringResource(
     },
 )
 
-@Composable
-private fun PortugueseSpelling.label(): String = stringResource(
-    when (this) {
-        PortugueseSpelling.PORTUGAL -> R.string.settings_pt_spelling_portugal
-        PortugueseSpelling.BRAZIL -> R.string.settings_pt_spelling_brazil
-    },
-)
-
-@Composable
-private fun BulgarianLayout.label(): String = stringResource(
-    when (this) {
-        BulgarianLayout.PHONETIC -> R.string.settings_bg_layout_phonetic
-        BulgarianLayout.STANDARD -> R.string.settings_bg_layout_standard
-    },
-)
-
 /**
  * Which keyboard the mic hands off to. The list is re-read on every return to this screen, since
  * keyboards are turned on and off in Android's settings; with one keyboard there is nothing to pick,
@@ -426,23 +410,3 @@ private fun Hint(text: String) {
     Text(text, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
 }
 
-@Composable
-private fun Section(title: String) {
-    Text(
-        text = title,
-        style = MaterialTheme.typography.titleSmall,
-        color = MaterialTheme.colorScheme.primary,
-        modifier = Modifier.padding(top = 16.dp),
-    )
-}
-
-@Composable
-private fun SwitchRow(label: String, checked: Boolean, onChange: (Boolean) -> Unit) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Text(label, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
-        Switch(checked = checked, onCheckedChange = onChange)
-    }
-}
