@@ -21,6 +21,17 @@ class LanguagesTest {
     }
 
     @Test
+    fun `shift and backspace take a key and a half at most, and a short row opens a gap beside them`() {
+        fun shiftRow(language: Language) = language.lettersLayer(false).rows[2]
+        assertEquals(1.5f, shiftRow(Languages.english).keys.first().width)
+        assertEquals(0f, shiftRow(Languages.english).innerGapUnits)
+        // German's seven letters on an eleven-unit board: not two-unit edge keys, but a gap.
+        assertEquals(1.5f, shiftRow(Languages.german).keys.first().width)
+        assertEquals(1.5f, shiftRow(Languages.german).keys.last().width)
+        assertEquals(0.5f, shiftRow(Languages.german).innerGapUnits)
+    }
+
+    @Test
     fun `the layouts carry the letters that make them what they are`() {
         fun letters(language: Language) = language.lettersLayer(false).rows.flatMap { it.keys }.map { it.label }.toSet()
         assertTrue(letters(Languages.ukrainian).containsAll(listOf("ї", "є", "і")))
