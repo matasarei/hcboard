@@ -74,7 +74,7 @@ from the password manager you already use, and the keyboard never shows or keeps
   suggested, glide-typed and never corrected away; block one and it is never suggested or used as
   a correction.
 - **A number row** of 1 to 0 above the letters on a phone, switched on in Settings or the gear's
-  sheet; password fields always show it. Its #+= key then opens one page of symbols with no
+  sheet; password and number fields always show it. Its #+= key then opens one page of symbols with no
   digits of its own. The 60% board always has its digits.
 - **Capitals where a sentence starts,** in fields that ask for them (chat boxes do): the Shift key
   lights up, one tap on it cancels the capital, and terminals, addresses and code get none. It can

@@ -121,8 +121,8 @@ class KeyboardController(
         if (to == language) return
         language = to
         // The symbols and code pages are the same in every language, so a language picked there
-        // is a request for its letters. A number field, which opens on symbols, keeps its page.
-        if (layer != LayerId.LETTERS && fieldKind.initialLayer() == LayerId.LETTERS) layer = LayerId.LETTERS
+        // is a request for its letters.
+        layer = LayerId.LETTERS
         clearCandidates()
         onLanguageChanged?.invoke(to)
     }
@@ -175,10 +175,11 @@ class KeyboardController(
     var numberRow: Boolean by mutableStateOf(false)
 
     /**
-     * The number row shows where it is switched on, and in every password field regardless; never
-     * in a number field, which opens on the digits page and needs that page to keep its digits.
+     * The number row shows where it is switched on, and in every password and number field
+     * regardless: a number, phone or date field opens on the letters page with the digits on top,
+     * rather than on a page of its own.
      */
-    val numberRowShown: Boolean get() = (numberRow || passwordField) && fieldKind != FieldKind.NUMBER
+    val numberRowShown: Boolean get() = numberRow || passwordField || fieldKind == FieldKind.NUMBER
 
     /** The editor action Enter performs, or null when Enter should be a real key. */
     var editorActionId: Int? by mutableStateOf(null)
@@ -496,7 +497,7 @@ class KeyboardController(
         if (macroJob != null && fieldPackage != macroPackage) stopMacro()
         fieldStarts.value++
         updateFieldKind(info)
-        layer = fieldKind.initialLayer()
+        layer = LayerId.LETTERS
         shift = Latch()
         lastSpaceAt = null
         modifiers = Modifiers()

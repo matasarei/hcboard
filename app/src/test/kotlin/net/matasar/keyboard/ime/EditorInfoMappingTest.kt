@@ -4,7 +4,6 @@ import android.text.InputType
 import android.view.inputmethod.EditorInfo
 import net.matasar.keyboard.layout.FieldMarks
 import net.matasar.keyboard.layout.KeyIcon
-import net.matasar.keyboard.layout.LayerId
 import kotlin.test.Test
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
@@ -21,12 +20,10 @@ class EditorInfoMappingTest {
     }
 
     @Test
-    fun `numbers phones and dates open on the digits page`() {
+    fun `numbers phones and dates are number fields`() {
         assertEquals(FieldKind.NUMBER, fieldKindOf(InputType.TYPE_CLASS_NUMBER))
         assertEquals(FieldKind.NUMBER, fieldKindOf(InputType.TYPE_CLASS_PHONE))
         assertEquals(FieldKind.NUMBER, fieldKindOf(InputType.TYPE_CLASS_DATETIME))
-        assertEquals(LayerId.SYMBOLS, FieldKind.NUMBER.initialLayer())
-        assertEquals(LayerId.LETTERS, FieldKind.TEXT.initialLayer())
     }
 
     @Test
