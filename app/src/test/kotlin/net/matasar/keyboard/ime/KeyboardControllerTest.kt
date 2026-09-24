@@ -300,7 +300,7 @@ class WideBoardControllerTest {
     }
 
     @Test
-    fun `an e-mail field shows @ and a full stop beside space, and the next field loses them`() {
+    fun `an e-mail field swaps the comma for @, a web address for a slash, and the next field gets it back`() {
         controller.onStartInput(EditorInfo().apply { inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS })
         fun bottom() = controller.phoneLayout.layer(LayerId.LETTERS).rows.last().keys.map { it.label }
         assertEquals(listOf("123", "@", "English", ".", "enter"), bottom())
@@ -308,6 +308,6 @@ class WideBoardControllerTest {
         controller.onRestartInput(EditorInfo().apply { inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_URI })
         assertEquals(listOf("123", "/", "English", ".", "enter"), bottom())
         controller.onStartInput(EditorInfo().apply { inputType = InputType.TYPE_CLASS_TEXT })
-        assertEquals(listOf("123", "English", "enter"), bottom())
+        assertEquals(listOf("123", ",", "English", ".", "enter"), bottom())
     }
 }

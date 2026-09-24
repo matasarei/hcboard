@@ -1,17 +1,16 @@
 package net.matasar.keyboard.layout
 
 /**
- * The marks an address field keeps beside the space bar on the letters page, as the iPhone's
- * e-mail and web keyboards do: without them `.` and `@` or `/` are a page away on every address.
+ * What sits left of the space bar on the letters page: a comma, or in an address field what an
+ * address needs more, as the iPhone's e-mail and web keyboards do. A period is right of it always.
  */
-enum class FieldMarks(val beforeSpace: String?) { NONE(null), EMAIL("@"), URL("/") }
+enum class FieldMarks(val beforeSpace: String) { NONE(","), EMAIL("@"), URL("/") }
 
 /**
- * The bottom row every phone layer shares, as on the iPhone: the page switch, the globe when more
- * than one language is enabled (where the iPhone has its emoji key), space named after the
- * language, and a wide return. No comma or period: a double space types ". ", and both are on
- * the symbol pages; an address field gets its [marks] around the space bar instead. Scales to
- * the layer's units.
+ * The bottom row every phone layer shares: the page switch, the globe when more than one
+ * language is enabled, space named after the language, and a wide return. The letters page has
+ * a comma (or its field's [marks]) and a period around the space bar; the symbol pages, whose
+ * third row has both, pass none. Scales to the layer's units.
  */
 internal fun bottomRow(
     switchTo: LayerId,
@@ -19,22 +18,21 @@ internal fun bottomRow(
     units: Float,
     spaceLabel: String,
     withGlobe: Boolean,
-    marks: FieldMarks = FieldMarks.NONE,
+    marks: FieldMarks? = null,
 ): Row {
-    val before = marks.beforeSpace
-    val fixed = SWITCH_KEY + RETURN_KEY + (if (withGlobe) GLOBE_KEY else 0f) + (if (before != null) 2f else 0f)
+    val fixed = SWITCH_KEY + RETURN_KEY + (if (withGlobe) GLOBE_KEY else 0f) + (if (marks != null) 2f else 0f)
     val keys = mutableListOf(function(switchLabel, KeyAction.SwitchLayer(switchTo), SWITCH_KEY))
+    if (marks != null) keys += function(marks.beforeSpace, KeyAction.Text(marks.beforeSpace))
     if (withGlobe) keys += Key("globe", KeyAction.SwitchLanguage, GLOBE_KEY, KeyStyle.FUNCTION, KeyIcon.GLOBE)
-    if (before != null) keys += function(before, KeyAction.Text(before))
     keys += spaceKey(units - fixed, spaceLabel)
-    if (before != null) keys += function(".", KeyAction.Text("."))
+    if (marks != null) keys += function(".", KeyAction.Text("."))
     keys += enterKey(RETURN_KEY)
     return Row(keys)
 }
 
 private const val SWITCH_KEY = 1.25f
-private const val GLOBE_KEY = 1.25f
-private const val RETURN_KEY = 2.5f
+private const val GLOBE_KEY = 1f
+private const val RETURN_KEY = 2f
 
 /** The five marks on the third row of both symbol pages, a little wider than a key, as on the iPhone. */
 private fun marks(): Array<Key> = symbols(".,?!'").map { it.copy(width = 1.4f) }.toTypedArray()

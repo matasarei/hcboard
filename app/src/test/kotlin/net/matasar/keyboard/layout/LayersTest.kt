@@ -72,26 +72,27 @@ class LayersTest {
     }
 
     @Test
-    fun `the bottom row is switch, globe, space and a wide return, with no comma or period`() {
+    fun `the letters bottom row is switch, comma, globe, space, period and a wide return`() {
         val plain = LettersLayer.rows[3].keys
-        assertEquals(listOf(KeyAction.SwitchLayer(LayerId.SYMBOLS), KeyAction.Space, KeyAction.Enter), plain.map { it.action })
-        assertEquals(listOf(1.25f, 6.25f, 2.5f), plain.map { it.width })
-        val globe = Languages.english.lettersLayer(withGlobe = true).rows[3].keys
         assertEquals(
-            listOf(KeyAction.SwitchLayer(LayerId.SYMBOLS), KeyAction.SwitchLanguage, KeyAction.Space, KeyAction.Enter),
-            globe.map { it.action },
+            listOf(KeyAction.SwitchLayer(LayerId.SYMBOLS), KeyAction.Text(","), KeyAction.Space, KeyAction.Text("."), KeyAction.Enter),
+            plain.map { it.action },
         )
-        assertEquals(listOf(1.25f, 1.25f, 5f, 2.5f), globe.map { it.width })
-        assertTrue(LettersLayer.rows.flatMap { it.keys }.none { it.label == "," || it.label == "." })
+        assertEquals(listOf(1.25f, 1f, 4.75f, 1f, 2f), plain.map { it.width })
+        val globe = Languages.english.lettersLayer(withGlobe = true).rows[3].keys
+        assertEquals(listOf("123", ",", "globe", "English", ".", "enter"), globe.map { it.label })
+        assertEquals(listOf(1.25f, 1f, 1f, 3.75f, 1f, 2f), globe.map { it.width })
+        // The symbol pages have both marks on their third row already.
+        assertEquals(listOf("ABC", "English", "enter"), SymbolsLayer.rows[3].keys.map { it.label })
     }
 
     @Test
-    fun `an address field gets its marks around the space bar on the letters page only`() {
+    fun `an address field swaps the comma for what an address needs, on the letters page only`() {
         fun labels(marks: FieldMarks) =
             phoneLayout(Languages.english, withGlobe = true, marks = marks).layers.getValue(LayerId.LETTERS).rows[3].keys.map { it.label }
-        assertEquals(listOf("123", "globe", "English", "enter"), labels(FieldMarks.NONE))
-        assertEquals(listOf("123", "globe", "@", "English", ".", "enter"), labels(FieldMarks.EMAIL))
-        assertEquals(listOf("123", "globe", "/", "English", ".", "enter"), labels(FieldMarks.URL))
+        assertEquals(listOf("123", ",", "globe", "English", ".", "enter"), labels(FieldMarks.NONE))
+        assertEquals(listOf("123", "@", "globe", "English", ".", "enter"), labels(FieldMarks.EMAIL))
+        assertEquals(listOf("123", "/", "globe", "English", ".", "enter"), labels(FieldMarks.URL))
         for (marks in FieldMarks.entries) {
             val layout = phoneLayout(Languages.ukrainian, withGlobe = false, marks = marks)
             for (layer in layout.layers.values) for (row in layer.rows) assertEquals(layer.units, row.totalUnits, 0.001f, "$marks ${layer.id}")
