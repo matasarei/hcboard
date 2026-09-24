@@ -27,11 +27,14 @@ import net.matasar.keyboard.R
 import net.matasar.keyboard.layout.Language
 import net.matasar.keyboard.ui.theme.LocalKeyboardColors
 
-/** The picker a long press on the globe opens: the enabled languages, the current one checked. */
+/**
+ * The picker a long press on the globe opens: the enabled languages, the current one checked. It
+ * scrolls, like the other sheets: with many languages on, the list is taller than the keyboard.
+ */
 @Composable
 fun LanguageSheet(languages: List<Language>, current: Language, onPick: (Language) -> Unit, onDismiss: () -> Unit, sidePadding: Dp) {
     val colors = LocalKeyboardColors.current
-    KeyboardSheet(onDismiss = onDismiss, sidePadding = sidePadding, scrollable = false) {
+    KeyboardSheet(onDismiss = onDismiss, sidePadding = sidePadding) {
         Box(
             modifier = Modifier
                 .align(Alignment.CenterHorizontally)
