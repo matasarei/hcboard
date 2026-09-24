@@ -13,6 +13,7 @@ import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import net.matasar.keyboard.layout.BulgarianLayout
 import net.matasar.keyboard.layout.Languages
+import net.matasar.keyboard.layout.PortugueseSpelling
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.serialization.Serializable
@@ -68,6 +69,8 @@ data class Settings(
     val ruBulgarianVocabulary: Boolean = false,
     /** Which board Bulgarian is typed on: phonetic, or the standard one (БДС) the iPhone ships. */
     val bulgarianLayout: BulgarianLayout = BulgarianLayout.PHONETIC,
+    /** Which Portuguese the word list spells: Portugal's, or Brazil's. */
+    val portugueseSpelling: PortugueseSpelling = PortugueseSpelling.PORTUGAL,
 ) {
     companion object {
         const val DEFAULT_LANGUAGE = "en_US"
@@ -84,8 +87,11 @@ data class Settings(
  * keyboard has, English always among them, and the current one enabled. Applied to a restored file.
  */
 fun Settings.sanitized(): Settings {
+    // A file from before Portuguese had two spellings names it pt_BR, and meant Brazil's.
+    val legacyPortuguese = Languages.LEGACY_PORTUGUESE_TAG in enabledLanguages || currentLanguage == Languages.LEGACY_PORTUGUESE_TAG
     // English is always on: the screen has no switch for it, so a file without it would strand it off.
-    val languages = setOf(Settings.DEFAULT_LANGUAGE) + enabledLanguages.filter { Languages.byTag(it) != null }
+    val languages = setOf(Settings.DEFAULT_LANGUAGE) + enabledLanguages.map(Languages::migrateTag).filter { Languages.byTag(it) != null }
+    val current = Languages.migrateTag(currentLanguage)
     return copy(
         // A restored file is the one place this set arrives from outside, and the keyboard reads
         // it on every field: a list of that size is a mistake or a hostile file, not a choice.
@@ -94,7 +100,8 @@ fun Settings.sanitized(): Settings {
         widthScale = widthScale.coerceIn(Settings.MIN_WIDTH_SCALE, 1f),
         bottomPaddingDp = bottomPaddingDp.coerceIn(0, Settings.MAX_BOTTOM_PADDING_DP),
         enabledLanguages = languages,
-        currentLanguage = currentLanguage.takeIf { it in languages } ?: languages.first(),
+        currentLanguage = current.takeIf { it in languages } ?: languages.first(),
+        portugueseSpelling = if (legacyPortuguese) PortugueseSpelling.BRAZIL else portugueseSpelling,
     )
 }
 
@@ -107,7 +114,7 @@ fun Set<String>.withLanguage(tag: String, enabled: Boolean): Set<String> = when 
 
 private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(
     name = "settings",
-    produceMigrations = { listOf(DropRemovedSettings) },
+    produceMigrations = { listOf(DropRemovedSettings, RenamePortugueseTag) },
 )
 
 /**
@@ -122,6 +129,28 @@ internal object DropRemovedSettings : DataMigration<Preferences> {
 
     override suspend fun migrate(currentData: Preferences): Preferences =
         currentData.toMutablePreferences().apply { removed.forEach { remove(it) } }.toPreferences()
+
+    override suspend fun cleanUp() = Unit
+}
+
+/**
+ * Portuguese was `pt_BR` until it had two spellings; it is `pt` now. Someone who had it on keeps
+ * it on, current if it was, and keeps the Brazilian word list they were typing with. Runs once, on
+ * the first read after the update.
+ */
+internal object RenamePortugueseTag : DataMigration<Preferences> {
+    private val enabled = stringSetPreferencesKey("enabled_languages")
+    private val current = stringPreferencesKey("current_language")
+    private val spelling = stringPreferencesKey("portuguese_spelling")
+
+    override suspend fun shouldMigrate(currentData: Preferences): Boolean =
+        currentData[enabled].orEmpty().contains(Languages.LEGACY_PORTUGUESE_TAG) || currentData[current] == Languages.LEGACY_PORTUGUESE_TAG
+
+    override suspend fun migrate(currentData: Preferences): Preferences = currentData.toMutablePreferences().apply {
+        this[enabled]?.let { this[enabled] = it.map(Languages::migrateTag).toSet() }
+        this[current]?.let { this[current] = Languages.migrateTag(it) }
+        if (spelling !in this) this[spelling] = PortugueseSpelling.BRAZIL.name
+    }.toPreferences()
 
     override suspend fun cleanUp() = Unit
 }
@@ -157,6 +186,7 @@ class Prefs(private val context: Context) {
             currentLanguage = p[CURRENT_LANGUAGE] ?: Settings.DEFAULT_LANGUAGE,
             ruBulgarianVocabulary = p[RU_BULGARIAN_VOCABULARY] ?: false,
             bulgarianLayout = p[BULGARIAN_LAYOUT]?.let { runCatching { BulgarianLayout.valueOf(it) }.getOrNull() } ?: BulgarianLayout.PHONETIC,
+            portugueseSpelling = p[PORTUGUESE_SPELLING]?.let { runCatching { PortugueseSpelling.valueOf(it) }.getOrNull() } ?: PortugueseSpelling.PORTUGAL,
         )
     }
 
@@ -183,6 +213,7 @@ class Prefs(private val context: Context) {
     suspend fun setCurrentLanguage(tag: String) = context.dataStore.edit { it[CURRENT_LANGUAGE] = tag }
     suspend fun setRuBulgarianVocabulary(value: Boolean) = context.dataStore.edit { it[RU_BULGARIAN_VOCABULARY] = value }
     suspend fun setBulgarianLayout(value: BulgarianLayout) = context.dataStore.edit { it[BULGARIAN_LAYOUT] = value.name }
+    suspend fun setPortugueseSpelling(value: PortugueseSpelling) = context.dataStore.edit { it[PORTUGUESE_SPELLING] = value.name }
 
     /** Writes every setting at once, from a restored backup, within [sanitized]'s limits. */
     suspend fun replaceAll(settings: Settings) {
@@ -214,6 +245,7 @@ class Prefs(private val context: Context) {
             p[CURRENT_LANGUAGE] = s.currentLanguage
             p[RU_BULGARIAN_VOCABULARY] = s.ruBulgarianVocabulary
             p[BULGARIAN_LAYOUT] = s.bulgarianLayout.name
+            p[PORTUGUESE_SPELLING] = s.portugueseSpelling.name
         }
     }
 
@@ -274,5 +306,6 @@ class Prefs(private val context: Context) {
         val CURRENT_LANGUAGE = stringPreferencesKey("current_language")
         val RU_BULGARIAN_VOCABULARY = booleanPreferencesKey("ru_bulgarian_vocabulary")
         val BULGARIAN_LAYOUT = stringPreferencesKey("bulgarian_layout")
+        val PORTUGUESE_SPELLING = stringPreferencesKey("portuguese_spelling")
     }
 }

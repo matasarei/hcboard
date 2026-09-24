@@ -1,6 +1,7 @@
 package net.matasar.keyboard.backup
 
 import net.matasar.keyboard.layout.BulgarianLayout
+import net.matasar.keyboard.layout.PortugueseSpelling
 import net.matasar.keyboard.macro.Block
 import net.matasar.keyboard.macro.Macro
 import net.matasar.keyboard.macro.MacroStore
@@ -19,7 +20,7 @@ class BackupCodecTest {
 
     private val settings = Settings(
         theme = ThemeChoice.DARK, enabledLanguages = setOf("en_US", "uk"), currentLanguage = "uk",
-        bulgarianLayout = BulgarianLayout.STANDARD, doubleSpacePeriod = false,
+        bulgarianLayout = BulgarianLayout.STANDARD, doubleSpacePeriod = false, portugueseSpelling = PortugueseSpelling.BRAZIL,
     )
     private val words = mapOf("en_US" to mapOf("kubectl" to 230, "tube" to 0))
     private val login = Macro(
@@ -56,6 +57,19 @@ class BackupCodecTest {
         val restored = BackupCodec.open(BackupCodec.read(old), null).settings
         assertEquals(BulgarianLayout.PHONETIC, restored.bulgarianLayout)
         assertTrue(restored.doubleSpacePeriod)
+    }
+
+    @Test
+    fun `a backup from before Portuguese had two spellings restores as Portuguese in Brazilian spelling`() {
+        val text = """{"format":"hcboard-backup","version":1,
+            "settings":{"enabledLanguages":["en_US","pt_BR"],"currentLanguage":"pt_BR"},
+            "words":{"pt_BR":{"zap":230}},
+            "macros":[]}"""
+        val restored = BackupCodec.open(BackupCodec.read(text), null)
+        assertEquals(setOf("en_US", "pt"), restored.settings.enabledLanguages)
+        assertEquals("pt", restored.settings.currentLanguage)
+        assertEquals(PortugueseSpelling.BRAZIL, restored.settings.portugueseSpelling)
+        assertEquals(mapOf("pt" to mapOf("zap" to 230)), restored.words)
     }
 
     @Test

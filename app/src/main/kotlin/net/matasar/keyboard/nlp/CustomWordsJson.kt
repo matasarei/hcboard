@@ -3,6 +3,7 @@ package net.matasar.keyboard.nlp
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
+import net.matasar.keyboard.layout.Languages
 
 /** How custom words are kept: `{"version":1,"languages":{"en_US":{"kubectl":230,"ducking":0}}}`. */
 object CustomWordsJson {
@@ -28,8 +29,27 @@ object CustomWordsJson {
         null
     }
 
-    /** [words] with every entry a word the lists could hold, frequencies within 0–255, and no empty language. */
-    fun sanitized(words: CustomWords): CustomWords = words
+    /**
+     * [words] with every entry a word the lists could hold, frequencies within 0–255, and no empty
+     * language. A language stored under an old tag (Portuguese's `pt_BR`) joins its current one;
+     * where both have a word, a block wins, then the higher frequency.
+     */
+    fun sanitized(words: CustomWords): CustomWords = words.entries
+        .groupBy({ Languages.migrateTag(it.key) }, { it.value })
+        .mapValues { (_, maps) ->
+            maps.reduce { merged, next ->
+                (merged.keys + next.keys).associateWith { word ->
+                    val a = merged[word]
+                    val b = next[word]
+                    when {
+                        a == null -> b!!
+                        b == null -> a
+                        a == CustomWord.BLOCKED || b == CustomWord.BLOCKED -> CustomWord.BLOCKED
+                        else -> maxOf(a, b)
+                    }
+                }
+            }
+        }
         .mapValues { (_, entries) ->
             buildMap {
                 for ((word, frequency) in entries) {

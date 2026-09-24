@@ -10,7 +10,7 @@ This product includes software and data from other Apache-2.0 projects:
   Copyright (C) The FlorisBoard Contributors, https://github.com/florisboard/florisboard,
   Apache License 2.0. Modifications are marked in the file header.
 
-- The English, Russian, French, Spanish, German, Italian, Portuguese (Brazil), Polish and
+- The English, Russian, French, Spanish, German, Italian, Brazilian Portuguese, Polish and
   Bulgarian word lists (app/src/main/assets/dictionaries/{en_US,ru,fr,es,de,it,pt_BR,pl,bg}.txt) are derived from
   the *_wordlist.combined files in the Android Open Source Project
   (packages/inputmethods/LatinIME/dictionaries), Copyright (C) The Android Open Source Project,
@@ -19,6 +19,12 @@ This product includes software and data from other Apache-2.0 projects:
   scripts/wordlists/<language>-everyday.tsv for the others, Apache-2.0). The combined
   Russian+Bulgarian word list (app/src/main/assets/dictionaries/ru_bg.txt) is generated from the
   Russian and Bulgarian lists via scripts/build-ru-bg-wordlist.py.
+
+- The Dutch, Swedish, Danish, Finnish, Czech, Romanian, Greek, Croatian, Slovenian, Lithuanian,
+  Latvian and European Portuguese word lists
+  (app/src/main/assets/dictionaries/{nl,sv,da,fi,cs,ro,el,hr,sl,lt,lv,pt_PT}.txt) are derived
+  from the same AOSP *_wordlist.combined files, Copyright (C) The Android Open Source Project,
+  Apache License 2.0, filtered by scripts/build-wordlist.py with no overlay.
 
 - The globe and hide-keyboard icons (app/src/main/res/drawable/ic_globe.xml and
   ic_keyboard_hide.xml) are derived from ic_ime_switcher_new.xml and ic_ime_switcher.xml in the

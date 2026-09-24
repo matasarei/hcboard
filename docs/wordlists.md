@@ -9,6 +9,9 @@ Moved here from `CLAUDE.md`, which points to this file; the rules are unchanged.
 - **Ukrainian:** Helium314's CC BY 4.0 list, plus the curated overlay
   `scripts/wordlists/uk-everyday.tsv` (the corpus is news text and under-rates chat words).
 - **English:** AOSP plus `scripts/wordlists/en-modern.tsv` (essential tech and modern chat words).
+- **Dutch, Swedish, Danish, Finnish, Czech, Romanian, Greek, Croatian, Slovenian, Lithuanian,
+  Latvian and European Portuguese** (`pt_PT`) are the AOSP lists alone, built with the defaults
+  (`--floor 60 --max 80000`); their chat overlays are still to come.
 - **Every other list** has its own chat overlay, `scripts/wordlists/<language>-everyday.tsv`, with
   tiers matched to its corpus's scale: ru 175/155/135, bg 255/230/210, the rest 200/180/165.
   German nouns keep their capital.

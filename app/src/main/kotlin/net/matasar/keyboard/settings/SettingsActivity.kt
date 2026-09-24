@@ -66,6 +66,7 @@ import net.matasar.keyboard.R
 import net.matasar.keyboard.ime.KeyboardDiagnostics
 import net.matasar.keyboard.layout.BulgarianLayout
 import net.matasar.keyboard.layout.Languages
+import net.matasar.keyboard.layout.PortugueseSpelling
 import net.matasar.keyboard.macro.MacrosActivity
 import net.matasar.keyboard.ui.theme.KeyboardTheme
 import kotlin.math.roundToInt
@@ -234,6 +235,25 @@ private fun SettingsScreen(settings: Settings, prefs: Prefs) {
                     )
                 }
             }
+            if (language.tag == Languages.portuguese.tag && enabled) {
+                Column(modifier = Modifier.padding(start = 16.dp, top = 4.dp, bottom = 4.dp)) {
+                    Text(stringResource(R.string.settings_pt_spelling), style = MaterialTheme.typography.bodyLarge)
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        PortugueseSpelling.entries.forEach { spelling ->
+                            FilterChip(
+                                selected = settings.portugueseSpelling == spelling,
+                                onClick = { scope.launch { prefs.setPortugueseSpelling(spelling) } },
+                                label = { Text(spelling.label()) },
+                            )
+                        }
+                    }
+                    Text(
+                        stringResource(R.string.settings_pt_spelling_hint),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
         }
 
         Section(stringResource(R.string.settings_section_suggestions))
@@ -336,6 +356,14 @@ private fun SplitMode.label(): String = stringResource(
         SplitMode.OFF -> R.string.settings_split_off
         SplitMode.AUTO -> R.string.settings_split_auto
         SplitMode.ALWAYS -> R.string.settings_split_always
+    },
+)
+
+@Composable
+private fun PortugueseSpelling.label(): String = stringResource(
+    when (this) {
+        PortugueseSpelling.PORTUGAL -> R.string.settings_pt_spelling_portugal
+        PortugueseSpelling.BRAZIL -> R.string.settings_pt_spelling_brazil
     },
 )
 

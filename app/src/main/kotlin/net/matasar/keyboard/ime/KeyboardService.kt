@@ -34,6 +34,7 @@ import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodSubtype
 import net.matasar.keyboard.R
 import net.matasar.keyboard.layout.Languages
+import net.matasar.keyboard.layout.PortugueseSpelling
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -117,6 +118,8 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
 
     private var ruBulgarianVocabulary = false
 
+    private var portugueseSpelling = PortugueseSpelling.PORTUGAL
+
     /** The voice keyboard picked in settings, or null for the automatic choice. */
     private var preferredVoiceKeyboard: String? = null
 
@@ -128,7 +131,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
 
     /** Points the controller at [tag]'s engines, loading the word list off the main thread if needed. */
     private fun loadLanguage(tag: String) {
-        val assetTag = if (tag == "ru" && ruBulgarianVocabulary) "ru_bg" else tag
+        val assetTag = Languages.assetFor(tag, ruBulgarianVocabulary, portugueseSpelling)
         engines[assetTag]?.let { use(it); return }
         controller.glideEngine = null
         controller.candidateEngine = null
@@ -141,7 +144,9 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
             withContext(Dispatchers.Main) {
                 if (version != customWordsVersion) return@withContext
                 engines[assetTag] = loaded
-                if (controller.language.tag == tag) use(loaded)
+                // A setting may have changed the list while this one loaded (the Portuguese
+                // spelling, Russian's Bulgarian words): only the list the settings ask for now is used.
+                if (controller.language.tag == tag && Languages.assetFor(tag, ruBulgarianVocabulary, portugueseSpelling) == assetTag) use(loaded)
             }
         }
     }
@@ -243,6 +248,8 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
             prefs.settings.collect { settings ->
                 val ruBgChanged = ruBulgarianVocabulary != settings.ruBulgarianVocabulary
                 ruBulgarianVocabulary = settings.ruBulgarianVocabulary
+                val spellingChanged = portugueseSpelling != settings.portugueseSpelling
+                portugueseSpelling = settings.portugueseSpelling
                 controller.editingShortcutsInTextFields = settings.editingShortcuts
                 controller.doubleTapLock = settings.doubleTapLock
                 controller.glideEnabled = settings.glide
@@ -270,6 +277,8 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
                     loadLanguage(wanted.tag)
                 } else if (ruBgChanged && controller.language.tag == "ru") {
                     loadLanguage("ru")
+                } else if (spellingChanged && controller.language == Languages.portuguese) {
+                    loadLanguage(Languages.portuguese.tag)
                 }
                 // Android's keyboard list names the enabled subtypes: mirror ours into it, then
                 // point its current subtype at the language on the keys.

@@ -79,12 +79,14 @@ from the password manager you already use, and the keyboard never shows or keeps
 - **Capitals where a sentence starts,** in fields that ask for them (chat boxes do): the Shift key
   lights up, one tap on it cancels the capital, and terminals, addresses and code get none. It can
   be turned off in Settings.
-- **Ten languages:** English, Ukrainian, Russian, Bulgarian, French, Spanish, German, Italian, Portuguese
-  (Brazil) and Polish, each with its own layout and long-press accents. English is always on; add
+- **Twenty-one languages:** English, Ukrainian, Russian, Bulgarian, French, Spanish, German, Italian,
+  Portuguese, Polish, Dutch, Swedish, Danish, Finnish, Czech, Romanian, Greek, Croatian, Slovenian,
+  Lithuanian and Latvian, each with its own layout and long-press accents. English is always on; add
   the others in Settings → Languages. With two or more, a globe key switches them, holding it opens
   the list, and the space bar names the one you are typing in; Android's keyboard list and its
   switcher show the same languages. Bulgarian comes on two boards, phonetic (я в е р т) or the
-  standard БДС one the iPhone uses (у е и ш щ), picked under Bulgarian in Settings. For Russian speakers in Bulgaria
+  standard БДС one the iPhone uses (у е и ш щ), picked under Bulgarian in Settings. Portuguese
+  spells as in Portugal or in Brazil, picked under Portuguese. For Russian speakers in Bulgaria
   who prefer typing on the Russian ЙЦУКЕН layout, an optional setting enables combined Bulgarian
   vocabulary with collision-safe autocorrect.
   *(Want your language or a feature? [Create an issue](https://github.com/matasarei/hcboard/issues) and tell me!)*
@@ -224,7 +226,8 @@ under Settings → About → Open-source licences.
 | What | From | Licence |
 |---|---|---|
 | Glide-typing classifier (`input/glide/GlideClassifier.kt`) | [FlorisBoard](https://github.com/florisboard/florisboard), `StatisticalGlideTypingClassifier.kt` by The FlorisBoard Contributors, after Étienne Desticourt's analysis for AnySoftKeyboard | Apache-2.0 |
-| Word lists for Russian, Bulgarian, French, Spanish, German, Italian, Portuguese (Brazil) and Polish (`assets/dictionaries/`) | [Android Open Source Project](https://android.googlesource.com/platform/packages/inputmethods/LatinIME/), the `*_wordlist.combined` files, filtered by `scripts/build-wordlist.py` and merged with this project's everyday-word overlays (`scripts/wordlists/<language>-everyday.tsv`) | Apache-2.0 |
+| Word lists for Russian, Bulgarian, French, Spanish, German, Italian, Brazilian Portuguese and Polish (`assets/dictionaries/`) | [Android Open Source Project](https://android.googlesource.com/platform/packages/inputmethods/LatinIME/), the `*_wordlist.combined` files, filtered by `scripts/build-wordlist.py` and merged with this project's everyday-word overlays (`scripts/wordlists/<language>-everyday.tsv`) | Apache-2.0 |
+| Word lists for Dutch, Swedish, Danish, Finnish, Czech, Romanian, Greek, Croatian, Slovenian, Lithuanian, Latvian and European Portuguese (`assets/dictionaries/`) | [Android Open Source Project](https://android.googlesource.com/platform/packages/inputmethods/LatinIME/), the `*_wordlist.combined` files, filtered by `scripts/build-wordlist.py` | Apache-2.0 |
 | English word list (`assets/dictionaries/en_US.txt`) | [Android Open Source Project](https://android.googlesource.com/platform/packages/inputmethods/LatinIME/), filtered by `scripts/build-wordlist.py` and merged with this project's modern-word overlay (`scripts/wordlists/en-modern.tsv`) | Apache-2.0 |
 | Ukrainian word list (`assets/dictionaries/uk.txt`) | [Helium314/aosp-dictionaries](https://codeberg.org/Helium314/aosp-dictionaries), `wordlists_experimental/main_uk.combined`, built from the [Leipzig Corpora Collection](https://wortschatz.uni-leipzig.de/en/download/) word lists, merged with this project's everyday-word overlay (`scripts/wordlists/uk-everyday.tsv`) | CC BY 4.0 (overlay Apache-2.0) |
 | UI toolkit and libraries | [AndroidX](https://developer.android.com/jetpack/androidx) and Jetpack Compose, Material 3 | Apache-2.0 |
