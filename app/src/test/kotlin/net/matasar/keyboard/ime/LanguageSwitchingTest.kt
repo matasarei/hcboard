@@ -1,5 +1,6 @@
 package net.matasar.keyboard.ime
 
+import androidx.compose.runtime.snapshots.Snapshot
 import net.matasar.keyboard.input.FakeEditorPort
 import net.matasar.keyboard.input.InputDispatcher
 import net.matasar.keyboard.layout.BulgarianLayout
@@ -118,6 +119,25 @@ class LanguageSwitchingTest {
         controller.switchLanguage(controller.language) // onCurrentInputMethodSubtypeChanged
         controller.onKey(globe()!!)
         assertEquals(Languages.byTag("fr"), controller.language) // on, not back to English
+    }
+
+    @Test
+    fun `the globe's target is read from state, so a key that ends a run renames the globe`() {
+        controller.enabledLanguages = setOf("en_US", "uk", "fr")
+        controller.onKey(globe()!!) // en to uk
+        controller.onKey(globe()!!) // on to fr
+        val read = mutableSetOf<Any>()
+        Snapshot.observe(readObserver = { read.add(it) }) { controller.globeTarget() }
+        val changed = mutableSetOf<Any>()
+        val handle = Snapshot.registerApplyObserver { written, _ -> changed.addAll(written) }
+        try {
+            controller.onKey(key("a"))
+            Snapshot.sendApplyNotifications()
+        } finally {
+            handle.dispose()
+        }
+        assertTrue(changed.any { it in read }) // the keys redraw, and TalkBack hears the new name
+        assertEquals(Languages.byTag("uk"), controller.globeTarget()) // back, no longer on
     }
 
     @Test

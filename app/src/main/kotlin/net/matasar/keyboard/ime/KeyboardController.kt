@@ -82,14 +82,17 @@ class KeyboardController(
     /** Called when the language changes by a key, the picker or the system, so the service can persist and reload. */
     var onLanguageChanged: ((Language) -> Unit)? = null
 
+    // These three are state because the globe's TalkBack name (globeTarget) reads them while
+    // the keys compose: a key that ends a run of taps must rename the globe.
+
     /** Setting: what a globe tap does with three or more languages on. */
-    var globeTap: GlobeTap = GlobeTap.LAST_USED
+    var globeTap: GlobeTap by mutableStateOf(GlobeTap.LAST_USED)
 
     /** The language typed in before the current one, where [GlobeTap.LAST_USED] goes back to. */
-    var previousLanguage: Language? = null
+    var previousLanguage: Language? by mutableStateOf(null)
 
     /** Whether the last key was the globe: taps in a row go on through the list rather than back. */
-    private var globeTapsInARow = false
+    private var globeTapsInARow by mutableStateOf(false)
 
     /** Whether the language picker sheet is open. */
     var languageSheetOpen: Boolean by mutableStateOf(false)
