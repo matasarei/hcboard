@@ -50,4 +50,24 @@ class AccentsTest {
         )
         assertTrue(scheme.toString() != red.toString())
     }
+
+    @Test
+    fun `on Black the accent colours the modifiers and chips, and Enter stays grey`() {
+        val tones = Accents.getValue(AccentColour.GREEN).dark
+        val colors = darkColorScheme().withAccent(AccentColour.GREEN, dark = true).toKeyboardColors(dark = true).black()
+        assertEquals(BlackPalette.band, colors.action)
+        assertEquals(tones.primary, colors.armedRing)
+        assertEquals(tones.primary, colors.locked)
+        assertEquals(tones.primaryContainer, colors.armed)
+        assertEquals(tones.primaryContainer, colors.chip)
+    }
+
+    @Test
+    fun `on Light and Dark the accent fills Enter`() {
+        for (dark in listOf(false, true)) {
+            val tones = Accents.getValue(AccentColour.ORANGE).of(dark)
+            val scheme = if (dark) darkColorScheme() else lightColorScheme()
+            assertEquals(tones.primary, scheme.withAccent(AccentColour.ORANGE, dark).toKeyboardColors(dark).action)
+        }
+    }
 }

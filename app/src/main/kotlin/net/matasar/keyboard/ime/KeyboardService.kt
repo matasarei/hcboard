@@ -368,7 +368,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
             setContent {
                 val settings by prefs.settings.collectAsState(initial = Settings())
                 val macros by macroStore.macros.collectAsState(initial = emptyList())
-                KeyboardThemeFor(settings.theme) {
+                KeyboardThemeFor(settings.theme, settings.accent) {
                     val colors = LocalKeyboardColors.current
                     SideEffect {
                         suggestionColors = SuggestionColors(colors.key.toArgb(), colors.onKey.toArgb(), colors.subtle.toArgb())

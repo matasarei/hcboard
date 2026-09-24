@@ -59,7 +59,7 @@ class LanguagesActivity : ComponentActivity() {
             // Null until the stored settings arrive: the groups are fixed from the first real set.
             val settings by prefs.settings.collectAsState(initial = null)
             val current = settings ?: return@setContent
-            KeyboardThemeFor(current.theme) {
+            KeyboardThemeFor(current.theme, current.accent) {
                 Surface(modifier = Modifier.fillMaxSize()) {
                     LanguagesScreen(current, prefs)
                 }

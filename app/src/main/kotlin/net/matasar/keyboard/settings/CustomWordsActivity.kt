@@ -59,7 +59,7 @@ class CustomWordsActivity : ComponentActivity() {
         setContent {
             val settings by prefs.settings.collectAsState(initial = Settings())
             val words by store.words.collectAsState(initial = emptyMap())
-            KeyboardThemeFor(settings.theme) {
+            KeyboardThemeFor(settings.theme, settings.accent) {
                 Surface(modifier = Modifier.fillMaxSize()) {
                     CustomWordsScreen(settings, words, store)
                 }

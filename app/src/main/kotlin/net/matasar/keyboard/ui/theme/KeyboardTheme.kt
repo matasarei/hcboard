@@ -15,6 +15,7 @@ import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.platform.LocalContext
+import net.matasar.keyboard.settings.AccentColour
 
 /**
  * The colour roles the keyboard draws with, derived from the Material 3 scheme so that dynamic
@@ -98,7 +99,7 @@ private val FallbackDark = darkColorScheme(
     outlineVariant = Color(0xFF43474E),
 )
 
-private fun ColorScheme.toKeyboardColors(dark: Boolean): KeyboardColors = KeyboardColors(
+internal fun ColorScheme.toKeyboardColors(dark: Boolean): KeyboardColors = KeyboardColors(
     background = surfaceContainer,
     toolbar = surfaceContainer,
     key = surfaceBright,
@@ -188,11 +189,13 @@ internal fun KeyboardColors.black(): KeyboardColors = copy(
  *
  * @param darkTheme null follows the system; true or false forces it (the theme setting).
  * @param black the Black theme: the dark scheme's accents on [BlackPalette]'s surfaces.
+ * @param accent the highlight: the phone's palette, or a fixed one in place of its four accent roles.
  */
 @Composable
 fun KeyboardTheme(
     darkTheme: Boolean? = null,
     black: Boolean = false,
+    accent: AccentColour = AccentColour.SYSTEM,
     content: @Composable () -> Unit,
 ) {
     val dark = black || (darkTheme ?: isSystemInDarkTheme())
@@ -202,7 +205,7 @@ fun KeyboardTheme(
             if (dark) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
         dark -> FallbackDark
         else -> FallbackLight
-    }
+    }.withAccent(accent, dark)
     MaterialTheme(colorScheme = scheme) {
         val colors = scheme.toKeyboardColors(dark).let {
             when {
