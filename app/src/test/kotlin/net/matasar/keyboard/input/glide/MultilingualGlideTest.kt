@@ -70,6 +70,10 @@ class MultilingualGlideTest {
     @Test
     fun `ukrainian glides привіт`() = assertGlides(Languages.ukrainian, "привіт", "привіт")
 
+    /** ґ has no key and no decomposition: a path over г reaches it (FallbackKeyChars). */
+    @Test
+    fun `ukrainian glides ґрунт over the г key`() = assertGlides(Languages.ukrainian, "грунт", "ґрунт")
+
     @Test
     fun `ukrainian commits everyday words first thanks to the overlay`() {
         for (word in listOf("привіт", "дякую", "добре", "зараз", "сьогодні")) assertGlidesFirst(Languages.ukrainian, word)

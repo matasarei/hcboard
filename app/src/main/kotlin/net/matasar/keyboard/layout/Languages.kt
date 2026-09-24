@@ -18,9 +18,9 @@ object Languages {
             'г' to listOf("ґ"), 'е' to listOf("ё"), 'и' to listOf("ы"),
             '\'' to listOf("ʼ", "’"),
         ),
-        // The iPhone's twelve-key rows: the apostrophe ends the home row and ґ the shift row, so ь
-        // needs no apostrophes on its long press.
-        phoneRows = listOf("йцукенгшщзхї", "фівапролджє'", "ячсмитьбюґ"),
+        // The apostrophe ends the home row, so ь needs no apostrophes on its long press; ґ is a long
+        // press on г, which leaves the shift row its wider Shift and backspace.
+        phoneRows = listOf("йцукенгшщзхї", "фівапролджє'", "ячсмитьбю"),
     )
 
     val russian = Language(
