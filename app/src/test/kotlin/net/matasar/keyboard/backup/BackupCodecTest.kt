@@ -5,6 +5,7 @@ import net.matasar.keyboard.layout.PortugueseSpelling
 import net.matasar.keyboard.macro.Block
 import net.matasar.keyboard.macro.Macro
 import net.matasar.keyboard.macro.MacroStore
+import net.matasar.keyboard.settings.GlobeTap
 import net.matasar.keyboard.settings.Settings
 import net.matasar.keyboard.settings.ThemeChoice
 import java.security.SecureRandom
@@ -21,6 +22,7 @@ class BackupCodecTest {
     private val settings = Settings(
         theme = ThemeChoice.DARK, enabledLanguages = setOf("en_US", "uk"), currentLanguage = "uk",
         bulgarianLayout = BulgarianLayout.STANDARD, doubleSpacePeriod = false, portugueseSpelling = PortugueseSpelling.BRAZIL,
+        globeTap = GlobeTap.NEXT, previousLanguage = "en_US",
     )
     private val words = mapOf("en_US" to mapOf("kubectl" to 230, "tube" to 0))
     private val login = Macro(
