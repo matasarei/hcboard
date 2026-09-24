@@ -33,7 +33,7 @@ emulator profile is `medium_phone`; boot it headless with
 - **Where things live:** `ime/` service and controller; `layout/` key data and the layers
   (`Layers.kt` phone, `SixtyPercentLayout.kt` wide, `DeveloperStrip.kt`); `input/` the editor
   port, dispatcher, latch and modifier state, key codes; `ui/` composables; `settings/` DataStore
-  prefs and the settings screen (and the Custom words screen and Backup section); `backup/` the
+  prefs and the settings screen (and the Languages and Custom words screens and Backup section); `backup/` the
   backup file, its codec and passphrase box; `nlp/` word lists, candidates and
   custom words; `autofill/` inline suggestions and the manager sheet; `macro/` macros (model, JSON,
   runner, store, the block editor screen).
@@ -130,8 +130,8 @@ emulator profile is `medium_phone`; boot it headless with
   label, fixed `subtypeId` = `Language.subtypeId` = its hash code; `MethodXmlTest` pins both, run it
   with `--rerun` after editing only `res/`, which is not a unit-test input), because Android's
   keyboard list shows the enabled subtypes' names under the keyboard's name. `ime/SystemSubtypes.kt`
-  pushes the enabled set with `setExplicitlyEnabledInputMethodSubtypes` (API 34+; the service and
-  the settings screen both push) and never reads Android's set back; the globe reports the current
+  pushes the enabled set with `setExplicitlyEnabledInputMethodSubtypes` (API 34+; the service, the Settings screen and
+  the Languages screen all push) and never reads Android's set back; the globe reports the current
   subtype, and a pick in Android's switcher is followed only for an enabled language. Only English
   overrides the implicitly enabled subtypes, so below API 34 the list reads "English" and never
   the phone's languages. The first-run default is English only; additional languages are added by
