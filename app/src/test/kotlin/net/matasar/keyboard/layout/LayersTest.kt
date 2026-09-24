@@ -97,12 +97,29 @@ class LayersTest {
         val globe = Languages.english.lettersLayer(withGlobe = true).rows[3].keys
         assertEquals(listOf("123", ",", "globe", "English", ".", "enter"), globe.map { it.label })
         assertEquals(listOf(1.25f, 1f, 1f, 3.75f, 1f, 2f), globe.map { it.width })
-        // The symbol pages have both marks on their third row already.
-        assertEquals(listOf("ABC", "English", "enter"), SymbolsLayer.rows[3].keys.map { it.label })
+        assertEquals(listOf("ABC", ",", "English", ".", "enter"), SymbolsLayer.rows[3].keys.map { it.label })
     }
 
     @Test
-    fun `an address field swaps the comma for what an address needs, on the letters page only`() {
+    fun `the bottom row is the same keys at the same shares of the width on every page and in every language`() {
+        fun shares(layer: Layer) = layer.rows.last().let { row -> row.keys.map { it.action to it.width / layer.units } }
+        for (withGlobe in listOf(false, true)) for (marks in FieldMarks.entries) {
+            val reference = shares(phoneLayout(Languages.english, withGlobe, marks = marks).layer(LayerId.LETTERS))
+            for (language in Languages.all + Languages.bulgarianStandard) for (numberRow in listOf(false, true)) {
+                val layout = phoneLayout(language, withGlobe, numberRow, marks)
+                for (layer in layout.layers.values) {
+                    val here = shares(layer)
+                    val what = "${language.tag} ${layer.id} globe=$withGlobe digits=$numberRow $marks"
+                    // The page key's target differs by page; everything else is the same key.
+                    assertEquals(reference.drop(1).map { it.first }, here.drop(1).map { it.first }, what)
+                    for ((a, b) in reference.zip(here)) assertEquals(a.second, b.second, 0.0001f, what)
+                }
+            }
+        }
+    }
+
+    @Test
+    fun `an address field swaps the comma for what an address needs, on every page`() {
         fun labels(marks: FieldMarks) =
             phoneLayout(Languages.english, withGlobe = true, marks = marks).layers.getValue(LayerId.LETTERS).rows[3].keys.map { it.label }
         assertEquals(listOf("123", ",", "globe", "English", ".", "enter"), labels(FieldMarks.NONE))
@@ -111,7 +128,7 @@ class LayersTest {
         for (marks in FieldMarks.entries) {
             val layout = phoneLayout(Languages.ukrainian, withGlobe = false, marks = marks)
             for (layer in layout.layers.values) for (row in layer.rows) assertEquals(layer.units, row.totalUnits, 0.001f, "$marks ${layer.id}")
-            assertEquals(symbolsLayer(Languages.ukrainian.nativeName, withGlobe = false), layout.layers.getValue(LayerId.SYMBOLS))
+            assertEquals(symbolsLayer(Languages.ukrainian.nativeName, withGlobe = false, marks = marks), layout.layers.getValue(LayerId.SYMBOLS))
         }
     }
 
