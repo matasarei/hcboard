@@ -13,6 +13,7 @@ import androidx.test.uiautomator.By
 import androidx.test.uiautomator.UiDevice
 import androidx.test.uiautomator.Until
 import kotlinx.coroutines.runBlocking
+import net.matasar.keyboard.layout.Languages
 import net.matasar.keyboard.settings.Prefs
 import net.matasar.keyboard.settings.SettingsActivity
 import net.matasar.keyboard.ui.Dimens
@@ -532,21 +533,25 @@ class KeyboardSmokeTest {
     fun theGlobeOffersTheLanguagePickerWhileExploringByTouch() {
         val context = ApplicationProvider.getApplicationContext<android.content.Context>()
         val prefs = Prefs(context)
-        runBlocking { prefs.setLanguageEnabled("uk", true) }
+        // From English with Ukrainian on, a globe tap goes to Ukrainian, and the globe is named for it.
+        runBlocking {
+            prefs.setLanguageEnabled("uk", true)
+            prefs.setCurrentLanguage("en_US")
+        }
+        val ukrainian = Languages.ukrainian.nativeName
+        val globe = context.getString(R.string.a11y_key_switch_to, ukrainian)
         focusFieldAndShowKeyboard()
         exploreByTouch(true)
         try {
-            assertNotNull("no globe on the board with two languages on; saw: ${describeImeNodes()}", waitForImeNode("Next language"))
-            // The board rebuilds when the second language arrives, so the node is looked up again
-            // for each attempt: an action performed on a node from the older tree goes nowhere.
+            assertNotNull("no globe on the board with two languages on; saw: ${describeImeNodes()}", waitForImeNode(globe))
             // The board rebuilds when the second language arrives, so the node is looked up again
             // for each attempt: an action performed on a node from the older tree goes nowhere.
             // The sheet's rows carry text, not a description, which is what to look for.
             var opened = false
             repeat(5) {
                 if (opened) return@repeat
-                performOnKey("Next language", "Choose language")
-                opened = waitUntil(2_000) { device.hasObject(By.text("Українська")) }
+                performOnKey(globe, "Choose language")
+                opened = waitUntil(2_000) { device.hasObject(By.text(ukrainian)) }
             }
             assertTrue("the language sheet did not open; saw: ${describeImeNodes()}", opened)
         } finally {
