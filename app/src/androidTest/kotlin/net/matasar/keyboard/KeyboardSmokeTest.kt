@@ -746,6 +746,46 @@ class KeyboardSmokeTest {
     }
 
     /**
+     * Runs last (name order) and restores the languages. Portuguese's spelling picks its word
+     * list while Portuguese is open: "proj" completes to the Brazilian "projeto", and after the
+     * switch to Portugal to "projecto", which the Portuguese list spells and the Brazilian one
+     * ranks below it.
+     */
+    @Test
+    fun zSpellingPicksPortuguesesWordListWhileItIsOpen() {
+        val context = ApplicationProvider.getApplicationContext<android.content.Context>()
+        val prefs = Prefs(context)
+        runBlocking {
+            prefs.setLanguageEnabled("pt", true)
+            prefs.setCurrentLanguage("pt")
+            prefs.setPortugueseSpelling(net.matasar.keyboard.layout.PortugueseSpelling.BRAZIL)
+        }
+        try {
+            Thread.sleep(2_000) // the Portuguese board is up and the Brazilian list loaded
+            typeOnKeys("proj")
+            assertTrue("the field reads '${fieldText()}', not proj", waitUntil(3_000) { fieldText()?.lowercase() == "proj" })
+            assertTrue("no 'projeto' with Brazilian spelling; the keyboard shows: ${describeImeTexts()}", waitUntil(5_000) { imeHasCandidate("projeto") })
+            runBlocking { prefs.setPortugueseSpelling(net.matasar.keyboard.layout.PortugueseSpelling.PORTUGAL) }
+            Thread.sleep(2_000) // the Portuguese list loads
+            device.findObject(By.clazz("android.widget.EditText"))?.text = ""
+            // The field reports the cleared text back; a key typed before that lands is lost.
+            assertTrue("the field did not clear", waitUntil(2_000) { fieldText().isNullOrEmpty() })
+            device.waitForIdle()
+            typeOnKeys("proj")
+            assertTrue("the field reads '${fieldText()}', not proj", waitUntil(3_000) { fieldText()?.lowercase() == "proj" })
+            assertTrue("no 'projecto' with Portugal's spelling; the keyboard shows: ${describeImeTexts()}", waitUntil(5_000) { imeHasCandidate("projecto") })
+            assertTrue("'projeto' is still offered after the switch: ${describeImeTexts()}", !imeHasCandidate("projeto"))
+        } finally {
+            runBlocking {
+                prefs.setPortugueseSpelling(net.matasar.keyboard.layout.PortugueseSpelling.PORTUGAL)
+                prefs.setCurrentLanguage("en_US")
+                prefs.setLanguageEnabled("pt", false)
+            }
+            Thread.sleep(1_500)
+        }
+    }
+
+    /**
      * Keys live in the IME window, which the accessibility tree does not always expose, so the
      * tap lands on the key's computed position: rows from the bottom of the screen, columns
      * from the layer geometry (4 dp side padding, 6 dp gaps, 42 dp keys, 12 dp gaps, the
