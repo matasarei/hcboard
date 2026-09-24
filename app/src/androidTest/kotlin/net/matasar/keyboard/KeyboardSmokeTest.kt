@@ -532,11 +532,16 @@ class KeyboardSmokeTest {
     fun theGlobeOffersTheLanguagePickerWhileExploringByTouch() {
         val context = ApplicationProvider.getApplicationContext<android.content.Context>()
         val prefs = Prefs(context)
-        runBlocking { prefs.setLanguageEnabled("uk", true) }
+        // From English with Ukrainian on, a globe tap goes to Ukrainian, and the globe is named for it.
+        runBlocking {
+            prefs.setLanguageEnabled("uk", true)
+            prefs.setCurrentLanguage("en_US")
+        }
+        val globe = context.getString(R.string.a11y_key_switch_to, "Українська")
         focusFieldAndShowKeyboard()
         exploreByTouch(true)
         try {
-            assertNotNull("no globe on the board with two languages on; saw: ${describeImeNodes()}", waitForImeNode("Next language"))
+            assertNotNull("no globe on the board with two languages on; saw: ${describeImeNodes()}", waitForImeNode(globe))
             // The board rebuilds when the second language arrives, so the node is looked up again
             // for each attempt: an action performed on a node from the older tree goes nowhere.
             // The board rebuilds when the second language arrives, so the node is looked up again
@@ -545,7 +550,7 @@ class KeyboardSmokeTest {
             var opened = false
             repeat(5) {
                 if (opened) return@repeat
-                performOnKey("Next language", "Choose language")
+                performOnKey(globe, "Choose language")
                 opened = waitUntil(2_000) { device.hasObject(By.text("Українська")) }
             }
             assertTrue("the language sheet did not open; saw: ${describeImeNodes()}", opened)
