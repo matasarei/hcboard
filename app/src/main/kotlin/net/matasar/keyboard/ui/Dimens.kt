@@ -5,7 +5,7 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
-/** The metrics from the mocks. Heights scale with the height setting; widths come from the row. */
+/** The keyboard's metrics. Heights scale with the height setting; widths come from the row. */
 object Dimens {
     /**
      * The phone board's proportions follow Samsung's keyboard, measured from a screenshot of it:

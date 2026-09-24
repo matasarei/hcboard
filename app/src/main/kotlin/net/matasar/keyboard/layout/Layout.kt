@@ -105,7 +105,7 @@ internal object AnsiSlots {
     val rows: List<String> = listOf("qwertyuiop[]", "asdfghjkl;'", "zxcvbnm,./")
 }
 
-// ---- small builders so the layer files read like the mocks ----
+// ---- small builders so the layer files read like the boards they build ----
 
 internal fun row(vararg keys: Key, leading: Float = 0f, trailing: Float = 0f) =
     Row(keys.toList(), leading, trailing)

@@ -156,7 +156,7 @@ fun KeyboardScreen(
             }
         }
         if (controller.managerSheetOpen) {
-            // Covers the keys, not the overhang: the sheet starts under the toolbar like the mock.
+            // Covers the keys, not the overhang: the sheet starts under the toolbar.
             Box(
                 modifier = Modifier
                     .matchParentSize()
