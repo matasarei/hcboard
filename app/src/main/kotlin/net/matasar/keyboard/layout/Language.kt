@@ -52,7 +52,8 @@ data class Language(
                 row(*phoneKeys(0), leading = (units - phoneRows[0].length) / 2f, trailing = (units - phoneRows[0].length) / 2f),
                 row(*phoneKeys(1), leading = (units - phoneRows[1].length) / 2f, trailing = (units - phoneRows[1].length) / 2f),
                 Row(listOf(shiftKey(edge), *phoneKeys(2), backspaceKey(edge)), innerGapUnits = side - edge),
-                bottomRow(LayerId.SYMBOLS, "123", units, nativeName, withGlobe, marks),
+                // With the digits on this page, the key opens symbols only, and says so.
+                bottomRow(LayerId.SYMBOLS, if (numberRow) "#+=" else "123", units, nativeName, withGlobe, marks),
             ),
         )
     }

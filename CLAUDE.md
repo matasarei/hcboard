@@ -134,7 +134,9 @@ emulator profile is `medium_phone`; boot it headless with
   English is always on and not toggleable in settings. The phone letters page can start with a
   number row (`Language.lettersLayer(numberRow)`, ten keys sharing the page's width), switched from
   the gear sheet or Settings (`Settings.numberRow`) and always shown in a password field
-  (`KeyboardController.numberRowShown`). The 60% board is
+  (`KeyboardController.numberRowShown`; never in a number field, which opens on the digits page).
+  With it, the page key reads `#+=` and opens `symbolsBesideDigitsLayer`, one symbols page with no
+  digit row. The 60% board is
   built from the same data (`layout/SixtyPercentLayout.kt`): letters fill the ANSI slots of
   `AnsiSlots.rows` left to right, a letter on a punctuation slot carries that punctuation on Fn,
   and a nine-letter Shift row shrinks both Shifts to keep `.` and `/` (eight letters in Bulgarian leave standard shifts and punctuation). Ukrainian and Russian fill

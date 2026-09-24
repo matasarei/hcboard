@@ -60,20 +60,36 @@ fun codeLayer(spaceLabel: String, withGlobe: Boolean) = Layer(
 )
 
 /**
+ * The symbols page of a board whose letters page has the digits across the top already: no digit
+ * row of its own, but the symbol rows of both iPhone pages and every mark, the backtick included,
+ * so it is one page, as tall as the letters page it replaces.
+ */
+fun symbolsBesideDigitsLayer(spaceLabel: String, withGlobe: Boolean) = Layer(
+    id = LayerId.SYMBOLS,
+    rows = listOf(
+        row(*symbols("-/:;()$&@\"")),
+        row(*symbols("[]{}#%^*+=")),
+        row(*symbols("_\\|~<>€£¥•")),
+        row(*symbols("`.,?!'").map { it.copy(width = 1.4f) }.toTypedArray(), backspaceKey(1.6f)),
+        bottomRow(LayerId.LETTERS, "ABC", 10f, spaceLabel, withGlobe),
+    ),
+)
+
+/**
  * The digits across the top of the letters page, as on Gboard: ten keys that share the page's
  * width whatever its unit count, so a twelve-letter top row keeps them in line with it.
  */
 internal fun numberRow(units: Float) = Row(symbols("1234567890").map { it.copy(width = units / 10f) })
 
 /**
- * The phone layout for one language: its letters plus the shared symbols and code pages, which
- * start with the digits already, so [numberRow] and an address field's [marks] reach the letters
- * page only.
+ * The phone layout for one language: its letters plus the shared symbols and code pages. With
+ * [numberRow] the digits sit on the letters page, and its symbols key opens one page of symbols
+ * with no digits of its own; an address field's [marks] reach the letters page only.
  */
 fun phoneLayout(language: Language, withGlobe: Boolean, numberRow: Boolean = false, marks: FieldMarks = FieldMarks.NONE): KeyboardLayout = KeyboardLayout(
     layers = mapOf(
         LayerId.LETTERS to language.lettersLayer(withGlobe, numberRow, marks),
-        LayerId.SYMBOLS to symbolsLayer(language.nativeName, withGlobe),
+        LayerId.SYMBOLS to if (numberRow) symbolsBesideDigitsLayer(language.nativeName, withGlobe) else symbolsLayer(language.nativeName, withGlobe),
         LayerId.CODE to codeLayer(language.nativeName, withGlobe),
     ),
 )

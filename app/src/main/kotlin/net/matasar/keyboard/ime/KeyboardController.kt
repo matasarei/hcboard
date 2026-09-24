@@ -174,8 +174,11 @@ class KeyboardController(
     /** Setting: the digits across the top of the phone letters page. */
     var numberRow: Boolean by mutableStateOf(false)
 
-    /** The number row shows where it is switched on, and in every password field regardless. */
-    val numberRowShown: Boolean get() = numberRow || passwordField
+    /**
+     * The number row shows where it is switched on, and in every password field regardless; never
+     * in a number field, which opens on the digits page and needs that page to keep its digits.
+     */
+    val numberRowShown: Boolean get() = (numberRow || passwordField) && fieldKind != FieldKind.NUMBER
 
     /** The editor action Enter performs, or null when Enter should be a real key. */
     var editorActionId: Int? by mutableStateOf(null)

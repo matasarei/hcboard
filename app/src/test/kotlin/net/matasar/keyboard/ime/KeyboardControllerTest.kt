@@ -310,4 +310,17 @@ class WideBoardControllerTest {
         controller.onStartInput(EditorInfo().apply { inputType = InputType.TYPE_CLASS_TEXT })
         assertEquals(listOf("123", ",", "English", ".", "enter"), bottom())
     }
+
+    @Test
+    fun `a number field keeps its digits page even with the number row switched on`() {
+        controller.numberRow = true
+        controller.onStartInput(EditorInfo().apply { inputType = InputType.TYPE_CLASS_PHONE })
+        assertFalse(controller.numberRowShown)
+        assertEquals("1", controller.phoneLayout.layer(LayerId.SYMBOLS).rows[0].keys.first().label)
+        controller.onStartInput(EditorInfo().apply { inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD })
+        controller.numberRow = false
+        assertTrue(controller.numberRowShown)
+        assertEquals("#+=", controller.phoneLayout.layer(LayerId.LETTERS).rows.last().keys.first().label)
+        assertEquals("-", controller.phoneLayout.layer(LayerId.SYMBOLS).rows[0].keys.first().label)
+    }
 }
