@@ -202,6 +202,12 @@ object Languages {
         dutch, swedish, danish, finnish, czech, romanian, greek, croatian, slovenian, lithuanian, latvian,
     )
 
+    /** Portuguese's tag before it had two spellings: stored settings, words and backups may still hold it. */
+    const val LEGACY_PORTUGUESE_TAG = "pt_BR"
+
+    /** A stored language tag as the keyboard knows it now: [LEGACY_PORTUGUESE_TAG] is Portuguese. */
+    fun migrateTag(tag: String): String = if (tag == LEGACY_PORTUGUESE_TAG) portuguese.tag else tag
+
     /**
      * The word list [tag] loads: Russian with Bulgarian vocabulary when [ruBulgarianVocabulary]
      * asks for it, Portuguese in [portugueseSpelling], every other language its own. Words the
