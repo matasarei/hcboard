@@ -24,7 +24,8 @@ data class Language(
     /**
      * The rows of the phone letters page, as the iPhone lays this language out. They differ from
      * [rows] where the iPhone's shape does not fit the ANSI slots (Ukrainian's `'` and `ґ`) or
-     * leaves a letter to a long press (Russian's `ъ`).
+     * leaves a letter to a long press (Russian's `ъ`). The default is taken once, at construction:
+     * a `copy` that changes [rows] keeps the old phone rows unless it sets these too.
      */
     val phoneRows: List<String> = rows,
 ) {
