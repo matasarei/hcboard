@@ -76,14 +76,17 @@ data class Key(
 
 /**
  * A row of keys. [leadingUnits] and [trailingUnits] indent the row by whole or half key widths,
- * the way the home row sits half a key in from the top row.
+ * the way the home row sits half a key in from the top row. [innerGapUnits] opens a gap of that
+ * many units after the first key and another before the last, the way the iPhone sets Shift and
+ * backspace apart from a short row of letters.
  */
 data class Row(
     val keys: List<Key>,
     val leadingUnits: Float = 0f,
     val trailingUnits: Float = 0f,
+    val innerGapUnits: Float = 0f,
 ) {
-    val totalUnits: Float get() = keys.sumOf { it.width.toDouble() }.toFloat() + leadingUnits + trailingUnits
+    val totalUnits: Float get() = keys.sumOf { it.width.toDouble() }.toFloat() + leadingUnits + trailingUnits + innerGapUnits * 2
 }
 
 /** A page of rows; every row adds up to [units]. */
@@ -102,7 +105,7 @@ internal object AnsiSlots {
     val rows: List<String> = listOf("qwertyuiop[]", "asdfghjkl;'", "zxcvbnm,./")
 }
 
-// ---- small builders so the layer files read like the mocks ----
+// ---- small builders so the layer files read like the boards they build ----
 
 internal fun row(vararg keys: Key, leading: Float = 0f, trailing: Float = 0f) =
     Row(keys.toList(), leading, trailing)
@@ -116,8 +119,21 @@ internal fun letters(chars: String): Array<Key> =
         )
     }.toTypedArray()
 
-internal fun symbols(chars: String): Array<Key> =
-    chars.map { c -> Key(label = c.toString(), action = KeyAction.Text(c.toString())) }.toTypedArray()
+internal fun symbols(chars: String, alternates: Map<Char, List<String>> = SymbolAlternates): Array<Key> =
+    chars.map { c -> Key(label = c.toString(), action = KeyAction.Text(c.toString()), longPress = alternates[c].orEmpty()) }.toTypedArray()
+
+/**
+ * Long presses on the symbol pages, so what the iPhone's two pages leave out is still in reach:
+ * the backtick on the apostrophe, typographic quotes and dashes.
+ */
+internal val SymbolAlternates: Map<Char, List<String>> = mapOf(
+    '\'' to listOf("`", "’", "‘"),
+    '"' to listOf("«", "»", "„", "“", "”"),
+    '-' to listOf("–", "—"),
+    '?' to listOf("¿"),
+    '!' to listOf("¡"),
+    '.' to listOf("…"),
+)
 
 internal fun function(label: String, action: KeyAction, width: Float = 1f, icon: KeyIcon? = null) =
     Key(label, action, width, KeyStyle.FUNCTION, icon)

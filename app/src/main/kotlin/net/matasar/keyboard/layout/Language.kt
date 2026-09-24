@@ -14,48 +14,66 @@ data class Language(
      * code: Android's keyboard list names the enabled subtypes, and the keyboard enables its own.
      */
     val subtypeId: Int,
-    /** Three rows: the top, the home row and the bottom letters row. A non-letter character is a plain text key. */
+    /**
+     * Three rows: the top, the home row and the bottom letters row. A non-letter character is a
+     * plain text key. The 60% board fills its ANSI slots with these.
+     */
     val rows: List<String>,
-    /** Long-press alternatives per letter; the first is what a plain long press selects. */
+    /** Long-press alternatives per character; the first is what a plain long press selects. */
     val accents: Map<Char, List<String>>,
+    /**
+     * The rows of the phone letters page, as the iPhone lays this language out. They differ from
+     * [rows] where the iPhone's shape does not fit the ANSI slots (Ukrainian's `'` and `ґ`) or
+     * leaves a letter to a long press (Russian's `ъ`). The default is taken once, at construction:
+     * a `copy` that changes [rows] keeps the old phone rows unless it sets these too.
+     */
+    val phoneRows: List<String> = rows,
 ) {
-    /** The widest row decides the unit: rows 1 and 2 as they are, row 3 with shift and backspace beside it. */
+    /** The widest phone row decides the unit: rows 1 and 2 as they are, row 3 with shift and backspace beside it. */
     val units: Float
-        get() = maxOf(rows[0].length, rows[1].length, rows[2].length + MIN_EDGE_KEYS).toFloat()
+        get() = maxOf(phoneRows[0].length, phoneRows[1].length, phoneRows[2].length + MIN_EDGE_KEYS).toFloat()
 
     /**
      * The letters layer for this language, with a globe key when more than one language is
-     * enabled, and the digits across the top when [numberRow] asks for them.
+     * enabled, the digits across the top when [numberRow] asks for them, and an address field's
+     * [marks] beside the space bar.
      */
-    fun lettersLayer(withGlobe: Boolean, numberRow: Boolean = false): Layer {
+    fun lettersLayer(withGlobe: Boolean, numberRow: Boolean = false, marks: FieldMarks = FieldMarks.NONE): Layer {
         val units = units
-        val edge = (units - rows[2].length) / 2f
+        // Shift and backspace take what the letters leave, up to a key and a half each, as on the
+        // iPhone; anything beyond that is a gap between them and the letters.
+        val side = (units - phoneRows[2].length) / 2f
+        val edge = minOf(side, MAX_EDGE_KEY)
         return Layer(
             id = LayerId.LETTERS,
             units = units,
             rows = listOfNotNull(
                 if (numberRow) numberRow(units) else null,
-                row(*keysFor(0), leading = (units - rows[0].length) / 2f, trailing = (units - rows[0].length) / 2f),
-                row(*keysFor(1), leading = (units - rows[1].length) / 2f, trailing = (units - rows[1].length) / 2f),
-                row(shiftKey(edge), *keysFor(2), backspaceKey(edge)),
-                bottomRow(LayerId.SYMBOLS, "?123", units, nativeName, withGlobe),
+                row(*phoneKeys(0), leading = (units - phoneRows[0].length) / 2f, trailing = (units - phoneRows[0].length) / 2f),
+                row(*phoneKeys(1), leading = (units - phoneRows[1].length) / 2f, trailing = (units - phoneRows[1].length) / 2f),
+                Row(listOf(shiftKey(edge), *phoneKeys(2), backspaceKey(edge)), innerGapUnits = side - edge),
+                bottomRow(LayerId.SYMBOLS, "123", units, nativeName, withGlobe, marks),
             ),
         )
     }
 
-    /** The keys of row [index]; each letter carries the ANSI slot it sits in. */
-    fun keysFor(index: Int): Array<Key> = rows[index].mapIndexed { i, c -> keyFor(c, AnsiSlots.rows[index].getOrNull(i)) }.toTypedArray()
+    /** The keys of phone row [index]; each letter carries the ANSI slot it sits in. */
+    private fun phoneKeys(index: Int): Array<Key> =
+        phoneRows[index].mapIndexed { i, c -> keyFor(c, AnsiSlots.rows[index].getOrNull(i)) }.toTypedArray()
 
-    /** One key of a letters row: a letter with its accents and slot, or a plain text key. */
+    /** One key of a letters row: a letter with its accents and slot, or a plain text key with its alternatives. */
     fun keyFor(c: Char, slot: Char?): Key =
         if (c.isLetter()) {
             Key(label = c.toString(), action = KeyAction.Letter(c.toString(), c.uppercase()), longPress = accents[c].orEmpty(), slot = slot)
         } else {
-            Key(label = c.toString(), action = KeyAction.Text(c.toString()))
+            Key(label = c.toString(), action = KeyAction.Text(c.toString()), longPress = accents[c].orEmpty())
         }
 
     companion object {
-        /** Shift and backspace take at least 1.5 units each. */
-        private const val MIN_EDGE_KEYS = 3
+        /** Shift and backspace take at least one unit each, the width of a letter. */
+        private const val MIN_EDGE_KEYS = 2
+
+        /** And at most a key and a half. */
+        private const val MAX_EDGE_KEY = 1.5f
     }
 }

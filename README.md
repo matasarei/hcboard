@@ -57,6 +57,11 @@ from the password manager you already use, and the keyboard never shows or keeps
 
 ## Everyday typing
 
+- **The iPhone's layout, in Material:** each language's letters sit where the iPhone puts them
+  (Russian leaves ъ to a long press on ь; Ukrainian has its apostrophe and ґ on the page), the
+  bottom row is 123, the globe, space and a wide return, and the symbol pages are the iPhone's
+  123 and #+=. Two quick spaces after a word type a full stop and a space; e-mail and web
+  address fields keep `@` or `/` and `.` beside the space bar.
 - **Glide typing** across the letters of every language, each with its own bundled word list.
 - **Word suggestions** while you type: the word as typed, its correction and completions, in the
   toolbar behind a chevron. Space applies the highlighted correction and one backspace takes it
@@ -77,7 +82,8 @@ from the password manager you already use, and the keyboard never shows or keeps
   (Brazil) and Polish, each with its own layout and long-press accents. English is always on; add
   the others in Settings → Languages. With two or more, a globe key switches them, holding it opens
   the list, and the space bar names the one you are typing in; Android's keyboard list and its
-  switcher show the same languages. For Russian speakers in Bulgaria
+  switcher show the same languages. Bulgarian comes on two boards, phonetic (я в е р т) or the
+  standard БДС one the iPhone uses (у е и ш щ), picked under Bulgarian in Settings. For Russian speakers in Bulgaria
   who prefer typing on the Russian ЙЦУКЕН layout, an optional setting enables combined Bulgarian
   vocabulary with collision-safe autocorrect.
   *(Want your language or a feature? [Create an issue](https://github.com/matasarei/hcboard/issues) and tell me!)*

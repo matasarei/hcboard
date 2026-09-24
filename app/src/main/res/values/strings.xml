@@ -57,6 +57,7 @@
     <string name="settings_bottom_padding_hint">Automatic keeps the keys clear of the system\'s bar and its buttons. Turn it off to set the space yourself, smaller or larger.</string>
     <string name="settings_haptics">Haptic tick on key press</string>
     <string name="settings_previews">Show key preview on press</string>
+    <string name="settings_double_space_period">Double-space full stop: two quick spaces after a word type \". \"</string>
     <string name="settings_always_show_toolbar">Always show toolbar buttons</string>
     <string name="settings_voice_input">Microphone button for voice input</string>
     <string name="settings_voice_keyboard">Voice keyboard</string>
@@ -70,6 +71,10 @@
     <string name="settings_languages_hint">English is always on. Turn on additional languages below. With more than one language on, a globe key appears: tap it to switch, hold it to pick.</string>
     <string name="settings_ru_bg_vocabulary">Bulgarian vocabulary on Russian keyboard</string>
     <string name="settings_ru_bg_vocabulary_hint">Suggestions and glide for Bulgarian words while using Russian layout</string>
+    <string name="settings_bg_layout">Bulgarian layout</string>
+    <string name="settings_bg_layout_phonetic">Phonetic</string>
+    <string name="settings_bg_layout_standard">Standard (БДС)</string>
+    <string name="settings_bg_layout_hint">Phonetic puts letters where their Latin sounds are (я в е р т). Standard is the БДС board the iPhone uses (у е и ш щ).</string>
     <string name="settings_section_suggestions">Suggestions</string>
     <string name="settings_suggestions">Word suggestions: the word you type, its correction and completions above the keys</string>
     <string name="settings_auto_capitalize">Auto-capitalization: a capital at the start of a sentence, in fields that ask for one</string>
@@ -198,7 +203,7 @@
     <string name="a11y_key_fn">Function</string>
     <string name="a11y_key_letters">Letters</string>
     <string name="a11y_key_symbols">Symbols</string>
-    <string name="a11y_key_code">Code symbols</string>
+    <string name="a11y_key_code">More symbols</string>
     <string name="a11y_key_hide">Hide keyboard</string>
     <string name="a11y_key_next_language">Next language</string>
     <string name="a11y_key_left">Left arrow</string>

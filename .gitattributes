@@ -1,3 +1,0 @@
-# The mock artboards in design/ are generated from a script; keep them out of the language
-# statistics and collapsed in diffs.
-design/** linguist-generated=true

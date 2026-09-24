@@ -2,6 +2,7 @@ package net.matasar.keyboard.ime
 
 import android.text.InputType
 import android.view.inputmethod.EditorInfo
+import net.matasar.keyboard.layout.FieldMarks
 import net.matasar.keyboard.layout.KeyIcon
 import net.matasar.keyboard.layout.LayerId
 import kotlin.test.Test
@@ -79,6 +80,32 @@ class EditorInfoMappingTest {
         val report = fieldReport(EditorInfo().apply { inputType = InputType.TYPE_CLASS_TEXT })
         assertTrue(report.contains("suggestions allowed"), report)
         assertTrue(report.contains("glide allowed"), report)
+    }
+
+    @Test
+    fun `address fields keep their marks beside the space bar, other fields none`() {
+        assertEquals(FieldMarks.EMAIL, fieldMarksOf(InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS))
+        assertEquals(FieldMarks.EMAIL, fieldMarksOf(InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_WEB_EMAIL_ADDRESS))
+        assertEquals(FieldMarks.URL, fieldMarksOf(InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_URI))
+        assertEquals(FieldMarks.NONE, fieldMarksOf(InputType.TYPE_CLASS_TEXT))
+        assertEquals(FieldMarks.NONE, fieldMarksOf(InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD))
+        assertEquals(FieldMarks.NONE, fieldMarksOf(InputType.TYPE_CLASS_NUMBER))
+        assertEquals(FieldMarks.NONE, fieldMarksOf(InputType.TYPE_NULL))
+    }
+
+    @Test
+    fun `a double space may type a full stop in prose only`() {
+        assertTrue(periodShortcutAllowed(InputType.TYPE_CLASS_TEXT))
+        assertTrue(periodShortcutAllowed(InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_SHORT_MESSAGE))
+        assertTrue(periodShortcutAllowed(InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS))
+        assertFalse(periodShortcutAllowed(InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_URI))
+        assertFalse(periodShortcutAllowed(InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_WEB_EMAIL_ADDRESS))
+        assertFalse(periodShortcutAllowed(InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_WEB_PASSWORD))
+        assertFalse(periodShortcutAllowed(InputType.TYPE_CLASS_NUMBER))
+        assertFalse(periodShortcutAllowed(InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_VARIATION_PASSWORD))
+        assertFalse(periodShortcutAllowed(InputType.TYPE_CLASS_PHONE))
+        assertFalse(periodShortcutAllowed(InputType.TYPE_CLASS_DATETIME))
+        assertFalse(periodShortcutAllowed(InputType.TYPE_NULL))
     }
 
     @Test

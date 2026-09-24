@@ -43,7 +43,7 @@ class ModifierStateTest {
     }
 
     @Test
-    fun `chip text reads like the mocks`() {
+    fun `chip text names the modifier and how long it lasts`() {
         assertNull(Modifiers().chipText())
         assertEquals("Ctrl · next key", Modifiers().tap(ModifierKey.CTRL, 0).chipText())
         assertEquals("Ctrl + Alt · next key", Modifiers().tap(ModifierKey.CTRL, 0).tap(ModifierKey.ALT, 0).chipText())

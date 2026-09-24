@@ -3,6 +3,7 @@ package net.matasar.keyboard.ime
 import android.text.InputType
 import android.view.inputmethod.EditorInfo
 import net.matasar.keyboard.autofill.FILL_SCREEN_IME_OPTION
+import net.matasar.keyboard.layout.FieldMarks
 import net.matasar.keyboard.layout.KeyIcon
 import net.matasar.keyboard.layout.LayerId
 
@@ -29,6 +30,34 @@ fun fieldKindOf(inputType: Int): FieldKind {
 }
 
 /** The layer a field opens on: digits for number and phone fields, letters otherwise. */
+/** The marks an address field keeps beside the space bar: e-mail gets `@`, a web address `/`, both with `.`. */
+fun fieldMarksOf(inputType: Int): FieldMarks {
+    if (inputType and InputType.TYPE_MASK_CLASS != InputType.TYPE_CLASS_TEXT) return FieldMarks.NONE
+    return when (inputType and InputType.TYPE_MASK_VARIATION) {
+        InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS, InputType.TYPE_TEXT_VARIATION_WEB_EMAIL_ADDRESS -> FieldMarks.EMAIL
+        InputType.TYPE_TEXT_VARIATION_URI -> FieldMarks.URL
+        else -> FieldMarks.NONE
+    }
+}
+
+/**
+ * Whether a double space may become ". " in a field: prose only, so no passwords, numbers,
+ * terminals, addresses or e-mail, where two spaces are what was meant.
+ */
+fun periodShortcutAllowed(inputType: Int): Boolean {
+    if (inputType and InputType.TYPE_MASK_CLASS != InputType.TYPE_CLASS_TEXT) return false
+    return when (inputType and InputType.TYPE_MASK_VARIATION) {
+        InputType.TYPE_TEXT_VARIATION_URI,
+        InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS,
+        InputType.TYPE_TEXT_VARIATION_WEB_EMAIL_ADDRESS,
+        InputType.TYPE_TEXT_VARIATION_PASSWORD,
+        InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD,
+        InputType.TYPE_TEXT_VARIATION_WEB_PASSWORD,
+        -> false
+        else -> true
+    }
+}
+
 /**
  * Whether word candidates may be read and shown for a field: plain text only, so no passwords,
  * numbers, terminals, addresses or e-mail, and not when the app asks for no suggestions — unless

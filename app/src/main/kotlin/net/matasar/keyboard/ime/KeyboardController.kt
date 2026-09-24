@@ -26,6 +26,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.coroutines.withContext
 import net.matasar.keyboard.input.keyStrokeFor
+import net.matasar.keyboard.layout.BulgarianLayout
+import net.matasar.keyboard.layout.FieldMarks
 import net.matasar.keyboard.layout.Key
 import net.matasar.keyboard.layout.KeyAction
 import net.matasar.keyboard.layout.KeyIcon
@@ -85,18 +87,30 @@ class KeyboardController(
     /** The globe key exists only when there is something to switch to. */
     val withGlobe: Boolean get() = enabledLanguages.size > 1
 
-    private val layoutCache = HashMap<Triple<String, Boolean, Boolean>, KeyboardLayout>()
-    private val wideLayoutCache = HashMap<Pair<String, Boolean>, KeyboardLayout>()
+    /** Setting: which board Bulgarian is typed on. */
+    var bulgarianLayout: BulgarianLayout by mutableStateOf(BulgarianLayout.PHONETIC)
 
-    /** The phone layout for the current language, built once per language, globe and number row. */
+    /** The current language as its keys are laid out: Bulgarian's standard board when the setting asks for it. */
+    private val keysLanguage: Language get() = Languages.resolve(language, bulgarianLayout)
+
+    /** The marks the focused field keeps beside the space bar: `@` or `/` and `.` in an address field. */
+    var fieldMarks: FieldMarks by mutableStateOf(FieldMarks.NONE)
+        private set
+
+    private data class PhoneLayoutKey(val language: Language, val withGlobe: Boolean, val numberRow: Boolean, val marks: FieldMarks)
+
+    private val layoutCache = HashMap<PhoneLayoutKey, KeyboardLayout>()
+    private val wideLayoutCache = HashMap<Pair<Language, Boolean>, KeyboardLayout>()
+
+    /** The phone layout for the current language, built once per language, layout, globe, number row and field marks. */
     val phoneLayout: KeyboardLayout
-        get() = numberRowShown.let { digits ->
-            layoutCache.getOrPut(Triple(language.tag, withGlobe, digits)) { phoneLayout(language, withGlobe, digits) }
+        get() = PhoneLayoutKey(keysLanguage, withGlobe, numberRowShown, fieldMarks).let { key ->
+            layoutCache.getOrPut(key) { phoneLayout(key.language, key.withGlobe, key.numberRow, key.marks) }
         }
 
     /** The 60% board for the current language, built the same way. */
     val wideLayout: KeyboardLayout
-        get() = wideLayoutCache.getOrPut(language.tag to withGlobe) { wideLayout(language, withGlobe) }
+        get() = keysLanguage.let { keys -> wideLayoutCache.getOrPut(keys to withGlobe) { wideLayout(keys, withGlobe) } }
 
     /** The enabled languages in cycling order. */
     val enabledLanguageList: List<Language>
@@ -236,6 +250,7 @@ class KeyboardController(
      */
     fun updateFieldKind(info: EditorInfo?) {
         fieldKind = info?.let { fieldKindOf(it.inputType) } ?: FieldKind.TEXT
+        fieldMarks = info?.let { fieldMarksOf(it.inputType) } ?: FieldMarks.NONE
     }
 
     /**
@@ -262,6 +277,12 @@ class KeyboardController(
 
     /** Whether the field's input type lets candidates be read and shown. */
     private var fieldAllowsSuggestions = true
+
+    /** Setting: a quick second Space after a word types ". ", as on the iPhone. */
+    var doubleSpacePeriod: Boolean = true
+
+    /** When the last key, if it was Space, went out ([clock]); any other key clears it. */
+    private var lastSpaceAt: Long? = null
 
     /**
      * The focused field's input type, kept so the rule can be applied again when the stored answer
@@ -474,6 +495,7 @@ class KeyboardController(
         updateFieldKind(info)
         layer = fieldKind.initialLayer()
         shift = Latch()
+        lastSpaceAt = null
         modifiers = Modifiers()
         usedHolds.clear()
         pendingLocks.clear()
@@ -673,7 +695,10 @@ class KeyboardController(
             refreshAutoCapital()
             return
         }
+        if (key.action != KeyAction.Space) lastSpaceAt = null
         if (spaced != null && !modifiers.anyActive && takeBackAutoSpace(key, spaced)) {
+            // Space that finds a pick's space there counts as the first of a double space.
+            if (key.action == KeyAction.Space) lastSpaceAt = clock()
             afterKey()
             return
         }
@@ -707,7 +732,13 @@ class KeyboardController(
                 refreshAutoCapital()
             }
             KeyAction.Space -> {
-                if (modifiers.anyMetaActive) sendCombo(" ", key) else commitSeparator(" ")
+                val previous = lastSpaceAt
+                lastSpaceAt = null
+                when {
+                    modifiers.anyMetaActive -> sendCombo(" ", key)
+                    periodShortcut(previous) -> { dispatcher.replaceWordBeforeCursor(" ", ". "); candidates = null }
+                    else -> { commitSeparator(" "); lastSpaceAt = clock() }
+                }
                 afterKey()
             }
             KeyAction.Backspace -> {
@@ -1034,6 +1065,14 @@ class KeyboardController(
         refreshCandidates()
     }
 
+    /**
+     * Whether this Space turns the one before it into ". ": it came within
+     * [DOUBLE_SPACE_WINDOW_MS] of a Space typed after a letter or digit, in a field of prose.
+     */
+    private fun periodShortcut(previousSpaceAt: Long?): Boolean =
+        doubleSpacePeriod && previousSpaceAt != null && clock() - previousSpaceAt <= DOUBLE_SPACE_WINDOW_MS &&
+            (fieldInputType?.let(::periodShortcutAllowed) ?: true) && dispatcher.endsWithSpaceAfterWord()
+
     /** A separator: apply the strip's correction first when there is one, then the separator itself. */
     private fun commitSeparator(separator: String) {
         val current = candidates
@@ -1181,6 +1220,9 @@ class KeyboardController(
     companion object {
         /** How long a macro waits after its Tab or Enter for the app to start the next field. */
         const val FOCUS_MOVE_TIMEOUT_MS = 500L
+
+        /** How soon a second Space has to follow the first to type ". ". */
+        const val DOUBLE_SPACE_WINDOW_MS = 400L
 
         /** The characters that end a word and apply its correction. */
         private val SEPARATORS = setOf(" ", ".", ",", "!", "?")

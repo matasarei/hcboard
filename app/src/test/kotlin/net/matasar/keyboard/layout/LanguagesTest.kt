@@ -21,14 +21,32 @@ class LanguagesTest {
     }
 
     @Test
+    fun `shift and backspace take a key and a half at most, and a short row opens a gap beside them`() {
+        fun shiftRow(language: Language) = language.lettersLayer(false).rows[2]
+        assertEquals(1.5f, shiftRow(Languages.english).keys.first().width)
+        assertEquals(0f, shiftRow(Languages.english).innerGapUnits)
+        // German's seven letters on an eleven-unit board: not two-unit edge keys, but a gap.
+        assertEquals(1.5f, shiftRow(Languages.german).keys.first().width)
+        assertEquals(1.5f, shiftRow(Languages.german).keys.last().width)
+        assertEquals(0.5f, shiftRow(Languages.german).innerGapUnits)
+    }
+
+    @Test
     fun `the layouts carry the letters that make them what they are`() {
         fun letters(language: Language) = language.lettersLayer(false).rows.flatMap { it.keys }.map { it.label }.toSet()
         assertTrue(letters(Languages.ukrainian).containsAll(listOf("ї", "є", "і")))
-        assertTrue(letters(Languages.russian).containsAll(listOf("ы", "э", "ъ")))
-        // ъ sits where Ukrainian has ї, so the two Cyrillic boards are the same shape; the shift
-        // row already made the board 12 units wide, so no key changes size for it.
+        assertTrue(letters(Languages.russian).containsAll(listOf("ы", "э")))
+        // The phone follows the iPhone: 11/11/9 with ъ on a long press, while the 60% board's
+        // rows keep ъ on `]`.
+        assertEquals(listOf(11, 11, 9), Languages.russian.phoneRows.map { it.length })
+        assertTrue("ъ" !in letters(Languages.russian))
         assertEquals(12, Languages.russian.rows[0].length)
-        assertEquals(12f, Languages.russian.units)
+        assertEquals(11f, Languages.russian.units)
+        assertEquals(1f, Languages.russian.lettersLayer(false).rows[2].keys.first().width)
+        // Ukrainian: twelve keys on every row, the apostrophe and ґ included.
+        assertEquals(listOf(12, 12, 10), Languages.ukrainian.phoneRows.map { it.length })
+        assertEquals("'", Languages.ukrainian.lettersLayer(false).rows[1].keys.last().label)
+        assertEquals("ґ", Languages.ukrainian.lettersLayer(false).rows[2].keys.dropLast(1).last().label)
         assertEquals("a", Languages.french.rows[0].first().toString())
         assertTrue(letters(Languages.spanish).contains("ñ"))
         assertTrue(letters(Languages.german).containsAll(listOf("ü", "ö", "ä")))
@@ -50,6 +68,8 @@ class LanguagesTest {
         assertEquals("ç", accents(Languages.portuguese, "c").first())
         assertEquals("ѝ", accents(Languages.bulgarian, "и").first())
         assertEquals(listOf("і", "ї", "ѝ"), accents(Languages.russian, "и"))
+        assertEquals("ъ", accents(Languages.russian, "ь").first())
+        assertEquals(listOf("ʼ", "’"), accents(Languages.ukrainian, "'"))
     }
 
     @Test
@@ -83,6 +103,23 @@ class LanguagesTest {
             val letters = language.lettersLayer(false).rows.flatMap { it.keys }.filter { it.action is KeyAction.Letter }
             assertTrue(letters.all { it.slot != null }, "${language.tag} has a letter without a slot")
         }
+    }
+
+    @Test
+    fun `bulgarian resolves to the standard board only when asked, and stays the same language`() {
+        val standard = Languages.resolve(Languages.bulgarian, BulgarianLayout.STANDARD)
+        assertEquals(listOf("уеишщксдзцб", "ьяаожгтнвмч", "юйъэфхпрл"), standard.phoneRows)
+        assertEquals(standard.phoneRows, standard.rows)
+        assertEquals(Languages.bulgarian.tag, standard.tag)
+        assertEquals(Languages.bulgarian.subtypeId, standard.subtypeId)
+        assertEquals(Languages.bulgarian.nativeName, standard.nativeName)
+        assertEquals(Languages.bulgarian, Languages.resolve(Languages.bulgarian, BulgarianLayout.PHONETIC))
+        assertEquals(Languages.russian, Languages.resolve(Languages.russian, BulgarianLayout.STANDARD))
+        assertTrue(standard !in Languages.all)
+        val layer = standard.lettersLayer(false)
+        assertEquals(11f, layer.units)
+        assertEquals("shift ю й ъ э ф х п р л backspace", layer.rows[2].keys.joinToString(" ") { it.label })
+        assertEquals(listOf(1f, 1f), listOf(layer.rows[2].keys.first().width, layer.rows[2].keys.last().width))
     }
 
     @Test

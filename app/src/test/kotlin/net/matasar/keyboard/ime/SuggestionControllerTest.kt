@@ -24,7 +24,8 @@ import kotlin.test.assertTrue
 class SuggestionControllerTest {
 
     private val port = FakeEditorPort()
-    private val controller = KeyboardController(InputDispatcher(port), clock = { 1000L }).apply {
+    private var now = 1000L
+    private val controller = KeyboardController(InputDispatcher(port), clock = { now }).apply {
         candidateEngine = Candidates(WordList.of("check" to 200, "checking" to 150, "chef" to 90, "spell" to 100, "spelling" to 90, "spelled" to 120, "hello" to 200))
     }
 
@@ -192,6 +193,7 @@ class SuggestionControllerTest {
         controller.pickCandidate("spelling")
         controller.onKey(space)
         assertEquals("spelling ", port.before)
+        now += 1000 // slower than a double space, which would type ". "
         controller.onKey(space)
         assertEquals("spelling  ", port.before) // only the first press finds it there
         type("spel")
@@ -474,5 +476,88 @@ class SuggestionControllerTest {
         assertTrue(controller.candidatesCollapsed)
         type("s")
         assertTrue(!controller.candidatesCollapsed)
+    }
+
+    @Test
+    fun `a quick double space after a word types a full stop and arms the capital`() {
+        controller.autoCapitalize = true
+        textField(InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_CAP_SENTENCES)
+        type("hello")
+        controller.onKey(space)
+        now += 200
+        port.edits.clear()
+        controller.onKey(space)
+        assertEquals("Hello. ", port.before)
+        assertEquals(listOf("begin", "delete:1,0", "commit:. ", "end"), port.edits)
+        assertTrue(controller.autoCapital)
+        // A third space is just a space: a full stop is not a word.
+        now += 200
+        controller.onKey(space)
+        assertEquals("Hello.  ", port.before)
+    }
+
+    @Test
+    fun `a slow second space, or one not after a word, stays a space`() {
+        textField()
+        type("hello")
+        controller.onKey(space)
+        now += DOUBLE_SPACE_WINDOW + 1
+        controller.onKey(space)
+        assertEquals("hello  ", port.before)
+        port.before = "hello, "
+        controller.onKey(space)
+        now += 100
+        controller.onKey(space)
+        assertEquals("hello,   ", port.before)
+    }
+
+    @Test
+    fun `a key between the two spaces cancels the full stop`() {
+        textField()
+        type("hello")
+        controller.onKey(space)
+        controller.onKey(key("a"))
+        controller.onKey(backspace)
+        controller.onKey(space)
+        assertEquals("hello  ", port.before)
+    }
+
+    @Test
+    fun `passwords, addresses, e-mail and terminals keep their two spaces, and so does the setting off`() {
+        val fields = listOf(
+            InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD,
+            InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD,
+            InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_URI,
+            InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS,
+            InputType.TYPE_NULL,
+        )
+        for (field in fields) {
+            textField(field)
+            port.before = "abc"
+            controller.onKey(space)
+            controller.onKey(space)
+            assertEquals("abc  ", port.before, "input type $field")
+        }
+        controller.doubleSpacePeriod = false
+        textField()
+        port.before = "abc"
+        controller.onKey(space)
+        controller.onKey(space)
+        assertEquals("abc  ", port.before)
+    }
+
+    @Test
+    fun `space then space after a pick makes the pick's space a full stop`() {
+        textField()
+        type("spel")
+        controller.pickCandidate("spelling")
+        controller.onKey(space) // finds the pick's space there
+        now += 100
+        controller.onKey(space)
+        assertEquals("spelling. ", port.before)
+    }
+
+    private companion object {
+        const val DOUBLE_SPACE_WINDOW = KeyboardController.DOUBLE_SPACE_WINDOW_MS
     }
 }

@@ -73,6 +73,12 @@ class InputDispatcher(private val port: EditorPort) {
         return word
     }
 
+    /** Whether the text before the cursor is a letter or digit and then one space: where a double space may type ". ". */
+    fun endsWithSpaceAfterWord(): Boolean {
+        val before = port.textBeforeCursor(2) ?: return false
+        return before.length == 2 && before[1] == ' ' && before[0].isLetterOrDigit()
+    }
+
     /** Whether the text before the cursor ends with [suffix]; the undo of a correction checks it is still there. */
     fun textEndsWith(suffix: String): Boolean = port.textBeforeCursor(suffix.length)?.toString() == suffix
 

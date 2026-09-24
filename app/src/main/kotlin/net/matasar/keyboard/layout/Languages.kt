@@ -14,7 +14,12 @@ object Languages {
         tag = "uk", nativeName = "Українська", englishName = "Ukrainian",
         subtypeId = 0x68630002,
         rows = listOf("йцукенгшщзхї", "фівапролджє", "ячсмитьбю"),
-        accents = mapOf('г' to listOf("ґ"), 'ь' to listOf("'", "ʼ"), 'е' to listOf("ё"), 'и' to listOf("ы")),
+        accents = mapOf(
+            'г' to listOf("ґ"), 'ь' to listOf("'", "ʼ"), 'е' to listOf("ё"), 'и' to listOf("ы"),
+            '\'' to listOf("ʼ", "’"),
+        ),
+        // The iPhone's twelve-key rows: the apostrophe ends the home row and ґ the shift row.
+        phoneRows = listOf("йцукенгшщзхї", "фівапролджє'", "ячсмитьбюґ"),
     )
 
     val russian = Language(
@@ -22,6 +27,8 @@ object Languages {
         subtypeId = 0x68630003,
         rows = listOf("йцукенгшщзхъ", "фывапролджэ", "ячсмитьбю"),
         accents = mapOf('е' to listOf("ё"), 'ь' to listOf("ъ"), 'и' to listOf("і", "ї", "ѝ"), 'г' to listOf("ґ")),
+        // The iPhone leaves ъ to a long press on ь; the 60% board keeps it on `]`.
+        phoneRows = listOf("йцукенгшщзх", "фывапролджэ", "ячсмитьбю"),
     )
 
     val french = Language(
@@ -82,7 +89,20 @@ object Languages {
         accents = mapOf('и' to listOf("ѝ")),
     )
 
+    /**
+     * Bulgarian on the standard board (БДС), as the iPhone lays it out. The same language as
+     * [bulgarian] — tag, subtype, word list — so it is not in [all]; [resolve] swaps it in.
+     */
+    val bulgarianStandard = bulgarian.copy(
+        rows = listOf("уеишщксдзцб", "ьяаожгтнвмч", "юйъэфхпрл"),
+        phoneRows = listOf("уеишщксдзцб", "ьяаожгтнвмч", "юйъэфхпрл"),
+    )
+
     val all: List<Language> = listOf(english, ukrainian, russian, bulgarian, french, spanish, german, italian, portuguese, polish)
+
+    /** [language] as the user lays it out: Bulgarian's standard board when [bulgarianLayout] asks for it. */
+    fun resolve(language: Language, bulgarianLayout: BulgarianLayout): Language =
+        if (language.tag == bulgarian.tag && bulgarianLayout == BulgarianLayout.STANDARD) bulgarianStandard else language
 
     fun byTag(tag: String): Language? = all.firstOrNull { it.tag == tag }
 

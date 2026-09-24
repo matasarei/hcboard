@@ -45,16 +45,58 @@ class LayersTest {
     }
 
     @Test
-    fun `layers link to each other the way the mocks do`() {
+    fun `layers link to each other the way the iPhone's do`() {
         assertEquals(KeyAction.SwitchLayer(LayerId.SYMBOLS), LettersLayer.rows[3].keys[0].action)
+        assertEquals("123", LettersLayer.rows[3].keys[0].label)
         assertEquals(KeyAction.SwitchLayer(LayerId.CODE), SymbolsLayer.rows[2].keys[0].action)
+        assertEquals("#+=", SymbolsLayer.rows[2].keys[0].label)
         assertEquals(KeyAction.SwitchLayer(LayerId.SYMBOLS), CodeLayer.rows[2].keys[0].action)
+        assertEquals("123", CodeLayer.rows[2].keys[0].label)
         assertEquals(KeyAction.SwitchLayer(LayerId.LETTERS), CodeLayer.rows[3].keys[0].action)
+        assertEquals("ABC", SymbolsLayer.rows[3].keys[0].label)
     }
 
     @Test
-    fun `the code page starts with braces and brackets`() {
-        assertEquals(listOf("{", "}", "[", "]", "|", "\\", "~", "`", "<", ">"), CodeLayer.rows[0].keys.map { it.label })
+    fun `the symbol pages are the iPhone's 123 and #+= pages`() {
+        fun labels(layer: Layer, index: Int) = layer.rows[index].keys.joinToString(" ") { it.label }
+        assertEquals("1 2 3 4 5 6 7 8 9 0", labels(SymbolsLayer, 0))
+        assertEquals("- / : ; ( ) $ & @ \"", labels(SymbolsLayer, 1))
+        assertEquals("#+= . , ? ! ' backspace", labels(SymbolsLayer, 2))
+        assertEquals("[ ] { } # % ^ * + =", labels(CodeLayer, 0))
+        assertEquals("_ \\ | ~ < > € £ ¥ •", labels(CodeLayer, 1))
+        assertEquals("123 . , ? ! ' backspace", labels(CodeLayer, 2))
+        // What the two pages leave out is a long press away.
+        val apostrophe = SymbolsLayer.rows[2].keys.first { it.label == "'" }
+        assertEquals("`", apostrophe.longPress.first())
+        assertEquals(listOf("–", "—"), SymbolsLayer.rows[1].keys.first { it.label == "-" }.longPress)
+    }
+
+    @Test
+    fun `the bottom row is switch, globe, space and a wide return, with no comma or period`() {
+        val plain = LettersLayer.rows[3].keys
+        assertEquals(listOf(KeyAction.SwitchLayer(LayerId.SYMBOLS), KeyAction.Space, KeyAction.Enter), plain.map { it.action })
+        assertEquals(listOf(1.25f, 6.25f, 2.5f), plain.map { it.width })
+        val globe = Languages.english.lettersLayer(withGlobe = true).rows[3].keys
+        assertEquals(
+            listOf(KeyAction.SwitchLayer(LayerId.SYMBOLS), KeyAction.SwitchLanguage, KeyAction.Space, KeyAction.Enter),
+            globe.map { it.action },
+        )
+        assertEquals(listOf(1.25f, 1.25f, 5f, 2.5f), globe.map { it.width })
+        assertTrue(LettersLayer.rows.flatMap { it.keys }.none { it.label == "," || it.label == "." })
+    }
+
+    @Test
+    fun `an address field gets its marks around the space bar on the letters page only`() {
+        fun labels(marks: FieldMarks) =
+            phoneLayout(Languages.english, withGlobe = true, marks = marks).layers.getValue(LayerId.LETTERS).rows[3].keys.map { it.label }
+        assertEquals(listOf("123", "globe", "English", "enter"), labels(FieldMarks.NONE))
+        assertEquals(listOf("123", "globe", "@", "English", ".", "enter"), labels(FieldMarks.EMAIL))
+        assertEquals(listOf("123", "globe", "/", "English", ".", "enter"), labels(FieldMarks.URL))
+        for (marks in FieldMarks.entries) {
+            val layout = phoneLayout(Languages.ukrainian, withGlobe = false, marks = marks)
+            for (layer in layout.layers.values) for (row in layer.rows) assertEquals(layer.units, row.totalUnits, 0.001f, "$marks ${layer.id}")
+            assertEquals(symbolsLayer(Languages.ukrainian.nativeName, withGlobe = false), layout.layers.getValue(LayerId.SYMBOLS))
+        }
     }
 
     private fun Row.rows() = keys

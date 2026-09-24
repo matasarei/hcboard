@@ -134,7 +134,7 @@ fun wideLayout(language: Language, withGlobe: Boolean): KeyboardLayout =
         split = splitLayer(language, withGlobe),
     )
 
-/** The English board with no globe, as in the Fold mocks. */
+/** The English board with no globe. */
 val SixtyPercentLayer: Layer = sixtyPercentLayer(Languages.english, withGlobe = false)
 
 val WideLayout: KeyboardLayout = wideLayout(Languages.english, withGlobe = false)

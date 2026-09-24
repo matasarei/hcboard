@@ -67,7 +67,7 @@ val LocalKeyboardColors = staticCompositionLocalOf<KeyboardColors> {
     error("KeyboardColors are only available inside KeyboardTheme")
 }
 
-/** Fixed seed used below Android 12, matching the mock palette. */
+/** Fixed seed used below Android 12, where there is no wallpaper palette to follow. */
 private val FallbackLight = lightColorScheme(
     primary = Color(0xFF415F91),
     onPrimary = Color(0xFFFFFFFF),

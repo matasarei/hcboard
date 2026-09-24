@@ -64,6 +64,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import net.matasar.keyboard.R
 import net.matasar.keyboard.ime.KeyboardDiagnostics
+import net.matasar.keyboard.layout.BulgarianLayout
 import net.matasar.keyboard.layout.Languages
 import net.matasar.keyboard.macro.MacrosActivity
 import net.matasar.keyboard.ui.theme.KeyboardTheme
@@ -176,6 +177,7 @@ private fun SettingsScreen(settings: Settings, prefs: Prefs) {
         Section(stringResource(R.string.settings_section_feel))
         SwitchRow(stringResource(R.string.settings_haptics), settings.haptics) { scope.launch { prefs.setHaptics(it) } }
         SwitchRow(stringResource(R.string.settings_previews), settings.previews) { scope.launch { prefs.setPreviews(it) } }
+        SwitchRow(stringResource(R.string.settings_double_space_period), settings.doubleSpacePeriod) { scope.launch { prefs.setDoubleSpacePeriod(it) } }
         // The stored setting is whether the phone strip folds; the switch asks the opposite, which is what people look for.
         SwitchRow(stringResource(R.string.settings_always_show_toolbar), !settings.foldToolbar) { scope.launch { prefs.setFoldToolbar(!it) } }
         SwitchRow(stringResource(R.string.settings_voice_input), settings.voiceInput) { scope.launch { prefs.setVoiceInput(it) } }
@@ -208,6 +210,25 @@ private fun SettingsScreen(settings: Settings, prefs: Prefs) {
                     }
                     Text(
                         stringResource(R.string.settings_ru_bg_vocabulary_hint),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+            if (language.tag == Languages.bulgarian.tag && enabled) {
+                Column(modifier = Modifier.padding(start = 16.dp, top = 4.dp, bottom = 4.dp)) {
+                    Text(stringResource(R.string.settings_bg_layout), style = MaterialTheme.typography.bodyLarge)
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        BulgarianLayout.entries.forEach { layout ->
+                            FilterChip(
+                                selected = settings.bulgarianLayout == layout,
+                                onClick = { scope.launch { prefs.setBulgarianLayout(layout) } },
+                                label = { Text(layout.label()) },
+                            )
+                        }
+                    }
+                    Text(
+                        stringResource(R.string.settings_bg_layout_hint),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -315,6 +336,14 @@ private fun SplitMode.label(): String = stringResource(
         SplitMode.OFF -> R.string.settings_split_off
         SplitMode.AUTO -> R.string.settings_split_auto
         SplitMode.ALWAYS -> R.string.settings_split_always
+    },
+)
+
+@Composable
+private fun BulgarianLayout.label(): String = stringResource(
+    when (this) {
+        BulgarianLayout.PHONETIC -> R.string.settings_bg_layout_phonetic
+        BulgarianLayout.STANDARD -> R.string.settings_bg_layout_standard
     },
 )
 

@@ -299,4 +299,15 @@ class WideBoardControllerTest {
         assertEquals(listOf(1 to 0, 0 to 1), port.deletions)
     }
 
+    @Test
+    fun `an e-mail field shows @ and a full stop beside space, and the next field loses them`() {
+        controller.onStartInput(EditorInfo().apply { inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS })
+        fun bottom() = controller.phoneLayout.layer(LayerId.LETTERS).rows.last().keys.map { it.label }
+        assertEquals(listOf("123", "@", "English", ".", "enter"), bottom())
+        // A restart moves between fields of one screen, and the marks follow it.
+        controller.onRestartInput(EditorInfo().apply { inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_URI })
+        assertEquals(listOf("123", "/", "English", ".", "enter"), bottom())
+        controller.onStartInput(EditorInfo().apply { inputType = InputType.TYPE_CLASS_TEXT })
+        assertEquals(listOf("123", "English", "enter"), bottom())
+    }
 }

@@ -59,7 +59,7 @@ fun SuggestionStrip(entries: List<SuggestionEntry>, modifier: Modifier = Modifie
 
 /**
  * The sheet the key button opens: fill a password through the fill screen, open a manager, or
- * change it in settings. Drawn over the keys inside the keyboard window, like the mock.
+ * change it in settings. Drawn over the keys inside the keyboard window.
  */
 @Composable
 fun ManagerSheet(actions: AutofillActions, onDismiss: () -> Unit, sidePadding: Dp) {
