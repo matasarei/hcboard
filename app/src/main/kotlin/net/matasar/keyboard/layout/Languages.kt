@@ -83,6 +83,103 @@ object Languages {
         ),
     )
 
+    val dutch = Language(
+        tag = "nl", nativeName = "Nederlands", englishName = "Dutch",
+        subtypeId = 0x6863000B,
+        rows = listOf("qwertyuiop", "asdfghjkl", "zxcvbnm"),
+        accents = mapOf(
+            'e' to listOf("é", "ë", "è", "ê"), 'a' to listOf("á", "ä", "à"), 'i' to listOf("ï", "í"),
+            'o' to listOf("ó", "ö", "ô"), 'u' to listOf("ü", "ú"),
+        ),
+    )
+
+    val swedish = Language(
+        tag = "sv", nativeName = "Svenska", englishName = "Swedish",
+        subtypeId = 0x6863000C,
+        rows = listOf("qwertyuiopå", "asdfghjklöä", "zxcvbnm"),
+        accents = mapOf('e' to listOf("é"), 'a' to listOf("à")),
+    )
+
+    val danish = Language(
+        tag = "da", nativeName = "Dansk", englishName = "Danish",
+        subtypeId = 0x6863000D,
+        rows = listOf("qwertyuiopå", "asdfghjklæø", "zxcvbnm"),
+        accents = mapOf('e' to listOf("é"), 'o' to listOf("ö"), 'a' to listOf("ä")),
+    )
+
+    val finnish = Language(
+        tag = "fi", nativeName = "Suomi", englishName = "Finnish",
+        subtypeId = 0x6863000E,
+        rows = listOf("qwertyuiopå", "asdfghjklöä", "zxcvbnm"),
+        accents = mapOf('s' to listOf("š"), 'z' to listOf("ž")),
+    )
+
+    val czech = Language(
+        tag = "cs", nativeName = "Čeština", englishName = "Czech",
+        subtypeId = 0x6863000F,
+        rows = listOf("qwertzuiopú", "asdfghjklů", "yxcvbnm"),
+        accents = mapOf(
+            'e' to listOf("ě", "é"), 's' to listOf("š"), 'c' to listOf("č"), 'r' to listOf("ř"),
+            'z' to listOf("ž"), 'y' to listOf("ý"), 'a' to listOf("á"), 'i' to listOf("í"), 'd' to listOf("ď"),
+            't' to listOf("ť"), 'n' to listOf("ň"), 'o' to listOf("ó"), 'u' to listOf("ú", "ů"),
+        ),
+    )
+
+    val romanian = Language(
+        tag = "ro", nativeName = "Română", englishName = "Romanian",
+        subtypeId = 0x68630010,
+        rows = listOf("qwertyuiop", "asdfghjkl", "zxcvbnm"),
+        accents = mapOf('a' to listOf("ă", "â"), 'i' to listOf("î"), 's' to listOf("ș"), 't' to listOf("ț")),
+    )
+
+    val greek = Language(
+        tag = "el", nativeName = "Ελληνικά", englishName = "Greek",
+        subtypeId = 0x68630011,
+        rows = listOf(";ςερτυθιοπ", "ασδφγηξκλ", "ζχψωβνμ"),
+        accents = mapOf(
+            'α' to listOf("ά"), 'ε' to listOf("έ"), 'η' to listOf("ή"), 'ι' to listOf("ί", "ϊ", "ΐ"),
+            'ο' to listOf("ό"), 'υ' to listOf("ύ", "ϋ", "ΰ"), 'ω' to listOf("ώ"),
+        ),
+    )
+
+    val croatian = Language(
+        tag = "hr", nativeName = "Hrvatski", englishName = "Croatian",
+        subtypeId = 0x68630012,
+        // The Croatian PC board on the 60% layout (č and ć on ; and ', ž where \ is on a PC, so
+        // on a long press of z here); the phone has ž on its home row.
+        rows = listOf("qwertzuiopšđ", "asdfghjklčć", "yxcvbnm"),
+        accents = mapOf('z' to listOf("ž")),
+        phoneRows = listOf("qwertzuiopšđ", "asdfghjklčćž", "yxcvbnm"),
+    )
+
+    val slovenian = Language(
+        tag = "sl", nativeName = "Slovenščina", englishName = "Slovenian",
+        subtypeId = 0x68630013,
+        rows = listOf("qwertzuiopš", "asdfghjklčž", "yxcvbnm"),
+        accents = mapOf('c' to listOf("ć"), 'd' to listOf("đ")),
+    )
+
+    val lithuanian = Language(
+        tag = "lt", nativeName = "Lietuvių", englishName = "Lithuanian",
+        subtypeId = 0x68630014,
+        rows = listOf("qwertyuiop", "asdfghjkl", "zxcvbnm"),
+        accents = mapOf(
+            'a' to listOf("ą"), 'c' to listOf("č"), 'e' to listOf("ę", "ė"), 'i' to listOf("į"),
+            's' to listOf("š"), 'u' to listOf("ų", "ū"), 'z' to listOf("ž"),
+        ),
+    )
+
+    val latvian = Language(
+        tag = "lv", nativeName = "Latviešu", englishName = "Latvian",
+        subtypeId = 0x68630015,
+        rows = listOf("qwertyuiop", "asdfghjkl", "zxcvbnm"),
+        accents = mapOf(
+            'a' to listOf("ā"), 'c' to listOf("č"), 'e' to listOf("ē"), 'g' to listOf("ģ"), 'i' to listOf("ī"),
+            'k' to listOf("ķ"), 'l' to listOf("ļ"), 'n' to listOf("ņ"), 's' to listOf("š"), 'u' to listOf("ū"),
+            'z' to listOf("ž"),
+        ),
+    )
+
     val bulgarian = Language(
         tag = "bg", nativeName = "Български", englishName = "Bulgarian",
         subtypeId = 0x68630004,
@@ -99,7 +196,10 @@ object Languages {
         phoneRows = listOf("уеишщксдзцб", "ьяаожгтнвмч", "юйъэфхпрл"),
     )
 
-    val all: List<Language> = listOf(english, ukrainian, russian, bulgarian, french, spanish, german, italian, portuguese, polish)
+    val all: List<Language> = listOf(
+        english, ukrainian, russian, bulgarian, french, spanish, german, italian, portuguese, polish,
+        dutch, swedish, danish, finnish, czech, romanian, greek, croatian, slovenian, lithuanian, latvian,
+    )
 
     /** [language] as the user lays it out: Bulgarian's standard board when [bulgarianLayout] asks for it. */
     fun resolve(language: Language, bulgarianLayout: BulgarianLayout): Language =

@@ -13,6 +13,17 @@
     <string name="subtype_it" translatable="false">Italiano</string>
     <string name="subtype_pt_BR" translatable="false">Português</string>
     <string name="subtype_pl" translatable="false">Polski</string>
+    <string name="subtype_nl" translatable="false">Nederlands</string>
+    <string name="subtype_sv" translatable="false">Svenska</string>
+    <string name="subtype_da" translatable="false">Dansk</string>
+    <string name="subtype_fi" translatable="false">Suomi</string>
+    <string name="subtype_cs" translatable="false">Čeština</string>
+    <string name="subtype_ro" translatable="false">Română</string>
+    <string name="subtype_el" translatable="false">Ελληνικά</string>
+    <string name="subtype_hr" translatable="false">Hrvatski</string>
+    <string name="subtype_sl" translatable="false">Slovenščina</string>
+    <string name="subtype_lt" translatable="false">Lietuvių</string>
+    <string name="subtype_lv" translatable="false">Latviešu</string>
 
     <string name="enable_title">Set up the keyboard</string>
     <string name="enable_step1_title">1. Enable it</string>

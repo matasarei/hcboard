@@ -58,9 +58,13 @@ data class Language(
         )
     }
 
-    /** The keys of phone row [index]; each letter carries the ANSI slot it sits in. */
+    /**
+     * The keys of phone row [index]; each letter carries the ANSI slot it sits in. A twelfth
+     * home-row letter (Croatian ž) has no home-row slot on a PC; it takes `\`, where the Croatian
+     * PC board has it.
+     */
     private fun phoneKeys(index: Int): Array<Key> =
-        phoneRows[index].mapIndexed { i, c -> keyFor(c, AnsiSlots.rows[index].getOrNull(i)) }.toTypedArray()
+        phoneRows[index].mapIndexed { i, c -> keyFor(c, AnsiSlots.rows[index].getOrNull(i) ?: if (index == 1) '\\' else null) }.toTypedArray()
 
     /** One key of a letters row: a letter with its accents and slot, or a plain text key with its alternatives. */
     fun keyFor(c: Char, slot: Char?): Key =

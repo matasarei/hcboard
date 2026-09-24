@@ -106,4 +106,92 @@
         android:languageTag="pl"
         android:imeSubtypeMode="keyboard"
         android:isAsciiCapable="true" />
+
+    <subtype
+        android:label="@string/subtype_nl"
+        android:subtypeId="0x6863000b"
+        android:imeSubtypeLocale="nl"
+        android:languageTag="nl"
+        android:imeSubtypeMode="keyboard"
+        android:isAsciiCapable="true" />
+
+    <subtype
+        android:label="@string/subtype_sv"
+        android:subtypeId="0x6863000c"
+        android:imeSubtypeLocale="sv"
+        android:languageTag="sv"
+        android:imeSubtypeMode="keyboard"
+        android:isAsciiCapable="true" />
+
+    <subtype
+        android:label="@string/subtype_da"
+        android:subtypeId="0x6863000d"
+        android:imeSubtypeLocale="da"
+        android:languageTag="da"
+        android:imeSubtypeMode="keyboard"
+        android:isAsciiCapable="true" />
+
+    <subtype
+        android:label="@string/subtype_fi"
+        android:subtypeId="0x6863000e"
+        android:imeSubtypeLocale="fi"
+        android:languageTag="fi"
+        android:imeSubtypeMode="keyboard"
+        android:isAsciiCapable="true" />
+
+    <subtype
+        android:label="@string/subtype_cs"
+        android:subtypeId="0x6863000f"
+        android:imeSubtypeLocale="cs"
+        android:languageTag="cs"
+        android:imeSubtypeMode="keyboard"
+        android:isAsciiCapable="true" />
+
+    <subtype
+        android:label="@string/subtype_ro"
+        android:subtypeId="0x68630010"
+        android:imeSubtypeLocale="ro"
+        android:languageTag="ro"
+        android:imeSubtypeMode="keyboard"
+        android:isAsciiCapable="true" />
+
+    <subtype
+        android:label="@string/subtype_el"
+        android:subtypeId="0x68630011"
+        android:imeSubtypeLocale="el"
+        android:languageTag="el"
+        android:imeSubtypeMode="keyboard"
+        android:isAsciiCapable="false" />
+
+    <subtype
+        android:label="@string/subtype_hr"
+        android:subtypeId="0x68630012"
+        android:imeSubtypeLocale="hr"
+        android:languageTag="hr"
+        android:imeSubtypeMode="keyboard"
+        android:isAsciiCapable="true" />
+
+    <subtype
+        android:label="@string/subtype_sl"
+        android:subtypeId="0x68630013"
+        android:imeSubtypeLocale="sl"
+        android:languageTag="sl"
+        android:imeSubtypeMode="keyboard"
+        android:isAsciiCapable="true" />
+
+    <subtype
+        android:label="@string/subtype_lt"
+        android:subtypeId="0x68630014"
+        android:imeSubtypeLocale="lt"
+        android:languageTag="lt"
+        android:imeSubtypeMode="keyboard"
+        android:isAsciiCapable="true" />
+
+    <subtype
+        android:label="@string/subtype_lv"
+        android:subtypeId="0x68630015"
+        android:imeSubtypeLocale="lv"
+        android:languageTag="lv"
+        android:imeSubtypeMode="keyboard"
+        android:isAsciiCapable="true" />
 </input-method>

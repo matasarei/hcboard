@@ -124,6 +124,29 @@ class LanguagesTest {
     }
 
     @Test
+    fun `the EU languages carry their letters, and the phone and the 60% board both fit them`() {
+        assertEquals(
+            listOf("nl", "sv", "da", "fi", "cs", "ro", "el", "hr", "sl", "lt", "lv"),
+            Languages.all.dropWhile { it != Languages.dutch }.map { it.tag },
+        )
+        fun keys(language: Language) = language.lettersLayer(false).rows.flatMap { it.keys }
+        assertTrue(keys(Languages.danish).map { it.label }.containsAll(listOf("å", "æ", "ø")))
+        assertTrue(keys(Languages.czech).map { it.label }.containsAll(listOf("ú", "ů", "z", "y")))
+        // Greek: ς is a letter, ; is typed as it is, and tonos is a long press.
+        val greek = keys(Languages.greek)
+        assertEquals(KeyAction.Text(";"), greek.first { it.label == ";" }.action)
+        assertTrue(greek.first { it.label == "ς" }.action is KeyAction.Letter)
+        assertEquals("ά", greek.first { it.label == "α" }.longPress.first())
+        // Croatian: ž ends the phone's home row (on the \ slot, as on a Croatian PC) and is a long press on z for the 60% board.
+        val croatian = keys(Languages.croatian)
+        assertEquals("ž", Languages.croatian.lettersLayer(false).rows[1].keys.last().label)
+        assertEquals('\\', croatian.first { it.label == "ž" }.slot)
+        assertEquals(listOf("ž"), croatian.first { it.label == "z" }.longPress)
+        assertEquals("ț", keys(Languages.romanian).first { it.label == "t" }.longPress.first())
+        for (language in Languages.all.dropWhile { it != Languages.dutch }) sixtyPercentLayer(language, withGlobe = true)
+    }
+
+    @Test
     fun `the first-run default is english only regardless of system locales`() {
         val uk = java.util.Locale("uk", "UA"); val ru = java.util.Locale("ru", "RU"); val ja = java.util.Locale("ja", "JP")
         val bg = java.util.Locale("bg", "BG")
