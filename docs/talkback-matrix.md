@@ -8,7 +8,7 @@ hover handling of its own, and must not grow one: it would type each key twice.
 
 Filled in on a device. The first row was checked on the emulator on 2026-09-22.
 
-| Device | TalkBack | Lift-to-type | Double-tap to type | Letters follow Shift | Named keys (Space, Backspace, ?123…) | Shift / modifier state read | Page announced on switch | Notes |
+| Device | TalkBack | Lift-to-type | Double-tap to type | Letters follow Shift | Named keys (Space, Backspace, 123…) | Shift / modifier state read | Page announced on switch | Notes |
 |---|---|---|---|---|---|---|---|---|
 | Emulator `medium_phone`, Android 16 (API 36) | 16.0 | ✓ (touch on Q and W, lift: `Qw`) | | ✓ (connected test: Q while the automatic capital is on) | ✓ (connected test: Space, Shift) | ✓ (connected test: Off → On for the next key) | ✓ pane title present (connected test); not listened to | Speech itself was not heard: the emulator runs without audio |
 | Phone, One UI / Pixel | | | | | | | | |
