@@ -110,9 +110,10 @@ emulator profile is `medium_phone`; boot it headless with
   passphrase is a `CharArray` wiped after use.
 - **Languages** are data in `layout/Languages.kt`: rows, accents, native name. The phone board
   follows the iPhone's geometry in the Material look: `Language.phoneRows` are the iPhone's rows
-  (Russian 11/11/9 with ъ on a long press, Ukrainian 12/12/9 with `'`, ґ on a long press) and may differ from
-  `rows`, which the 60% board fills; a layer sizes itself to its widest phone row, Shift and
-  backspace take 1 to 1.5 units and a short row opens a gap beside them (`Row.innerGapUnits`). The
+  (Russian 11/11/9 with ъ on a long press, Ukrainian 12/12/9 with `'`, ґ on a long press) and
+  may differ from `rows`, which the 60% board fills; a layer sizes itself to its widest phone
+  row, Shift and backspace take 1 to 1.5 units and a short row opens a gap beside them
+  (`Row.innerGapUnits`). The
   bottom row, the same on every page and in every language (widths are shares of the board,
   scaled from ten units), is 123 or ABC, comma (`@` or `/` in address fields, `FieldMarks`), the
   globe, space, period and a wide return; a quick double space after a word types ". "
