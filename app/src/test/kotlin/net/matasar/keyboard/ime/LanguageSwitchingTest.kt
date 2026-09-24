@@ -6,6 +6,7 @@ import net.matasar.keyboard.layout.BulgarianLayout
 import net.matasar.keyboard.layout.KeyAction
 import net.matasar.keyboard.layout.Language
 import net.matasar.keyboard.layout.Languages
+import net.matasar.keyboard.settings.GlobeTap
 import net.matasar.keyboard.layout.LayerId
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -38,7 +39,8 @@ class LanguageSwitchingTest {
     }
 
     @Test
-    fun `with several languages the globe cycles them in order and reports each change`() {
+    fun `set to Next language, the globe cycles them in order and reports each change`() {
+        controller.globeTap = GlobeTap.NEXT
         controller.enabledLanguages = setOf("en_US", "uk", "fr")
         assertTrue(controller.withGlobe)
         val globe = globe()!!
@@ -78,6 +80,49 @@ class LanguageSwitchingTest {
         controller.switchLanguage(Languages.bulgarian)
         controller.bulgarianLayout = BulgarianLayout.PHONETIC
         assertEquals("явертъуиопч", topRow())
+    }
+
+    @Test
+    fun `set to Last used, the globe goes back to the language before, as on an iPhone`() {
+        assertEquals(GlobeTap.LAST_USED, controller.globeTap) // the default
+        controller.enabledLanguages = setOf("en_US", "uk", "fr")
+        val globe = globe()!!
+        controller.onKey(globe) // nothing to go back to yet: on to the next one
+        assertEquals(Languages.ukrainian, controller.language)
+        controller.onKey(globe)
+        assertEquals(Languages.english, controller.language)
+        controller.onKey(globe)
+        assertEquals(Languages.ukrainian, controller.language)
+        // A pick from the list counts: the globe then goes back to where the pick came from.
+        controller.switchLanguage(Languages.french)
+        controller.onKey(globe)
+        assertEquals(Languages.ukrainian, controller.language)
+        controller.onKey(globe)
+        assertEquals(Languages.french, controller.language)
+    }
+
+    @Test
+    fun `a language to go back to that was switched off, or is the current one, is passed over for the next`() {
+        controller.enabledLanguages = setOf("en_US", "uk", "fr")
+        controller.previousLanguage = Languages.german // not enabled
+        controller.onKey(globe()!!)
+        assertEquals(Languages.ukrainian, controller.language)
+        controller.previousLanguage = Languages.ukrainian // the current one
+        controller.onKey(globe()!!)
+        assertEquals(Languages.french, controller.language)
+    }
+
+    @Test
+    fun `with two languages both settings toggle between them`() {
+        for (tap in GlobeTap.entries) {
+            controller.globeTap = tap
+            controller.enabledLanguages = setOf("en_US", "uk")
+            controller.switchLanguage(Languages.english)
+            controller.onKey(globe()!!)
+            assertEquals(Languages.ukrainian, controller.language, "$tap")
+            controller.onKey(globe()!!)
+            assertEquals(Languages.english, controller.language, "$tap")
+        }
     }
 
     @Test

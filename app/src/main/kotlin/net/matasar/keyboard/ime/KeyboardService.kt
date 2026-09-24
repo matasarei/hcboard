@@ -268,6 +268,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
                 autoBottomPadding = settings.bottomPaddingAuto
                 manualBottomPaddingDp = settings.bottomPaddingDp
                 controller.enabledLanguages = settings.enabledLanguages
+                controller.globeTap = settings.globeTap
                 // The persisted choice is authoritative: follow it when it changes under us, and
                 // fall back to the first enabled language when the current one was switched off.
                 val wanted = Languages.byTag(settings.currentLanguage)?.takeIf { it.tag in settings.enabledLanguages }
@@ -279,6 +280,11 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
                     loadLanguage("ru")
                 } else if (spellingChanged && controller.language == Languages.portuguese) {
                     loadLanguage(Languages.portuguese.tag)
+                }
+                // The stored previous language, once the stored current one is the one on the keys:
+                // an update written before a switch the keyboard just made would undo it.
+                if (settings.currentLanguage == controller.language.tag) {
+                    controller.previousLanguage = settings.previousLanguage?.let(Languages::byTag)
                 }
                 // Android's keyboard list names the enabled subtypes: mirror ours into it, then
                 // point its current subtype at the language on the keys.
