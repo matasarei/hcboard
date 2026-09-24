@@ -44,6 +44,7 @@ import kotlin.math.sqrt
  */
 internal val FallbackKeyChars: Map<Char, Char> = mapOf(
     'ß' to 's', 'æ' to 'a', 'œ' to 'o', 'ø' to 'o', 'ł' to 'l', 'đ' to 'd', 'ð' to 'd', 'þ' to 't', 'ı' to 'i', 'ĳ' to 'i',
+    'ґ' to 'г',
 )
 
 /** The base key for [c]: the letter itself, its Unicode base letter, or a fallback; null when there is none. (hcboard addition.) */
