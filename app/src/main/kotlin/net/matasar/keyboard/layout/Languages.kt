@@ -64,7 +64,8 @@ object Languages {
     )
 
     val portuguese = Language(
-        tag = "pt_BR", nativeName = "Português", englishName = "Portuguese (Brazil)",
+        // One language with two spellings: PortugueseSpelling picks Portugal's or Brazil's word list.
+        tag = "pt", nativeName = "Português", englishName = "Portuguese",
         subtypeId = 0x68630009,
         rows = listOf("qwertyuiop", "asdfghjkl", "zxcvbnm"),
         accents = mapOf(
@@ -200,6 +201,17 @@ object Languages {
         english, ukrainian, russian, bulgarian, french, spanish, german, italian, portuguese, polish,
         dutch, swedish, danish, finnish, czech, romanian, greek, croatian, slovenian, lithuanian, latvian,
     )
+
+    /**
+     * The word list [tag] loads: Russian with Bulgarian vocabulary when [ruBulgarianVocabulary]
+     * asks for it, Portuguese in [portugueseSpelling], every other language its own. Words the
+     * user adds are keyed by [tag], so they reach every list a language can load.
+     */
+    fun assetFor(tag: String, ruBulgarianVocabulary: Boolean, portugueseSpelling: PortugueseSpelling): String = when {
+        tag == russian.tag && ruBulgarianVocabulary -> "ru_bg"
+        tag == portuguese.tag -> if (portugueseSpelling == PortugueseSpelling.BRAZIL) "pt_BR" else "pt_PT"
+        else -> tag
+    }
 
     /** [language] as the user lays it out: Bulgarian's standard board when [bulgarianLayout] asks for it. */
     fun resolve(language: Language, bulgarianLayout: BulgarianLayout): Language =

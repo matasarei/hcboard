@@ -11,7 +11,7 @@
     <string name="subtype_es" translatable="false">Español</string>
     <string name="subtype_de" translatable="false">Deutsch</string>
     <string name="subtype_it" translatable="false">Italiano</string>
-    <string name="subtype_pt_BR" translatable="false">Português</string>
+    <string name="subtype_pt" translatable="false">Português</string>
     <string name="subtype_pl" translatable="false">Polski</string>
     <string name="subtype_nl" translatable="false">Nederlands</string>
     <string name="subtype_sv" translatable="false">Svenska</string>
@@ -85,6 +85,10 @@
     <string name="settings_bg_layout">Bulgarian layout</string>
     <string name="settings_bg_layout_phonetic">Phonetic</string>
     <string name="settings_bg_layout_standard">Standard (БДС)</string>
+    <string name="settings_pt_spelling">Portuguese spelling</string>
+    <string name="settings_pt_spelling_portugal">Portugal</string>
+    <string name="settings_pt_spelling_brazil">Brasil</string>
+    <string name="settings_pt_spelling_hint">Which words it suggests, corrects and glides to. The keys are the same.</string>
     <string name="settings_bg_layout_hint">Phonetic puts letters where their Latin sounds are (я в е р т). Standard is the БДС board the iPhone uses (у е и ш щ).</string>
     <string name="settings_section_suggestions">Suggestions</string>
     <string name="settings_suggestions">Word suggestions: the word you type, its correction and completions above the keys</string>

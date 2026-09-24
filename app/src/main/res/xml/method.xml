@@ -92,10 +92,10 @@
         android:isAsciiCapable="true" />
 
     <subtype
-        android:label="@string/subtype_pt_BR"
+        android:label="@string/subtype_pt"
         android:subtypeId="0x68630009"
-        android:imeSubtypeLocale="pt_BR"
-        android:languageTag="pt-BR"
+        android:imeSubtypeLocale="pt"
+        android:languageTag="pt"
         android:imeSubtypeMode="keyboard"
         android:isAsciiCapable="true" />
 

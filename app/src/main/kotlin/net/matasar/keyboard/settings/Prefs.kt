@@ -13,6 +13,7 @@ import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import net.matasar.keyboard.layout.BulgarianLayout
 import net.matasar.keyboard.layout.Languages
+import net.matasar.keyboard.layout.PortugueseSpelling
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.serialization.Serializable
@@ -68,6 +69,8 @@ data class Settings(
     val ruBulgarianVocabulary: Boolean = false,
     /** Which board Bulgarian is typed on: phonetic, or the standard one (БДС) the iPhone ships. */
     val bulgarianLayout: BulgarianLayout = BulgarianLayout.PHONETIC,
+    /** Which Portuguese the word list spells: Portugal's, or Brazil's. */
+    val portugueseSpelling: PortugueseSpelling = PortugueseSpelling.PORTUGAL,
 ) {
     companion object {
         const val DEFAULT_LANGUAGE = "en_US"
@@ -157,6 +160,7 @@ class Prefs(private val context: Context) {
             currentLanguage = p[CURRENT_LANGUAGE] ?: Settings.DEFAULT_LANGUAGE,
             ruBulgarianVocabulary = p[RU_BULGARIAN_VOCABULARY] ?: false,
             bulgarianLayout = p[BULGARIAN_LAYOUT]?.let { runCatching { BulgarianLayout.valueOf(it) }.getOrNull() } ?: BulgarianLayout.PHONETIC,
+            portugueseSpelling = p[PORTUGUESE_SPELLING]?.let { runCatching { PortugueseSpelling.valueOf(it) }.getOrNull() } ?: PortugueseSpelling.PORTUGAL,
         )
     }
 
@@ -183,6 +187,7 @@ class Prefs(private val context: Context) {
     suspend fun setCurrentLanguage(tag: String) = context.dataStore.edit { it[CURRENT_LANGUAGE] = tag }
     suspend fun setRuBulgarianVocabulary(value: Boolean) = context.dataStore.edit { it[RU_BULGARIAN_VOCABULARY] = value }
     suspend fun setBulgarianLayout(value: BulgarianLayout) = context.dataStore.edit { it[BULGARIAN_LAYOUT] = value.name }
+    suspend fun setPortugueseSpelling(value: PortugueseSpelling) = context.dataStore.edit { it[PORTUGUESE_SPELLING] = value.name }
 
     /** Writes every setting at once, from a restored backup, within [sanitized]'s limits. */
     suspend fun replaceAll(settings: Settings) {
@@ -214,6 +219,7 @@ class Prefs(private val context: Context) {
             p[CURRENT_LANGUAGE] = s.currentLanguage
             p[RU_BULGARIAN_VOCABULARY] = s.ruBulgarianVocabulary
             p[BULGARIAN_LAYOUT] = s.bulgarianLayout.name
+            p[PORTUGUESE_SPELLING] = s.portugueseSpelling.name
         }
     }
 
@@ -274,5 +280,6 @@ class Prefs(private val context: Context) {
         val CURRENT_LANGUAGE = stringPreferencesKey("current_language")
         val RU_BULGARIAN_VOCABULARY = booleanPreferencesKey("ru_bulgarian_vocabulary")
         val BULGARIAN_LAYOUT = stringPreferencesKey("bulgarian_layout")
+        val PORTUGUESE_SPELLING = stringPreferencesKey("portuguese_spelling")
     }
 }

@@ -1,6 +1,7 @@
 package net.matasar.keyboard.backup
 
 import net.matasar.keyboard.layout.BulgarianLayout
+import net.matasar.keyboard.layout.PortugueseSpelling
 import net.matasar.keyboard.macro.Block
 import net.matasar.keyboard.macro.Macro
 import net.matasar.keyboard.macro.MacroStore
@@ -19,7 +20,7 @@ class BackupCodecTest {
 
     private val settings = Settings(
         theme = ThemeChoice.DARK, enabledLanguages = setOf("en_US", "uk"), currentLanguage = "uk",
-        bulgarianLayout = BulgarianLayout.STANDARD, doubleSpacePeriod = false,
+        bulgarianLayout = BulgarianLayout.STANDARD, doubleSpacePeriod = false, portugueseSpelling = PortugueseSpelling.BRAZIL,
     )
     private val words = mapOf("en_US" to mapOf("kubectl" to 230, "tube" to 0))
     private val login = Macro(
