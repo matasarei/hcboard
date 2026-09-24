@@ -1,5 +1,6 @@
 package net.matasar.keyboard.ime
 
+import androidx.compose.runtime.snapshots.Snapshot
 import net.matasar.keyboard.input.FakeEditorPort
 import net.matasar.keyboard.input.InputDispatcher
 import net.matasar.keyboard.layout.BulgarianLayout
@@ -26,6 +27,8 @@ class LanguageSwitchingTest {
             override fun switchToNextInputMethod() { nextInputMethodCalls += Unit }
         }
     }
+
+    private fun key(label: String) = controller.phoneLayout.layer(LayerId.LETTERS).rows.flatMap { it.keys }.first { it.label == label }
 
     private fun globe() = controller.phoneLayout.layer(net.matasar.keyboard.layout.LayerId.LETTERS).rows[3].keys.firstOrNull { it.action == KeyAction.SwitchLanguage }
 
@@ -83,22 +86,58 @@ class LanguageSwitchingTest {
     }
 
     @Test
-    fun `set to Last used, the globe goes back to the language before, as on an iPhone`() {
+    fun `set to Last used, a first tap goes back and taps in a row go on through the list, as on an iPhone`() {
         assertEquals(GlobeTap.LAST_USED, controller.globeTap) // the default
         controller.enabledLanguages = setOf("en_US", "uk", "fr")
         val globe = globe()!!
-        controller.onKey(globe) // nothing to go back to yet: on to the next one
-        assertEquals(Languages.ukrainian, controller.language)
-        controller.onKey(globe)
-        assertEquals(Languages.english, controller.language)
-        controller.onKey(globe)
-        assertEquals(Languages.ukrainian, controller.language)
-        // A pick from the list counts: the globe then goes back to where the pick came from.
+        fun tap() = controller.onKey(globe).let { controller.language }
+        // Nothing to go back to yet: on through the list, all the way round.
+        assertEquals(listOf(Languages.ukrainian, Languages.french, Languages.english), List(3) { tap() })
+        // A letter ends the run: the next tap goes back to French, where English was switched from,
+        // and taps after it go on round from there.
+        controller.onKey(key("a"))
+        assertEquals(listOf(Languages.french, Languages.english, Languages.ukrainian), List(3) { tap() })
+        // A pick from the list counts as a switch and ends the run too.
         controller.switchLanguage(Languages.french)
-        controller.onKey(globe)
-        assertEquals(Languages.ukrainian, controller.language)
-        controller.onKey(globe)
-        assertEquals(Languages.french, controller.language)
+        assertEquals(Languages.ukrainian, tap())
+        assertEquals(Languages.french, tap())
+    }
+
+    @Test
+    fun `a new field ends a run of globe taps`() {
+        controller.enabledLanguages = setOf("en_US", "uk", "fr")
+        controller.onKey(globe()!!) // en to uk
+        controller.onStartInput(null)
+        controller.onKey(globe()!!)
+        assertEquals(Languages.english, controller.language) // back, not on to French
+    }
+
+    @Test
+    fun `Android echoing the switch back as a subtype change does not end a run of globe taps`() {
+        controller.enabledLanguages = setOf("en_US", "uk", "fr")
+        controller.onKey(globe()!!) // en to uk
+        controller.switchLanguage(controller.language) // onCurrentInputMethodSubtypeChanged
+        controller.onKey(globe()!!)
+        assertEquals(Languages.byTag("fr"), controller.language) // on, not back to English
+    }
+
+    @Test
+    fun `the globe's target is read from state, so a key that ends a run renames the globe`() {
+        controller.enabledLanguages = setOf("en_US", "uk", "fr")
+        controller.onKey(globe()!!) // en to uk
+        controller.onKey(globe()!!) // on to fr
+        val read = mutableSetOf<Any>()
+        Snapshot.observe(readObserver = { read.add(it) }) { controller.globeTarget() }
+        val changed = mutableSetOf<Any>()
+        val handle = Snapshot.registerApplyObserver { written, _ -> changed.addAll(written) }
+        try {
+            controller.onKey(key("a"))
+            Snapshot.sendApplyNotifications()
+        } finally {
+            handle.dispose()
+        }
+        assertTrue(changed.any { it in read }) // the keys redraw, and TalkBack hears the new name
+        assertEquals(Languages.byTag("uk"), controller.globeTarget()) // back, no longer on
     }
 
     @Test
