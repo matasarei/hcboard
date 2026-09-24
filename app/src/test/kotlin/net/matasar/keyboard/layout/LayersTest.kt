@@ -16,7 +16,7 @@ class LayersTest {
     }
 
     @Test
-    fun `the number row tops the letters page in every language, full width, and nothing else changes`() {
+    fun `the number row tops the letters page, and its symbols key opens a page without digits`() {
         for (language in listOf(Languages.english, Languages.ukrainian)) {
             val plain = phoneLayout(language, withGlobe = true)
             val withDigits = phoneLayout(language, withGlobe = true, numberRow = true)
@@ -25,10 +25,25 @@ class LayersTest {
             assertEquals((1..9).map { "$it" } + "0", digits.keys.map { it.label }, language.tag)
             assertTrue(digits.keys.all { it.action == KeyAction.Text(it.label) && it.style == KeyStyle.LETTER }, language.tag)
             assertEquals(letters.units, digits.totalUnits, 0.001f, language.tag)
-            assertEquals(plain.layers.getValue(LayerId.LETTERS).rows, letters.rows.drop(1), language.tag)
-            assertEquals(plain.layers.getValue(LayerId.SYMBOLS), withDigits.layers.getValue(LayerId.SYMBOLS))
+            // The letter rows are the same; the page key says it opens symbols only.
+            val plainRows = plain.layers.getValue(LayerId.LETTERS).rows
+            assertEquals(plainRows.dropLast(1), letters.rows.drop(1).dropLast(1), language.tag)
+            assertEquals("#+=", letters.rows.last().keys.first().label)
+            assertEquals("123", plainRows.last().keys.first().label)
+            assertEquals(symbolsBesideDigitsLayer(language.nativeName, withGlobe = true), withDigits.layers.getValue(LayerId.SYMBOLS))
             assertEquals(plain.layers.getValue(LayerId.CODE), withDigits.layers.getValue(LayerId.CODE))
         }
+    }
+
+    @Test
+    fun `the page beside the digits has every symbol and mark, no digits, and the letters page's height`() {
+        val page = symbolsBesideDigitsLayer("English", withGlobe = false)
+        val labels = page.rows.flatMap { it.keys }.map { it.label }
+        assertTrue(labels.none { it.length == 1 && it[0].isDigit() })
+        for (symbol in "-/:;()$&@\"[]{}#%^*+=_\\|~<>€£¥•`.,?!'") assertTrue(symbol.toString() in labels, "missing $symbol")
+        assertEquals(5, page.rows.size)
+        assertEquals(phoneLayout(Languages.english, withGlobe = false, numberRow = true).layers.getValue(LayerId.LETTERS).rows.size, page.rows.size)
+        for (row in page.rows) assertEquals(10f, row.totalUnits, 0.001f)
     }
 
     @Test
@@ -72,26 +87,27 @@ class LayersTest {
     }
 
     @Test
-    fun `the bottom row is switch, globe, space and a wide return, with no comma or period`() {
+    fun `the letters bottom row is switch, comma, globe, space, period and a wide return`() {
         val plain = LettersLayer.rows[3].keys
-        assertEquals(listOf(KeyAction.SwitchLayer(LayerId.SYMBOLS), KeyAction.Space, KeyAction.Enter), plain.map { it.action })
-        assertEquals(listOf(1.25f, 6.25f, 2.5f), plain.map { it.width })
-        val globe = Languages.english.lettersLayer(withGlobe = true).rows[3].keys
         assertEquals(
-            listOf(KeyAction.SwitchLayer(LayerId.SYMBOLS), KeyAction.SwitchLanguage, KeyAction.Space, KeyAction.Enter),
-            globe.map { it.action },
+            listOf(KeyAction.SwitchLayer(LayerId.SYMBOLS), KeyAction.Text(","), KeyAction.Space, KeyAction.Text("."), KeyAction.Enter),
+            plain.map { it.action },
         )
-        assertEquals(listOf(1.25f, 1.25f, 5f, 2.5f), globe.map { it.width })
-        assertTrue(LettersLayer.rows.flatMap { it.keys }.none { it.label == "," || it.label == "." })
+        assertEquals(listOf(1.25f, 1f, 4.75f, 1f, 2f), plain.map { it.width })
+        val globe = Languages.english.lettersLayer(withGlobe = true).rows[3].keys
+        assertEquals(listOf("123", ",", "globe", "English", ".", "enter"), globe.map { it.label })
+        assertEquals(listOf(1.25f, 1f, 1f, 3.75f, 1f, 2f), globe.map { it.width })
+        // The symbol pages have both marks on their third row already.
+        assertEquals(listOf("ABC", "English", "enter"), SymbolsLayer.rows[3].keys.map { it.label })
     }
 
     @Test
-    fun `an address field gets its marks around the space bar on the letters page only`() {
+    fun `an address field swaps the comma for what an address needs, on the letters page only`() {
         fun labels(marks: FieldMarks) =
             phoneLayout(Languages.english, withGlobe = true, marks = marks).layers.getValue(LayerId.LETTERS).rows[3].keys.map { it.label }
-        assertEquals(listOf("123", "globe", "English", "enter"), labels(FieldMarks.NONE))
-        assertEquals(listOf("123", "globe", "@", "English", ".", "enter"), labels(FieldMarks.EMAIL))
-        assertEquals(listOf("123", "globe", "/", "English", ".", "enter"), labels(FieldMarks.URL))
+        assertEquals(listOf("123", ",", "globe", "English", ".", "enter"), labels(FieldMarks.NONE))
+        assertEquals(listOf("123", "@", "globe", "English", ".", "enter"), labels(FieldMarks.EMAIL))
+        assertEquals(listOf("123", "/", "globe", "English", ".", "enter"), labels(FieldMarks.URL))
         for (marks in FieldMarks.entries) {
             val layout = phoneLayout(Languages.ukrainian, withGlobe = false, marks = marks)
             for (layer in layout.layers.values) for (row in layer.rows) assertEquals(layer.units, row.totalUnits, 0.001f, "$marks ${layer.id}")

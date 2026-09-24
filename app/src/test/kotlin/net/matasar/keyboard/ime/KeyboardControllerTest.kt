@@ -78,12 +78,15 @@ class KeyboardControllerTest {
         assertEquals(Languages.ukrainian, controller.language)
         assertEquals(LayerId.LETTERS, controller.layer)
 
-        // A number field opens on the symbols page: its letters are not what the field wants.
+        // A number field opens on the letters page too, with the digits across the top, and a
+        // language picked on its symbols page brings the letters back as anywhere else.
         controller.onStartInput(EditorInfo().apply { inputType = InputType.TYPE_CLASS_NUMBER })
-        assertEquals(LayerId.SYMBOLS, controller.layer)
+        assertEquals(LayerId.LETTERS, controller.layer)
+        assertTrue(controller.numberRowShown)
+        controller.onKey(symbolsKey)
         controller.onKey(globeKey)
         assertEquals(Languages.english, controller.language)
-        assertEquals(LayerId.SYMBOLS, controller.layer)
+        assertEquals(LayerId.LETTERS, controller.layer)
     }
 
     @Test
@@ -300,7 +303,7 @@ class WideBoardControllerTest {
     }
 
     @Test
-    fun `an e-mail field shows @ and a full stop beside space, and the next field loses them`() {
+    fun `an e-mail field swaps the comma for @, a web address for a slash, and the next field gets it back`() {
         controller.onStartInput(EditorInfo().apply { inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS })
         fun bottom() = controller.phoneLayout.layer(LayerId.LETTERS).rows.last().keys.map { it.label }
         assertEquals(listOf("123", "@", "English", ".", "enter"), bottom())
@@ -308,6 +311,28 @@ class WideBoardControllerTest {
         controller.onRestartInput(EditorInfo().apply { inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_URI })
         assertEquals(listOf("123", "/", "English", ".", "enter"), bottom())
         controller.onStartInput(EditorInfo().apply { inputType = InputType.TYPE_CLASS_TEXT })
-        assertEquals(listOf("123", "English", "enter"), bottom())
+        assertEquals(listOf("123", ",", "English", ".", "enter"), bottom())
+    }
+
+    @Test
+    fun `number and password fields show the number row whatever the setting, other fields as it says`() {
+        for (field in listOf(InputType.TYPE_CLASS_NUMBER, InputType.TYPE_CLASS_PHONE, InputType.TYPE_CLASS_DATETIME)) {
+            controller.onStartInput(EditorInfo().apply { inputType = field })
+            assertEquals(LayerId.LETTERS, controller.layer)
+            assertTrue(controller.numberRowShown)
+            assertEquals("1", controller.phoneLayout.layer(LayerId.LETTERS).rows[0].keys.first().label)
+        }
+        controller.numberRow = true
+        controller.onStartInput(EditorInfo().apply { inputType = InputType.TYPE_CLASS_PHONE })
+        assertTrue(controller.numberRowShown)
+        controller.onStartInput(EditorInfo().apply { inputType = InputType.TYPE_CLASS_TEXT })
+        assertTrue(controller.numberRowShown)
+        controller.numberRow = false
+        assertFalse(controller.numberRowShown)
+        controller.onStartInput(EditorInfo().apply { inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD })
+        controller.numberRow = false
+        assertTrue(controller.numberRowShown)
+        assertEquals("#+=", controller.phoneLayout.layer(LayerId.LETTERS).rows.last().keys.first().label)
+        assertEquals("-", controller.phoneLayout.layer(LayerId.SYMBOLS).rows[0].keys.first().label)
     }
 }

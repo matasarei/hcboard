@@ -109,9 +109,14 @@ class GlideControllerTest {
     }
 
     @Test
-    fun `no glide in password or terminal fields or while a modifier is active`() {
+    fun `no glide in password, number or terminal fields or while a modifier is active`() {
         controller.onStartInput(EditorInfo().apply { inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD })
         assertFalse(controller.glideAvailable)
+        // Number fields open on the letters page with the digits on top; the letters still do not glide there.
+        for (field in listOf(InputType.TYPE_CLASS_NUMBER, InputType.TYPE_CLASS_PHONE, InputType.TYPE_CLASS_DATETIME)) {
+            controller.onStartInput(EditorInfo().apply { inputType = field })
+            assertFalse(controller.glideAvailable, "input type $field")
+        }
         controller.onStartInput(EditorInfo().apply { inputType = InputType.TYPE_NULL })
         assertFalse(controller.glideAvailable)
         controller.onStartInput(EditorInfo().apply { inputType = InputType.TYPE_CLASS_TEXT })

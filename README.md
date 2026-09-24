@@ -59,9 +59,9 @@ from the password manager you already use, and the keyboard never shows or keeps
 
 - **The iPhone's layout, in Material:** each language's letters sit where the iPhone puts them
   (Russian leaves ъ to a long press on ь; Ukrainian has its apostrophe and ґ on the page), the
-  bottom row is 123, the globe, space and a wide return, and the symbol pages are the iPhone's
-  123 and #+=. Two quick spaces after a word type a full stop and a space; e-mail and web
-  address fields keep `@` or `/` and `.` beside the space bar.
+  bottom row is 123, comma, the globe, space, period and a wide return, and the symbol pages are
+  the iPhone's 123 and #+=. Two quick spaces after a word type a full stop and a space; e-mail
+  and web address fields have `@` or `/` where the comma is.
 - **Glide typing** across the letters of every language, each with its own bundled word list.
 - **Word suggestions** while you type: the word as typed, its correction and completions, in the
   toolbar behind a chevron. Space applies the highlighted correction and one backspace takes it
@@ -74,7 +74,8 @@ from the password manager you already use, and the keyboard never shows or keeps
   suggested, glide-typed and never corrected away; block one and it is never suggested or used as
   a correction.
 - **A number row** of 1 to 0 above the letters on a phone, switched on in Settings or the gear's
-  sheet; password fields always show it. The 60% board always has its digits.
+  sheet; password and number fields always show it. Its #+= key then opens one page of symbols with no
+  digits of its own. The 60% board always has its digits.
 - **Capitals where a sentence starts,** in fields that ask for them (chat boxes do): the Shift key
   lights up, one tap on it cancels the capital, and terminals, addresses and code get none. It can
   be turned off in Settings.

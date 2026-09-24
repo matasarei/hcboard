@@ -121,8 +121,8 @@ class KeyboardController(
         if (to == language) return
         language = to
         // The symbols and code pages are the same in every language, so a language picked there
-        // is a request for its letters. A number field, which opens on symbols, keeps its page.
-        if (layer != LayerId.LETTERS && fieldKind.initialLayer() == LayerId.LETTERS) layer = LayerId.LETTERS
+        // is a request for its letters.
+        layer = LayerId.LETTERS
         clearCandidates()
         onLanguageChanged?.invoke(to)
     }
@@ -174,8 +174,12 @@ class KeyboardController(
     /** Setting: the digits across the top of the phone letters page. */
     var numberRow: Boolean by mutableStateOf(false)
 
-    /** The number row shows where it is switched on, and in every password field regardless. */
-    val numberRowShown: Boolean get() = numberRow || passwordField
+    /**
+     * The number row shows where it is switched on, and in every password and number field
+     * regardless: a number, phone or date field opens on the letters page with the digits on top,
+     * rather than on a page of its own.
+     */
+    val numberRowShown: Boolean get() = numberRow || passwordField || fieldKind == FieldKind.NUMBER
 
     /** The editor action Enter performs, or null when Enter should be a real key. */
     var editorActionId: Int? by mutableStateOf(null)
@@ -214,9 +218,13 @@ class KeyboardController(
     /** Setting: glide typing on the letters layer. */
     var glideEnabled: Boolean by mutableStateOf(true)
 
-    /** Whether a finger on the letters may glide right now. */
+    /**
+     * Whether a finger on the letters may glide right now: in a plain text field only, as the
+     * field report says. A number field opens on the letters too, and a word glided into a
+     * phone number is never what was meant.
+     */
     val glideAvailable: Boolean
-        get() = glideEnabled && glideEngine != null && !passwordField && !terminalField && !modifiers.anyActive && !trackpad
+        get() = glideEnabled && glideEngine != null && fieldKind == FieldKind.TEXT && !modifiers.anyActive && !trackpad
 
     /** Setting: the mic button in the strip, for handing dictation to a voice keyboard. */
     var voiceInputEnabled: Boolean by mutableStateOf(true)
@@ -493,7 +501,7 @@ class KeyboardController(
         if (macroJob != null && fieldPackage != macroPackage) stopMacro()
         fieldStarts.value++
         updateFieldKind(info)
-        layer = fieldKind.initialLayer()
+        layer = LayerId.LETTERS
         shift = Latch()
         lastSpaceAt = null
         modifiers = Modifiers()

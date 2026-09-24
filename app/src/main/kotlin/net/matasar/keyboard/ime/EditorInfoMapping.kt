@@ -5,7 +5,6 @@ import android.view.inputmethod.EditorInfo
 import net.matasar.keyboard.autofill.FILL_SCREEN_IME_OPTION
 import net.matasar.keyboard.layout.FieldMarks
 import net.matasar.keyboard.layout.KeyIcon
-import net.matasar.keyboard.layout.LayerId
 
 /** What kind of field has focus, as far as the keyboard cares. */
 enum class FieldKind { TEXT, NUMBER, PASSWORD, TERMINAL }
@@ -29,7 +28,6 @@ fun fieldKindOf(inputType: Int): FieldKind {
     }
 }
 
-/** The layer a field opens on: digits for number and phone fields, letters otherwise. */
 /** The marks an address field keeps beside the space bar: e-mail gets `@`, a web address `/`, both with `.`. */
 fun fieldMarksOf(inputType: Int): FieldMarks {
     if (inputType and InputType.TYPE_MASK_CLASS != InputType.TYPE_CLASS_TEXT) return FieldMarks.NONE
@@ -172,8 +170,6 @@ fun fieldReport(info: EditorInfo, appAllowed: Boolean = false): String {
         "read as: $kind, suggestions $suggestions, glide ${if (kind == FieldKind.TEXT) "allowed" else "off"}, caps ${capsName(capsModesOf(info.inputType))}",
     ).joinToString("\n")
 }
-
-fun FieldKind.initialLayer(): LayerId = if (this == FieldKind.NUMBER) LayerId.SYMBOLS else LayerId.LETTERS
 
 /** The icon the Enter key shows for the field's action. */
 fun enterIconFor(editorActionId: Int?): KeyIcon = when (editorActionId) {

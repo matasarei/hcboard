@@ -15,10 +15,11 @@ object Languages {
         subtypeId = 0x68630002,
         rows = listOf("йцукенгшщзхї", "фівапролджє", "ячсмитьбю"),
         accents = mapOf(
-            'г' to listOf("ґ"), 'ь' to listOf("'", "ʼ"), 'е' to listOf("ё"), 'и' to listOf("ы"),
+            'г' to listOf("ґ"), 'е' to listOf("ё"), 'и' to listOf("ы"),
             '\'' to listOf("ʼ", "’"),
         ),
-        // The iPhone's twelve-key rows: the apostrophe ends the home row and ґ the shift row.
+        // The iPhone's twelve-key rows: the apostrophe ends the home row and ґ the shift row, so ь
+        // needs no apostrophes on its long press.
         phoneRows = listOf("йцукенгшщзхї", "фівапролджє'", "ячсмитьбюґ"),
     )
 

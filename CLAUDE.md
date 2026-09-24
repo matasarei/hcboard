@@ -113,9 +113,10 @@ emulator profile is `medium_phone`; boot it headless with
   (Russian 11/11/9 with ъ on a long press, Ukrainian 12/12/10 with `'` and ґ) and may differ from
   `rows`, which the 60% board fills; a layer sizes itself to its widest phone row, Shift and
   backspace take 1 to 1.5 units and a short row opens a gap beside them (`Row.innerGapUnits`). The
-  bottom row is 123, the globe, space and a wide return, with no comma or period: a quick double
-  space after a word types ". " (`KeyboardController.periodShortcut`, prose fields only, the
-  `doubleSpacePeriod` setting); the symbol pages are the iPhone's 123 and #+= (`LayerId.CODE`).
+  letters' bottom row is 123, comma (`@` or `/` in address fields, `FieldMarks`), the globe,
+  space, period and a wide return; a quick double space after a word types ". "
+  (`KeyboardController.periodShortcut`, prose fields only, the `doubleSpacePeriod` setting); the
+  symbol pages are the iPhone's 123 and #+= (`LayerId.CODE`).
   Bulgarian has two boards, Phonetic (default) and Standard/БДС (`Settings.bulgarianLayout`,
   `Languages.resolve`): one language, tag and subtype, so the Standard copy is not in
   `Languages.all`, and the layout caches key on the resolved language. The globe key exists only with two or more languages enabled; the persisted
@@ -132,8 +133,10 @@ emulator profile is `medium_phone`; boot it headless with
   the user in settings (`Languages.defaultEnabled`).
   English is always on and not toggleable in settings. The phone letters page can start with a
   number row (`Language.lettersLayer(numberRow)`, ten keys sharing the page's width), switched from
-  the gear sheet or Settings (`Settings.numberRow`) and always shown in a password field
-  (`KeyboardController.numberRowShown`). The 60% board is
+  the gear sheet or Settings (`Settings.numberRow`) and always shown in a password or number field
+  (`KeyboardController.numberRowShown`); every field opens on the letters page.
+  With it, the page key reads `#+=` and opens `symbolsBesideDigitsLayer`, one symbols page with no
+  digit row. The 60% board is
   built from the same data (`layout/SixtyPercentLayout.kt`): letters fill the ANSI slots of
   `AnsiSlots.rows` left to right, a letter on a punctuation slot carries that punctuation on Fn,
   and a nine-letter Shift row shrinks both Shifts to keep `.` and `/` (eight letters in Bulgarian leave standard shifts and punctuation). Ukrainian and Russian fill
