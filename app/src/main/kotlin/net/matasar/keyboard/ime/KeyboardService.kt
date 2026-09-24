@@ -256,6 +256,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
                 suggestInPackages = settings.suggestInPackages
                 controller.autoCorrect = settings.autoCorrect
                 controller.autoCapitalize = settings.autoCapitalize
+                controller.doubleSpacePeriod = settings.doubleSpacePeriod
                 autoBottomPadding = settings.bottomPaddingAuto
                 manualBottomPaddingDp = settings.bottomPaddingDp
                 controller.enabledLanguages = settings.enabledLanguages

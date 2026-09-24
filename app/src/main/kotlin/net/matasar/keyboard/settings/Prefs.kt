@@ -56,6 +56,8 @@ data class Settings(
     val suggestions: Boolean = true,
     val autoCorrect: Boolean = true,
     val autoCapitalize: Boolean = true,
+    /** A quick second Space after a word types ". ", as on the iPhone. */
+    val doubleSpacePeriod: Boolean = true,
     val glide: Boolean = true,
     val glideTrail: Boolean = true,
     /** Tags of the enabled languages; never empty. */
@@ -145,6 +147,7 @@ class Prefs(private val context: Context) {
             suggestions = p[SUGGESTIONS] ?: true,
             autoCorrect = p[AUTO_CORRECT] ?: true,
             autoCapitalize = p[AUTO_CAPITALIZE] ?: true,
+            doubleSpacePeriod = p[DOUBLE_SPACE_PERIOD] ?: true,
             glide = p[GLIDE] ?: true,
             glideTrail = p[GLIDE_TRAIL] ?: true,
             enabledLanguages = p[ENABLED_LANGUAGES]?.takeIf { it.isNotEmpty() } ?: defaultEnabledLanguages(),
@@ -170,6 +173,7 @@ class Prefs(private val context: Context) {
     suspend fun setSuggestions(value: Boolean) = context.dataStore.edit { it[SUGGESTIONS] = value }
     suspend fun setAutoCorrect(value: Boolean) = context.dataStore.edit { it[AUTO_CORRECT] = value }
     suspend fun setAutoCapitalize(value: Boolean) = context.dataStore.edit { it[AUTO_CAPITALIZE] = value }
+    suspend fun setDoubleSpacePeriod(value: Boolean) = context.dataStore.edit { it[DOUBLE_SPACE_PERIOD] = value }
     suspend fun setGlide(value: Boolean) = context.dataStore.edit { it[GLIDE] = value }
     suspend fun setGlideTrail(value: Boolean) = context.dataStore.edit { it[GLIDE_TRAIL] = value }
     suspend fun setCurrentLanguage(tag: String) = context.dataStore.edit { it[CURRENT_LANGUAGE] = tag }
@@ -198,6 +202,7 @@ class Prefs(private val context: Context) {
             p[SUGGESTIONS] = s.suggestions
             p[AUTO_CORRECT] = s.autoCorrect
             p[AUTO_CAPITALIZE] = s.autoCapitalize
+            p[DOUBLE_SPACE_PERIOD] = s.doubleSpacePeriod
             p[GLIDE] = s.glide
             p[GLIDE_TRAIL] = s.glideTrail
             p[ENABLED_LANGUAGES] = s.enabledLanguages
@@ -256,6 +261,7 @@ class Prefs(private val context: Context) {
         val SUGGESTIONS = booleanPreferencesKey("suggestions")
         val AUTO_CORRECT = booleanPreferencesKey("auto_correct")
         val AUTO_CAPITALIZE = booleanPreferencesKey("auto_capitalize")
+        val DOUBLE_SPACE_PERIOD = booleanPreferencesKey("double_space_period")
         val GLIDE = booleanPreferencesKey("glide")
         val GLIDE_TRAIL = booleanPreferencesKey("glide_trail")
         val ENABLED_LANGUAGES = stringSetPreferencesKey("enabled_languages")

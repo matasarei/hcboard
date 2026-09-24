@@ -30,6 +30,24 @@ fun fieldKindOf(inputType: Int): FieldKind {
 
 /** The layer a field opens on: digits for number and phone fields, letters otherwise. */
 /**
+ * Whether a double space may become ". " in a field: prose only, so no passwords, numbers,
+ * terminals, addresses or e-mail, where two spaces are what was meant.
+ */
+fun periodShortcutAllowed(inputType: Int): Boolean {
+    if (inputType and InputType.TYPE_MASK_CLASS != InputType.TYPE_CLASS_TEXT) return false
+    return when (inputType and InputType.TYPE_MASK_VARIATION) {
+        InputType.TYPE_TEXT_VARIATION_URI,
+        InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS,
+        InputType.TYPE_TEXT_VARIATION_WEB_EMAIL_ADDRESS,
+        InputType.TYPE_TEXT_VARIATION_PASSWORD,
+        InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD,
+        InputType.TYPE_TEXT_VARIATION_WEB_PASSWORD,
+        -> false
+        else -> true
+    }
+}
+
+/**
  * Whether word candidates may be read and shown for a field: plain text only, so no passwords,
  * numbers, terminals, addresses or e-mail, and not when the app asks for no suggestions — unless
  * it asks for autocorrect in the same breath, which a search box does, or [appAllowed] says the

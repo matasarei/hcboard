@@ -263,6 +263,12 @@ class KeyboardController(
     /** Whether the field's input type lets candidates be read and shown. */
     private var fieldAllowsSuggestions = true
 
+    /** Setting: a quick second Space after a word types ". ", as on the iPhone. */
+    var doubleSpacePeriod: Boolean = true
+
+    /** When the last key, if it was Space, went out ([clock]); any other key clears it. */
+    private var lastSpaceAt: Long? = null
+
     /**
      * The focused field's input type, kept so the rule can be applied again when the stored answer
      * for this app arrives — it is read asynchronously — and when the user flips the row mid-field.
@@ -474,6 +480,7 @@ class KeyboardController(
         updateFieldKind(info)
         layer = fieldKind.initialLayer()
         shift = Latch()
+        lastSpaceAt = null
         modifiers = Modifiers()
         usedHolds.clear()
         pendingLocks.clear()
@@ -673,7 +680,10 @@ class KeyboardController(
             refreshAutoCapital()
             return
         }
+        if (key.action != KeyAction.Space) lastSpaceAt = null
         if (spaced != null && !modifiers.anyActive && takeBackAutoSpace(key, spaced)) {
+            // Space that finds a pick's space there counts as the first of a double space.
+            if (key.action == KeyAction.Space) lastSpaceAt = clock()
             afterKey()
             return
         }
@@ -707,7 +717,13 @@ class KeyboardController(
                 refreshAutoCapital()
             }
             KeyAction.Space -> {
-                if (modifiers.anyMetaActive) sendCombo(" ", key) else commitSeparator(" ")
+                val previous = lastSpaceAt
+                lastSpaceAt = null
+                when {
+                    modifiers.anyMetaActive -> sendCombo(" ", key)
+                    periodShortcut(previous) -> { dispatcher.replaceWordBeforeCursor(" ", ". "); candidates = null }
+                    else -> { commitSeparator(" "); lastSpaceAt = clock() }
+                }
                 afterKey()
             }
             KeyAction.Backspace -> {
@@ -1034,6 +1050,14 @@ class KeyboardController(
         refreshCandidates()
     }
 
+    /**
+     * Whether this Space turns the one before it into ". ": it came within
+     * [DOUBLE_SPACE_WINDOW_MS] of a Space typed after a letter or digit, in a field of prose.
+     */
+    private fun periodShortcut(previousSpaceAt: Long?): Boolean =
+        doubleSpacePeriod && previousSpaceAt != null && clock() - previousSpaceAt <= DOUBLE_SPACE_WINDOW_MS &&
+            (fieldInputType?.let(::periodShortcutAllowed) ?: true) && dispatcher.endsWithSpaceAfterWord()
+
     /** A separator: apply the strip's correction first when there is one, then the separator itself. */
     private fun commitSeparator(separator: String) {
         val current = candidates
@@ -1181,6 +1205,9 @@ class KeyboardController(
     companion object {
         /** How long a macro waits after its Tab or Enter for the app to start the next field. */
         const val FOCUS_MOVE_TIMEOUT_MS = 500L
+
+        /** How soon a second Space has to follow the first to type ". ". */
+        const val DOUBLE_SPACE_WINDOW_MS = 400L
 
         /** The characters that end a word and apply its correction. */
         private val SEPARATORS = setOf(" ", ".", ",", "!", "?")
