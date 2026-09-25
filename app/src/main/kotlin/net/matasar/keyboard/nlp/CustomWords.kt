@@ -17,11 +17,12 @@ object CustomWord {
 
     /**
      * [input] trimmed, or null when it is not a word the lists could hold: empty, longer than
-     * [MAX_LENGTH], or with anything but letters, as [WordList.parse] drops. Its case is kept.
+     * [MAX_LENGTH], or anything but letters with apostrophes between them, as [WordList.parse]
+     * drops. Its case is kept; its apostrophe is stored as `'`, as the lists store it.
      */
     fun normalize(input: String): String? {
-        val word = input.trim()
-        if (word.isEmpty() || word.length > MAX_LENGTH || word.any { !it.isLetter() }) return null
+        val word = Apostrophes.normalize(input.trim())
+        if (word.length > MAX_LENGTH || !Apostrophes.isWord(word)) return null
         return word
     }
 }

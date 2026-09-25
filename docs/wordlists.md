@@ -16,6 +16,21 @@ Moved here from `CLAUDE.md`, which points to this file; the rules are unchanged.
   tiers matched to its corpus's scale: ru 175/155/135, bg 255/230/210, the rest 200/180/165.
   German nouns keep their capital.
 
+## Words with apostrophes
+
+- A word is letters with apostrophes between them (don't, розв'язок, c'est, dell'anno); `’` and
+  `ʼ` are stored as `'`. The builder keeps them, and `--max` caps only the words without an
+  apostrophe, so adding them never pushes out a word a list already had.
+- **English, French and Italian** take theirs from the AOSP sources with the list (elided forms
+  such as l'eau and c'est are whole words there, so elision needs no rules of its own).
+- **Ukrainian:** Helium314's frequencies for apostrophe words are flat (almost all 10) or shared
+  by a family of forms, so `scripts/uk-apostrophe-words.py <main_uk.combined>` writes
+  `scripts/wordlists/uk-apostrophe.tsv`, every one at 70 (just above the list's floor), and
+  `uk-everyday.tsv` gives the everyday ones their tiers. Rebuild with both boosts:
+  `scripts/build-wordlist.py <uk.txt> <uk.txt> --floor 0 --boost scripts/wordlists/uk-everyday.tsv --boost scripts/wordlists/uk-apostrophe.tsv`.
+  A boost only raises: to lower a word, rebuild from the list as it was before.
+- After a rebuild, `grep -v "'"` of the new list must equal the old list.
+
 ## Rebuilding
 
 - **Regenerate, never hand-edit.** The builder reads a shipped asset as its source, so

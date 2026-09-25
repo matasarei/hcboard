@@ -65,7 +65,10 @@ from the password manager you already use, and the keyboard never shows or keeps
 - **Glide typing** across the letters of every language, each with its own bundled word list.
 - **Word suggestions** while you type: the word as typed, its correction and completions, in the
   toolbar behind a chevron. Space applies the highlighted correction and one backspace takes it
-  back, and a word you took back is left alone for the rest of that field. A word you tap gets a
+  back, and a word you took back is left alone for the rest of that field. Words with an
+  apostrophe are words too, in English, Ukrainian, French and Italian: "whats" becomes "what's",
+  "розвязок" becomes "розв'язок", "its" stays and offers "it's", and the apostrophe you typed
+  (`'`, `’` or `ʼ`) is the one you get back. A word you tap gets a
   space after it; a following `.` `,` `!` `?` `;` `:` takes that space's place, so you never get
   "hello !". Both parts can be turned off, and neither runs in password, terminal, number, address
   or e-mail fields. An app that asks for no suggestions gets none, unless you allow that one app

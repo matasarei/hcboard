@@ -1,6 +1,7 @@
 package net.matasar.keyboard.input
 
 import android.view.KeyEvent
+import net.matasar.keyboard.nlp.Apostrophes
 
 /**
  * The only place that talks to the editor. Every key ends up here as one of a handful of
@@ -61,15 +62,20 @@ class InputDispatcher(private val port: EditorPort) {
     }
 
     /**
-     * The letters immediately before the cursor, the word being typed; empty when the text ends
-     * in a separator, and empty when a letter follows the cursor, because a cursor inside a word
-     * is not typing that word. Reads at most [MAX_WORD_LENGTH] characters.
+     * The word immediately before the cursor, the word being typed: its letters and the
+     * apostrophes inside it (don't, розв'я, and a trailing one, don'), but not an apostrophe
+     * before it, which is an opening quote. Empty when the text ends in a separator, and empty
+     * when the word goes on after the cursor (a letter, or an apostrophe and a letter), because a
+     * cursor inside a word is not typing that word. Reads at most [MAX_WORD_LENGTH] characters.
      */
     fun wordBeforeCursor(): String {
         val before = port.textBeforeCursor(MAX_WORD_LENGTH) ?: return ""
-        val word = before.takeLastWhile { it.isLetter() }.toString()
+        val word = before.takeLastWhile { Apostrophes.isWordChar(it) }.trimStart { Apostrophes.isApostrophe(it) }.toString()
         if (word.isEmpty()) return ""
-        if (port.textAfterCursor(1)?.firstOrNull()?.isLetter() == true) return ""
+        val after = port.textAfterCursor(2)?.toString().orEmpty()
+        val wordGoesOn = after.firstOrNull()?.isLetter() == true ||
+            after.length == 2 && Apostrophes.isApostrophe(after[0]) && after[1].isLetter()
+        if (wordGoesOn) return ""
         return word
     }
 

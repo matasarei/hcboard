@@ -37,8 +37,9 @@ abstract class DictionaryOverlayTest(
         val entries = entries()
         assertTrue(entries.size >= minEntries, "only ${entries.size} entries")
         for ((word, frequency) in entries) {
-            val cased = word.drop(1).all { it.isLowerCase() } && (capitalisedNouns || word.first().isLowerCase())
-            assertTrue(word.all { it.isLetter() } && cased, "'$word' is not lowercase letters")
+            // An apostrophe between letters (п'ять, c'est) is part of the word; the case rule is the letters'.
+            val cased = word.drop(1).filter { it.isLetter() }.all { it.isLowerCase() } && (capitalisedNouns || word.first().isLowerCase())
+            assertTrue(Apostrophes.isWord(word) && cased, "'$word' is not lowercase letters")
             assertTrue(frequency in tiers, "'$word' has tier $frequency")
         }
         assertEquals(entries.size, entries.map { it.first }.toSet().size, "duplicate words")

@@ -3,10 +3,13 @@
 
 The source is either an AOSP LatinIME `*_wordlist.combined(.gz)` file or an asset already in
 the keyboard's own `word<TAB>frequency` format (so a shipped list can be rebuilt without its
-original corpus). Keeps letter-only words (any script, so Cyrillic, accented Latin and German
-capitalised nouns pass) at or above a frequency floor, drops words flagged offensive, merges
-every `--boost` file (`word<TAB>frequency`, `#` comments) by taking the higher frequency, and
-writes `word<TAB>frequency` sorted by frequency, highest first, capped at --max words.
+original corpus). Keeps words of letters (any script, so Cyrillic, accented Latin and German
+capitalised nouns pass) with apostrophes only between letters (don't, розв'язок, c'est; the
+typographic ’ and the Ukrainian ʼ are stored as '), at or above a frequency floor, drops words
+flagged offensive, merges every `--boost` file (`word<TAB>frequency`, `#` comments) by taking the
+higher frequency, and writes `word<TAB>frequency` sorted by frequency, highest first. --max caps
+the words without an apostrophe; words with one come on top, so adding them never pushes out a
+word a list already had.
 
     scripts/build-wordlist.py en_US_wordlist.combined.gz app/src/main/assets/dictionaries/en_US.txt --floor 60 --max 80000
     scripts/build-wordlist.py app/src/main/assets/dictionaries/uk.txt app/src/main/assets/dictionaries/uk.txt \
@@ -22,6 +25,23 @@ from typing import Iterator, TextIO
 
 AOSP_LINE = re.compile(r" word=([^,]*),f=(-?\d+)(?:,flags=([^,]*))?")
 ASSET_LINE = re.compile(r"([^\t#]+)\t(\d+)\s*$")
+APOSTROPHES = "'’ʼ"
+
+
+def normalize(word: str) -> str:
+    """The word with every apostrophe written as the typewriter ', as the keyboard stores it."""
+    return word.replace("’", "'").replace("ʼ", "'")
+
+
+def is_word(word: str) -> bool:
+    """Letters, with apostrophes only between them: what the keyboard's Apostrophes.isWord accepts."""
+    return (
+        word != ""
+        and word[0].isalpha()
+        and word[-1].isalpha()
+        and all(c.isalpha() or c == "'" for c in word)
+        and "''" not in word
+    )
 
 
 def read_source(source: TextIO) -> Iterator[tuple[str, int, str]]:
@@ -45,9 +65,10 @@ def read_boost(path: str) -> dict[str, int]:
             if not text:
                 continue
             match = ASSET_LINE.match(text)
-            if not match or not match.group(1).isalpha() or int(match.group(2)) > 255:
+            word = normalize(match.group(1)) if match else ""
+            if not match or not is_word(word) or int(match.group(2)) > 255:
                 sys.exit(f"{path}:{number}: expected 'word<TAB>frequency' with frequency 0-255, got {line.rstrip()!r}")
-            boosts[match.group(1)] = int(match.group(2))
+            boosts[word] = int(match.group(2))
     return boosts
 
 
@@ -64,7 +85,8 @@ def main() -> int:
     words: dict[str, int] = {}
     with opener(args.source, "rt", encoding="utf-8") as source:
         for word, frequency, flags in read_source(source):
-            if not word.isalpha() or frequency < args.floor or "offensive" in flags:
+            word = normalize(word)
+            if not is_word(word) or frequency < args.floor or "offensive" in flags:
                 continue
             words[word] = max(words.get(word, 0), frequency)
 
@@ -78,7 +100,10 @@ def main() -> int:
                 raised += 1
             words[word] = max(current or 0, frequency)
 
-    kept = sorted(words.items(), key=lambda item: (-item[1], item[0]))[: args.max]
+    by_frequency = sorted(words.items(), key=lambda item: (-item[1], item[0]))
+    plain = [item for item in by_frequency if "'" not in item[0]][: args.max]
+    elided = [item for item in by_frequency if "'" in item[0]]
+    kept = sorted(plain + elided, key=lambda item: (-item[1], item[0]))
     with open(args.target, "w", encoding="utf-8") as target:
         for word, frequency in kept:
             target.write(f"{word}\t{frequency}\n")

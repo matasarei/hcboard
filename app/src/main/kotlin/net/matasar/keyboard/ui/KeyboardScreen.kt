@@ -248,7 +248,10 @@ private fun LayerGrid(
 
                 override fun onGlideEnd(path: List<GlidePoint>) {
                     popups.trail = emptyList()
-                    val keys = letterBounds.map { (char, rect) -> GlideKey(char, rect.center.x, rect.center.y, rect.width, rect.height) }
+                    // Letters only: an apostrophe key (Ukrainian, French) is not a glide stop, so
+                    // розв'язок is glided as розвязок and the classifier skips the apostrophe.
+                    val keys = letterBounds.filterKeys { it.isLetter() }
+                        .map { (char, rect) -> GlideKey(char, rect.center.x, rect.center.y, rect.width, rect.height) }
                     controller.onGlideEnd(path, keys)
                 }
 

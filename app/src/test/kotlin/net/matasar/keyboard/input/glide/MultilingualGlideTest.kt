@@ -3,6 +3,7 @@ package net.matasar.keyboard.input.glide
 import net.matasar.keyboard.layout.Language
 import net.matasar.keyboard.layout.Languages
 import net.matasar.keyboard.layout.PortugueseSpelling
+import net.matasar.keyboard.nlp.Apostrophes
 import net.matasar.keyboard.nlp.WordList
 import java.io.File
 import kotlin.test.Test
@@ -18,13 +19,14 @@ class LanguageGeometry(language: Language) {
     private val keyH = 42f
     private val rowPitch = 54f
 
+    /** The letter keys, as the keyboard hands them to glide: an apostrophe key is left out, so glide skips it. */
     val keys: List<GlideKey> = language.rows.flatMapIndexed { rowIndex, chars ->
         val leadingUnits = if (rowIndex == 2) (units - chars.length) / 2f else (units - chars.length) / 2f
         chars.mapIndexed { i, c ->
             val x = side + (leadingUnits + i) * (keyW + gap) + keyW / 2
             GlideKey(c, x, rowIndex * rowPitch + keyH / 2, keyW, keyH)
         }
-    }
+    }.filter { it.char.isLetter() }
 
     fun path(letters: String, steps: Int = 8): List<GlidePoint> {
         val centres = letters.map { ch -> keys.first { it.char == ch }.let { GlidePoint(it.centerX, it.centerY) } }
@@ -82,6 +84,13 @@ class MultilingualGlideTest {
     }
 
     @Test
+    fun `words with an apostrophe glide over their letters alone`() {
+        assertGlides(Languages.ukrainian, "розвязок", "розв'язок")
+        assertGlides(Languages.english, "dont", "don't")
+        assertGlides(Languages.french, "cest", "c'est")
+    }
+
+    @Test
     fun `russian glides привет`() = assertGlides(Languages.russian, "привет", "привет")
 
     @Test
@@ -125,7 +134,8 @@ class MultilingualGlideTest {
         for (language in Languages.all) for (asset in assets(language)) {
             val list = wordList(asset)
             val keys = LanguageGeometry(language).keys.associateBy { it.char }
-            val untypeable = list.words.take(5_000).filter { word -> word.any { c -> baseKeyChar(c, keys) == null } }
+            // An apostrophe needs no key: glide skips it, so розв'язок is glided as розвязок.
+            val untypeable = list.words.take(5_000).filter { word -> word.any { c -> !Apostrophes.isApostrophe(c) && baseKeyChar(c, keys) == null } }
             assertTrue(untypeable.size < 50, "$asset: ${untypeable.size} of the top 5000 words need a missing key, e.g. ${untypeable.take(8)}")
         }
     }
