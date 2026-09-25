@@ -312,4 +312,17 @@ class AutoCapitalizationTest {
         controller.onKey(letter('y'))
         assertEquals("Check. Y", port.before)
     }
+
+    @Test
+    fun `a tap into a word after a pick works out the capital there, without the space the pick owed`() {
+        controller.candidateEngine = Candidates(WordList.of("check" to 200, "chef" to 90))
+        startIn(InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_CAP_WORDS)
+        controller.onSelectionChanged(0, 0, 0, 0) // the field's cursor, known from here
+        type("che")
+        controller.pickCandidate("Check") // the cursor is expected at 5
+        port.before = "Jo" // the user tapped into the middle of "John"
+        port.after = "hn"
+        controller.onSelectionChanged(5, 5, 2, 2)
+        assertFalse(controller.autoCapital)
+    }
 }
