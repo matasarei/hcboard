@@ -19,13 +19,14 @@ class LanguageGeometry(language: Language) {
     private val keyH = 42f
     private val rowPitch = 54f
 
+    /** The letter keys, as the keyboard hands them to glide: an apostrophe key is left out, so glide skips it. */
     val keys: List<GlideKey> = language.rows.flatMapIndexed { rowIndex, chars ->
         val leadingUnits = if (rowIndex == 2) (units - chars.length) / 2f else (units - chars.length) / 2f
         chars.mapIndexed { i, c ->
             val x = side + (leadingUnits + i) * (keyW + gap) + keyW / 2
             GlideKey(c, x, rowIndex * rowPitch + keyH / 2, keyW, keyH)
         }
-    }
+    }.filter { it.char.isLetter() }
 
     fun path(letters: String, steps: Int = 8): List<GlidePoint> {
         val centres = letters.map { ch -> keys.first { it.char == ch }.let { GlidePoint(it.centerX, it.centerY) } }
@@ -80,6 +81,13 @@ class MultilingualGlideTest {
         for (word in listOf("привіт", "дякую", "добре", "зараз", "сьогодні")) assertGlidesFirst(Languages.ukrainian, word)
         val list = File("src/main/assets/dictionaries/uk.txt").bufferedReader().useLines { WordList.parse(it) }
         for (word in listOf("окей", "напиши", "подзвони")) assertTrue(list.frequency(word) >= 180, "'$word' missing from uk.txt")
+    }
+
+    @Test
+    fun `words with an apostrophe glide over their letters alone`() {
+        assertGlides(Languages.ukrainian, "розвязок", "розв'язок")
+        assertGlides(Languages.english, "dont", "don't")
+        assertGlides(Languages.french, "cest", "c'est")
     }
 
     @Test
