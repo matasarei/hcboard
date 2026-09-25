@@ -658,4 +658,18 @@ class SuggestionControllerTest {
             assertEquals("spelling w", port.before.lowercase(), "after ${key.label}")
         }
     }
+
+    @Test
+    fun `the strip stays empty after a pick when the field reports the cursor after the word`() {
+        textField()
+        type("spel")
+        controller.pickCandidate("spell")
+        assertNull(controller.candidates)
+        // The app answers our own commit with a cursor report; the word before the cursor is now
+        // the pick itself, and its completions must not come back.
+        controller.onSelectionChanged()
+        assertNull(controller.candidates)
+        type("s")
+        assertEquals("spell s", port.before) // the owed space is still there for the next word
+    }
 }

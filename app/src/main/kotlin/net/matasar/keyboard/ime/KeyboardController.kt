@@ -1133,6 +1133,9 @@ class KeyboardController(
         refreshAutoCapital()
         // A glide's own commit moves the cursor too; its alternatives stay until the next key.
         if (lastGlideWord != null) return
+        // So does a pick's: the word before the cursor is the pick itself, whose completions must
+        // not come back. Until the next key, which settles the owed space, the strip stays empty.
+        if (phantomEnd != null) return
         refreshCandidates()
     }
 
