@@ -68,9 +68,10 @@ from the password manager you already use, and the keyboard never shows or keeps
   back, and a word you took back is left alone for the rest of that field. Words with an
   apostrophe are words too, in English, Ukrainian, French and Italian: "whats" becomes "what's",
   "розвязок" becomes "розв'язок", "its" stays and offers "it's", and the apostrophe you typed
-  (`'`, `’` or `ʼ`) is the one you get back. A word you tap gets a
-  space after it; a following `.` `,` `!` `?` `;` `:` takes that space's place, so you never get
-  "hello !". Both parts can be turned off, and neither runs in password, terminal, number, address
+  (`'`, `’` or `ʼ`) is the one you get back. A word you tap or glide
+  is spaced from the next one as you go on typing, while a following `.` `,` `!` `?` `;` `:` or `)`
+  lands right against it ("hello, world", never "hello , world"); no stray space is ever left at
+  the end of a field. Both parts can be turned off, and neither runs in password, terminal, number, address
   or e-mail fields. An app that asks for no suggestions gets none, unless you allow that one app
   with Suggest in this app in the gear's sheet.
 - **Your own words,** per language (Settings → Suggestions → Custom words): add a word and it is

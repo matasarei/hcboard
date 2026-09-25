@@ -90,9 +90,13 @@ emulator profile is `medium_phone`; boot it headless with
   `noSuggestionsOverridable` holds): the package joins `Settings.suggestInPackages`, and from then
   on that one flag is advisory there — never the password, e-mail or URI variations, which decide
   as they always did. Per app, remembered and restored per field, exactly as `developerModePackages`
-  is. A word picked from the strip gets a space the keyboard owns until the next key: `. , ! ? ; :`
-  swap places with it, `) ] }` take its place, and Space finds it there; a space the user typed is
-  never taken. A correction undone with Backspace (or the typed word tapped) is `declined` for the
+  is. A word picked from the strip or glided owes a phantom space (`phantomEnd`,
+  `leavePhantomSpace`, as AOSP LatinIME's `SpaceState.PHANTOM`): nothing is typed, so the field never
+  ends with a space the user did not type. The next letter or digit types it first; `. , ! ? ; : …`
+  and `) ] }` land against the word and keep it owed; an apostrophe goes on with the word; Space
+  types one space; anything else, a moved cursor or a new field settles it. It is checked against
+  the field at the next key, never in `onSelectionChanged` (a lagging app copy would drop it), and
+  the capital after a full stop counts it (`capitalAtCursor(spaceAfter)`). A correction undone with Backspace (or the typed word tapped) is `declined` for the
   rest of the field, in memory only: only a new field forgets it, never a read of the field, because
   some apps answer from a copy that lags our own edits. The grid's letter-bounds registry is rebuilt per layout
   and the glide listener is keyed on it, or a language switch classifies against the old alphabet.
