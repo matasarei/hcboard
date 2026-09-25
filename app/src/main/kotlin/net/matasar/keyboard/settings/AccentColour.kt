@@ -5,7 +5,8 @@ import kotlinx.serialization.Serializable
 /**
  * The keyboard's highlight: the Enter key, an armed or locked modifier, the chips. [SYSTEM] is the
  * phone's own palette (Android 12+, from the wallpaper; the fixed blue below that), the rest are
- * fixed colours picked from swatches under the theme.
+ * fixed colours picked from swatches under the theme; [NEUTRAL] is the same scale with no colour
+ * in it, a dark grey in light mode and a light grey in dark.
  */
 @Serializable
-enum class AccentColour { SYSTEM, RED, ORANGE, YELLOW, GREEN, TEAL, BLUE, INDIGO, PURPLE, PINK }
+enum class AccentColour { SYSTEM, RED, ORANGE, YELLOW, GREEN, TEAL, BLUE, INDIGO, PURPLE, PINK, NEUTRAL }

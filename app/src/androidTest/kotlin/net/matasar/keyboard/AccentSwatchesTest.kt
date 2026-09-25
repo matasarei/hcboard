@@ -52,7 +52,7 @@ class AccentSwatchesTest {
             assertTrue("Red does not read as selected", waitUntil(3_000) { selected(device.findObject(By.desc("Red"))) })
             assertFalse("Phone colours still reads as selected", selected(device.findObject(By.desc("Phone colours"))))
             // Every swatch is spoken by its colour, and none shows a name of its own.
-            for (name in listOf("Orange", "Yellow", "Green", "Teal", "Blue", "Indigo", "Purple", "Pink")) {
+            for (name in listOf("Orange", "Yellow", "Green", "Teal", "Blue", "Indigo", "Purple", "Pink", "Neutral")) {
                 assertNotNull("no $name swatch", device.findObject(By.desc(name)))
                 assertFalse("the $name swatch shows its name", device.hasObject(By.text(name)))
             }

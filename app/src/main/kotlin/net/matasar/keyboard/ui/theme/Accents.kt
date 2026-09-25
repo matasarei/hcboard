@@ -59,6 +59,10 @@ internal val Accents: Map<AccentColour, AccentPair> = mapOf(
         light = AccentTones(Color(0xFFBC004F), Color(0xFFFFFFFF), Color(0xFFFFD9DE), Color(0xFF3F0016)),
         dark = AccentTones(Color(0xFFFFB2BF), Color(0xFF660028), Color(0xFF90003B), Color(0xFFFFD9DE)),
     ),
+    AccentColour.NEUTRAL to AccentPair( // TonalPalette.fromHueAndChroma(0, 0): grey, no seed colour
+        light = AccentTones(Color(0xFF5E5E5E), Color(0xFFFFFFFF), Color(0xFFE2E2E2), Color(0xFF1B1B1B)),
+        dark = AccentTones(Color(0xFFC6C6C6), Color(0xFF303030), Color(0xFF474747), Color(0xFFE2E2E2)),
+    ),
 )
 
 /**
