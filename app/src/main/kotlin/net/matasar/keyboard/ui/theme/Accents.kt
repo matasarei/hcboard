@@ -18,7 +18,8 @@ internal data class AccentPair(val light: AccentTones, val dark: AccentTones) {
 
 /**
  * The fixed accents: Material tonal palettes from each seed, light tones 40/100/90/10 and dark
- * 80/20/30/90, as Material's own schemes take them. Generated once with Google's
+ * 80/20/30/90, as Material's own schemes take them; Neutral, with no hue, takes 90/10/70/10 in
+ * dark (see its entry). Generated once with Google's
  * material-color-utilities (Apache-2.0) and kept as numbers; rerun it from the seeds, never
  * hand-tune one role, or its contrast with the role it sits on is no longer checked by design.
  */
@@ -59,9 +60,12 @@ internal val Accents: Map<AccentColour, AccentPair> = mapOf(
         light = AccentTones(Color(0xFFBC004F), Color(0xFFFFFFFF), Color(0xFFFFD9DE), Color(0xFF3F0016)),
         dark = AccentTones(Color(0xFFFFB2BF), Color(0xFF660028), Color(0xFF90003B), Color(0xFFFFD9DE)),
     ),
-    AccentColour.NEUTRAL to AccentPair( // TonalPalette.fromHueAndChroma(0, 0): grey, no seed colour
+    // TonalPalette.fromHueAndChroma(0, 0): grey, no seed colour. With no hue to set "on" apart,
+    // dark mode takes tones 90/10/70/10 rather than 80/20/30/90: at 80/30 an on switch was pale
+    // on pale and an armed key the grey of a pressed one.
+    AccentColour.NEUTRAL to AccentPair(
         light = AccentTones(Color(0xFF5E5E5E), Color(0xFFFFFFFF), Color(0xFFE2E2E2), Color(0xFF1B1B1B)),
-        dark = AccentTones(Color(0xFFC6C6C6), Color(0xFF303030), Color(0xFF474747), Color(0xFFE2E2E2)),
+        dark = AccentTones(Color(0xFFE2E2E2), Color(0xFF1B1B1B), Color(0xFFABABAB), Color(0xFF1B1B1B)),
     ),
 )
 
