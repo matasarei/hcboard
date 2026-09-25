@@ -140,7 +140,11 @@ class KeyboardController(
         // The symbols and code pages are the same in every language, so a language picked there
         // is a request for its letters.
         layer = LayerId.LETTERS
+        // A language change types nothing: a space owed after the last word is still owed, so a
+        // word in the new language does not join it.
+        val owed = phantomEnd
         clearCandidates()
+        phantomEnd = owed
         onLanguageChanged?.invoke(to)
     }
 
@@ -1034,14 +1038,15 @@ class KeyboardController(
      * A key while a phantom space is owed after [owed], what the field ends with. A letter, a digit
      * or any other text types the space first, in one change with the key; a mark that ends a word
      * lands against it and keeps the space owed for the next word; an apostrophe goes on with the
-     * word. A page switch or Shift types nothing and keeps it owed: on a phone ! and ) are behind
-     * ?123. Space, Enter, Backspace and the rest settle it by doing what they always do.
+     * word. A key that types nothing keeps it owed: a page switch or Shift (on a phone ! and ) are
+     * behind ?123), Caps Lock, the globe. Space, Enter, Backspace and the rest settle it by doing
+     * what they always do.
      */
     private fun settlePhantomSpace(key: Key, owed: String) {
         val text = when (val action = key.action) {
             is KeyAction.Letter -> if (letterUpper) action.upper else action.lower
             is KeyAction.Text -> if (shiftActive && action.shifted != null) action.shifted else action.text
-            is KeyAction.SwitchLayer, KeyAction.Shift -> {
+            is KeyAction.SwitchLayer, KeyAction.Shift, KeyAction.CapsLock, KeyAction.SwitchLanguage -> {
                 perform(key, key.action)
                 phantomEnd = owed
                 return

@@ -642,4 +642,20 @@ class SuggestionControllerTest {
         type("s")
         assertEquals("john's", port.before)
     }
+
+    @Test
+    fun `the globe and caps lock type nothing, so the space stays owed across them`() {
+        controller.enabledLanguages = setOf("en_US", "uk")
+        val globe = Key("globe", KeyAction.SwitchLanguage)
+        val capsLock = Key("caps", KeyAction.CapsLock)
+        for (key in listOf(globe, capsLock)) {
+            textField()
+            port.before = ""
+            type("spel")
+            controller.pickCandidate("spelling")
+            controller.onKey(key)
+            type("w")
+            assertEquals("spelling w", port.before.lowercase(), "after ${key.label}")
+        }
+    }
 }
