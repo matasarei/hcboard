@@ -101,7 +101,8 @@ from the password manager you already use, and the keyboard never shows or keeps
 - **Your phone's look:** Material 3, with dynamic colour on Android 12 and later. Four themes —
   System, Light, Dark and Black — and the dark board is built on the same background your apps use.
   The highlight (Enter, a locked Shift or Ctrl, the chips) follows your phone's colours, or pick
-  red, orange, yellow, green, teal, blue, indigo, purple or pink from the swatches under the theme.
+  red, orange, yellow, green, teal, blue, indigo, purple, pink or a neutral grey from the swatches
+  under the theme.
 - **A toolbar that stays out of the way:** the gear (Developer mode, the number row and Settings,
   the same sheet on every board, with the phone-only switches dimmed on a wide one), your password
   manager and your macros on the left; the microphone (when a voice keyboard such as Google voice

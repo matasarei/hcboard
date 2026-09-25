@@ -69,6 +69,7 @@
     <string name="settings_accent_indigo">Indigo</string>
     <string name="settings_accent_purple">Purple</string>
     <string name="settings_accent_pink">Pink</string>
+    <string name="settings_accent_neutral">Neutral</string>
     <string name="settings_try_password_label">Try a password field</string>
     <string name="settings_height">Keyboard height: %1$d%%</string>
     <string name="settings_width">Keyboard width: %1$d%%</string>

@@ -124,4 +124,5 @@ private fun AccentColour.nameRes(): Int = when (this) {
     AccentColour.INDIGO -> R.string.settings_accent_indigo
     AccentColour.PURPLE -> R.string.settings_accent_purple
     AccentColour.PINK -> R.string.settings_accent_pink
+    AccentColour.NEUTRAL -> R.string.settings_accent_neutral
 }
