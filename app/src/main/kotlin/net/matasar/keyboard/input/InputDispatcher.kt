@@ -10,7 +10,32 @@ import net.matasar.keyboard.nlp.Apostrophes
  */
 class InputDispatcher(private val port: EditorPort) {
 
-    fun commitText(text: CharSequence) = port.commitText(text)
+    /** Where our own edits should leave the cursor, to tell the app's answers from the user's moves. */
+    private val cursor = ExpectedCursor()
+
+    /** Every commit goes through here, so the expected cursor follows it. */
+    private fun commit(text: CharSequence) {
+        port.commitText(text)
+        cursor.committed(text.length)
+    }
+
+    /** Every delete goes through here, so the expected cursor follows it. */
+    private fun delete(before: Int, after: Int) {
+        port.deleteSurroundingText(before, after)
+        cursor.deleted(before)
+    }
+
+    /** The field's selection when it starts, from `EditorInfo.initialSelStart/End` (-1 when unknown). */
+    fun resetCursor(start: Int, end: Int) = cursor.reset(start, end)
+
+    /**
+     * The app reports the cursor moved from [oldStart]..[oldEnd] to [newStart]..[newEnd]; true when
+     * that was the user, false when it answers one of our own edits, even late (see [ExpectedCursor]).
+     */
+    fun cursorUpdate(oldStart: Int, oldEnd: Int, newStart: Int, newEnd: Int): Boolean =
+        cursor.update(oldStart, oldEnd, newStart, newEnd)
+
+    fun commitText(text: CharSequence) = commit(text)
 
     /**
      * Deletes the selection if there is one, otherwise one code point before the cursor:
@@ -19,14 +44,14 @@ class InputDispatcher(private val port: EditorPort) {
     fun backspace() {
         val selected = port.selectedText()
         if (!selected.isNullOrEmpty()) {
-            port.commitText("")
+            commit("")
             return
         }
         val before = port.textBeforeCursor(2)
         val length = if (before != null && before.length == 2 &&
             Character.isHighSurrogate(before[0]) && Character.isLowSurrogate(before[1])
         ) 2 else 1
-        port.deleteSurroundingText(length, 0)
+        delete(length, 0)
     }
 
     /**
@@ -105,8 +130,8 @@ class InputDispatcher(private val port: EditorPort) {
      * one batch: the app never sees the field with the word gone and the new one not yet there.
      */
     fun replaceWordBeforeCursor(old: String, new: String) = port.batch {
-        port.deleteSurroundingText(old.length, 0)
-        port.commitText(new)
+        delete(old.length, 0)
+        commit(new)
     }
 
     /** Runs [edits] as one batch edit, for a change made of several calls (see [EditorPort.batch]). */
@@ -121,17 +146,17 @@ class InputDispatcher(private val port: EditorPort) {
     fun forwardDelete(terminal: Boolean = false) {
         val selected = port.selectedText()
         if (!selected.isNullOrEmpty()) {
-            port.commitText("")
+            commit("")
             return
         }
         if (terminal) {
-            port.sendKey(KeyEvent.KEYCODE_FORWARD_DEL, 0)
+            sendKey(KeyEvent.KEYCODE_FORWARD_DEL)
         } else {
             val after = port.textAfterCursor(2)
             val length = if (after != null && after.length == 2 &&
                 Character.isHighSurrogate(after[0]) && Character.isLowSurrogate(after[1])
             ) 2 else 1
-            port.deleteSurroundingText(0, length)
+            delete(0, length)
         }
     }
 
@@ -140,12 +165,15 @@ class InputDispatcher(private val port: EditorPort) {
      * sends a real Enter key so multi-line fields get a newline and terminals get a return.
      */
     fun enter(editorActionId: Int? = null) {
-        if (editorActionId != null && port.performEditorAction(editorActionId)) return
+        if (editorActionId != null && performEditorAction(editorActionId)) return
         sendKey(KeyEvent.KEYCODE_ENTER)
     }
 
     /** Performs an editor action as the field's own action key would; false when the field refused. */
-    fun performEditorAction(actionId: Int): Boolean = port.performEditorAction(actionId)
+    fun performEditorAction(actionId: Int): Boolean {
+        cursor.lost() // the field may clear itself, move on, or do nothing
+        return port.performEditorAction(actionId)
+    }
 
     /**
      * Whether the field holds no text around the cursor and none selected; a field that cannot
@@ -161,16 +189,22 @@ class InputDispatcher(private val port: EditorPort) {
     fun fieldText(): String? = port.fieldText()?.toString()
 
     /** A key event down/up pair with the given meta state. */
-    fun sendKey(keyCode: Int, metaState: Int = 0) = port.sendKey(keyCode, metaState)
+    fun sendKey(keyCode: Int, metaState: Int = 0) {
+        cursor.lost() // what a key event does to the text is the editor's to decide
+        port.sendKey(keyCode, metaState)
+    }
 
     /** A modifier combination: the stroke's own meta (Shift for symbols) plus the modifiers'. */
-    fun sendCombo(stroke: KeyStroke, metaState: Int) = port.sendKey(stroke.keyCode, stroke.metaState or metaState)
+    fun sendCombo(stroke: KeyStroke, metaState: Int) = sendKey(stroke.keyCode, stroke.metaState or metaState)
 
     /**
      * The editor's own select-all / copy / paste / cut, which every text field honours
      * whether or not it listens to key events. Returns false when the field refused.
      */
-    fun sendEditingAction(action: EditingAction): Boolean = port.performContextMenuAction(action.id)
+    fun sendEditingAction(action: EditingAction): Boolean {
+        cursor.lost() // a paste or cut moves the cursor by what the clipboard or selection held
+        return port.performContextMenuAction(action.id)
+    }
 
     /**
      * Moves the cursor by [steps] characters (negative is left) with arrow keys, which every
@@ -178,7 +212,7 @@ class InputDispatcher(private val port: EditorPort) {
      */
     fun moveCursor(steps: Int) {
         val keyCode = if (steps < 0) KeyEvent.KEYCODE_DPAD_LEFT else KeyEvent.KEYCODE_DPAD_RIGHT
-        repeat(kotlin.math.abs(steps)) { port.sendKey(keyCode, 0) }
+        repeat(kotlin.math.abs(steps)) { sendKey(keyCode) }
     }
 }
 

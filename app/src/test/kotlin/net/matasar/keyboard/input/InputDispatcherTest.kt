@@ -161,4 +161,21 @@ class InputDispatcherTest {
         assertTrue(InputDispatcher(FakeEditorPort(before = "hi. ")).capitalAtCursor(sentences))
         assertFalse(InputDispatcher(FakeEditorPort(before = "hi ")).capitalAtCursor(sentences))
     }
+
+    @Test
+    fun `the dispatcher tells its own cursor updates from the user's`() {
+        val dispatcher = InputDispatcher(FakeEditorPort(before = "abc"))
+        dispatcher.resetCursor(3, 3)
+        dispatcher.commitText("de")
+        assertFalse(dispatcher.cursorUpdate(3, 3, 5, 5)) // our commit's update
+        assertTrue(dispatcher.cursorUpdate(5, 5, 1, 1)) // then a tap back into the text
+        dispatcher.replaceWordBeforeCursor("x", "yz") // at 1: delete 1, commit 2 -> 2
+        assertFalse(dispatcher.cursorUpdate(1, 1, 2, 2))
+        dispatcher.backspace() // -> 1
+        assertFalse(dispatcher.cursorUpdate(2, 2, 1, 1))
+        // A key event's effect is not worked out: the next update is taken as ours, and learnt.
+        dispatcher.sendKey(android.view.KeyEvent.KEYCODE_DPAD_LEFT)
+        assertFalse(dispatcher.cursorUpdate(1, 1, 7, 7))
+        assertTrue(dispatcher.cursorUpdate(7, 7, 3, 3))
+    }
 }
