@@ -74,15 +74,19 @@ class WordList private constructor(private val frequencies: Map<String, Int>) {
     companion object {
         val EMPTY = WordList(emptyMap())
 
-        /** Parses `word<TAB>frequency` lines; blank and malformed lines and non-letter words are dropped. */
+        /**
+         * Parses `word<TAB>frequency` lines; blank and malformed lines and anything but a word
+         * ([Apostrophes.isWord]: letters, apostrophes between them) are dropped. An apostrophe is
+         * stored as `'` whichever of the three a line has.
+         */
         fun parse(lines: Sequence<String>): WordList {
             val map = LinkedHashMap<String, Int>()
             for (line in lines) {
                 val tab = line.indexOf('\t')
                 if (tab <= 0) continue
-                val word = line.substring(0, tab)
+                val word = Apostrophes.normalize(line.substring(0, tab))
                 val frequency = line.substring(tab + 1).trim().toIntOrNull() ?: continue
-                if (word.any { !it.isLetter() }) continue
+                if (!Apostrophes.isWord(word)) continue
                 map[word] = frequency.coerceIn(0, 255)
             }
             return WordList(map)

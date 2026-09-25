@@ -9,8 +9,12 @@ class WordListTest {
 
     @Test
     fun `parses word and frequency lines and drops the rest`() {
-        val list = WordList.parse(sequenceOf("hello\t200", "", "broken", "don't\t150", "x1\t10", "world\t999", "tab\tnotanumber"))
-        assertEquals(listOf("hello", "world"), list.words)
+        val list = WordList.parse(
+            sequenceOf("hello\t200", "", "broken", "don't\t150", "x1\t10", "'tis\t5", "world\t999", "tab\tnotanumber", "what’s\t140"),
+        )
+        // An apostrophe between letters is part of the word, stored as '; one at an end is not.
+        assertEquals(listOf("hello", "don't", "world", "what's"), list.words)
+        assertEquals(140, list.frequency("what's"))
         assertEquals(200, list.frequency("hello"))
         assertEquals(255, list.frequency("world"))
         assertEquals(0, list.frequency("missing"))

@@ -16,9 +16,16 @@ class CustomWordsTest {
 
     @Test
     fun `anything the lists could not hold is refused`() {
-        for (bad in listOf("", "   ", "two words", "k8s", "don't", "e-mail", "a".repeat(49), "hi!")) {
+        for (bad in listOf("", "   ", "two words", "k8s", "'quoted", "quoted'", "a''b", "e-mail", "a".repeat(49), "hi!")) {
             assertNull(CustomWord.normalize(bad), bad)
         }
+    }
+
+    @Test
+    fun `a word with an apostrophe inside is kept, its apostrophe stored as the lists store it`() {
+        assertEquals("don't", CustomWord.normalize("don't"))
+        assertEquals("Мар'яна", CustomWord.normalize("Марʼяна"))
+        assertEquals("what's", CustomWord.normalize(" what’s "))
     }
 
     @Test
