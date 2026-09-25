@@ -94,8 +94,9 @@ class GlideControllerTest {
         port.after = "world"
         controller.onGlideEnd(path("helo"), keys)
         // The fake has no cursor, so everything committed lands in `before`; what matters is the
-        // space on the end, which in the field sits between the glided word and "world".
-        assertEquals("hello ", port.committed.last())
+        // space on the end, typed at once (a phantom cannot part two words that already touch),
+        // which in the field sits between the glided word and "world".
+        assertEquals(" ", port.committed.last())
         assertEquals("hello hello ", port.before)
     }
 
@@ -173,5 +174,57 @@ class GlideControllerTest {
         port.before = "something else"
         controller.onKey(backspace)
         assertEquals("something els", port.before)
+    }
+
+    private val letterKeys = LettersLayer.rows.flatMap { it.keys }
+    private fun letter(c: Char) = letterKeys.first { (it.action as? KeyAction.Letter)?.lower == c.toString() }
+    private val space = letterKeys.first { it.action == KeyAction.Space }
+    private val enter = letterKeys.first { it.action == KeyAction.Enter }
+    private fun mark(text: String) = space.copy(label = text, action = KeyAction.Text(text))
+
+    private fun glideHello() {
+        controller.onStartInput(EditorInfo().apply { inputType = InputType.TYPE_CLASS_TEXT })
+        controller.onGlideEnd(path("helo"), keys)
+        assertEquals("hello", port.before)
+    }
+
+    @Test
+    fun `a letter after a glide starts a new word, with the space the glide owed`() {
+        glideHello()
+        controller.onKey(letter('w'))
+        assertEquals("hello w", port.before)
+    }
+
+    @Test
+    fun `a mark after a glide lands against the word, and the next word is still spaced`() {
+        for (text in listOf(",", ".", "!", ")")) {
+            port.before = ""
+            glideHello()
+            controller.onKey(mark(text))
+            assertEquals("hello$text", port.before, "after $text")
+            controller.onKey(letter('w'))
+            assertEquals("hello$text w", port.before, "a letter after $text")
+        }
+    }
+
+    @Test
+    fun `space after a glide types one space, and enter types none`() {
+        glideHello()
+        controller.onKey(space)
+        assertEquals("hello ", port.before)
+        port.before = ""
+        glideHello()
+        controller.onKey(enter)
+        assertEquals("hello", port.before) // no space left behind the word
+        controller.onKey(letter('w'))
+        assertEquals("hellow", port.before) // and none owed after Enter (the fake keeps no newline)
+    }
+
+    @Test
+    fun `an apostrophe after a glide goes on with the word`() {
+        glideHello()
+        controller.onKey(mark("'"))
+        controller.onKey(letter('s'))
+        assertEquals("hello's", port.before)
     }
 }

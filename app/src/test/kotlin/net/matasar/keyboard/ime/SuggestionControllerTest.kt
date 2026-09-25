@@ -161,9 +161,9 @@ class SuggestionControllerTest {
         type("chek")
         assertEquals("check", controller.candidates?.correction)
         controller.pickCandidate("chek")
-        assertEquals("chek ", port.before)
+        assertEquals("chek", port.before) // a phantom space is owed, not typed
         assertNull(controller.candidates)
-        controller.onKey(space) // the pick's space is already there
+        controller.onKey(space) // Space types the one space it owed
         assertEquals("chek ", port.before)
         controller.onKey(keys.first { it.action == KeyAction.Shift })
         type("chek")
@@ -172,48 +172,55 @@ class SuggestionControllerTest {
     }
 
     @Test
-    fun `tapping a candidate replaces the word and puts a space after it, in one batch`() {
+    fun `tapping a candidate replaces the word in one batch and owes a space after it`() {
         textField()
         type("spel")
         port.edits.clear()
         controller.pickCandidate("spelling")
-        assertEquals("spelling ", port.before)
-        assertEquals(listOf("begin", "begin", "delete:4,0", "commit:spelling", "end", "commit: ", "end"), port.edits)
+        // No space is typed, so none can be left behind in the field.
+        assertEquals("spelling", port.before)
+        assertEquals(listOf("begin", "begin", "delete:4,0", "commit:spelling", "end", "end"), port.edits)
         assertNull(controller.candidates)
     }
 
     @Test
-    fun `punctuation after a picked word takes the place of its space`() {
+    fun `punctuation after a picked word lands against it, and the next word gets the owed space`() {
         val bang = dot.copy(label = "!", action = KeyAction.Text("!"))
         val comma = dot.copy(label = ",", action = KeyAction.Text(","))
         val close = dot.copy(label = ")", action = KeyAction.Text(")"))
         val quote = dot.copy(label = "\"", action = KeyAction.Text("\""))
         val ellipsis = dot.copy(label = "…", action = KeyAction.Text("…"))
-        for ((mark, expected) in listOf(bang to "spelling! ", comma to "spelling, ", dot to "spelling. ", ellipsis to "spelling… ", close to "spelling)", quote to "spelling \"")) {
+        // A mark that ends a word lands against it and keeps the space owed; an opening quote is
+        // not one, so the owed space goes in front of it.
+        for ((mark, expected) in listOf(bang to "spelling!", comma to "spelling,", dot to "spelling.", ellipsis to "spelling…", close to "spelling)", quote to "spelling \"")) {
             textField()
             port.before = ""
             type("spel")
             controller.pickCandidate("spelling")
-            port.edits.clear()
             controller.onKey(mark)
             assertEquals(expected, port.before, "after ${mark.label}")
-            if (mark != quote) assertEquals(listOf("begin", "delete:1,0", "commit:${expected.removePrefix("spelling")}", "end"), port.edits)
+            type("w")
+            val next = if (mark == quote) "${expected}w" else "$expected w"
+            assertEquals(next, port.before, "a letter after ${mark.label}")
         }
     }
 
     @Test
-    fun `a mark from the symbols page still takes the pick's space`() {
+    fun `a mark from the symbols page still lands against the pick, and the space stays owed`() {
         textField()
         type("spel")
         controller.pickCandidate("spelling")
         // On a phone ! and ) live behind ?123: the page switch types nothing and keeps the space ours.
         controller.onKey(keys.first { it.action == KeyAction.SwitchLayer(LayerId.SYMBOLS) })
         controller.onKey(SymbolsLayer.rows.flatMap { it.keys }.first { it.label == "!" })
-        assertEquals("spelling! ", port.before)
+        assertEquals("spelling!", port.before)
+        controller.onKey(SymbolsLayer.rows.flatMap { it.keys }.first { it.action == KeyAction.SwitchLayer(LayerId.LETTERS) })
+        type("w")
+        assertEquals("spelling! w", port.before)
     }
 
     @Test
-    fun `space after a picked word is absorbed once, and backspace deletes the space`() {
+    fun `space after a picked word types the owed space once, and backspace settles it`() {
         textField()
         type("spel")
         controller.pickCandidate("spelling")
@@ -221,11 +228,13 @@ class SuggestionControllerTest {
         assertEquals("spelling ", port.before)
         now += 1000 // slower than a double space, which would type ". "
         controller.onKey(space)
-        assertEquals("spelling  ", port.before) // only the first press finds it there
+        assertEquals("spelling  ", port.before) // only the first press was owed
         type("spel")
         controller.pickCandidate("spelled")
         controller.onKey(backspace)
-        assertEquals("spelling  spelled", port.before)
+        assertEquals("spelling  spelle", port.before) // a letter, as there is no space to delete
+        type("r")
+        assertEquals("spelling  speller", port.before) // and nothing is owed after it
     }
 
     @Test
@@ -286,7 +295,9 @@ class SuggestionControllerTest {
         controller.pickCandidate("spelling")
         controller.onRestartInput(EditorInfo().apply { inputType = InputType.TYPE_CLASS_TEXT })
         controller.onKey(dot)
-        assertEquals("chek spelling. ", port.before)
+        assertEquals("chek spelling.", port.before)
+        type("s")
+        assertEquals("chek spelling. s", port.before) // the space owed after the pick came through the restart
     }
 
     @Test
@@ -585,5 +596,66 @@ class SuggestionControllerTest {
 
     private companion object {
         const val DOUBLE_SPACE_WINDOW = KeyboardController.DOUBLE_SPACE_WINDOW_MS
+    }
+
+    @Test
+    fun `the space owed after a pick goes when the cursor moves, the field changes or enter is pressed`() {
+        val enter = keys.first { it.action == KeyAction.Enter }
+        textField()
+        type("spel")
+        controller.pickCandidate("spelling")
+        type("w")
+        assertEquals("spelling w", port.before) // a letter types the owed space first
+
+        textField()
+        port.before = ""
+        type("spel")
+        controller.pickCandidate("spelling")
+        port.before = "elsewhere" // the cursor moved: the text no longer ends with the pick
+        type("s")
+        assertEquals("elsewheres", port.before)
+
+        textField()
+        port.before = ""
+        type("spel")
+        controller.pickCandidate("spelling")
+        textField() // a new field
+        type("s")
+        assertEquals("spellings", port.before)
+
+        textField()
+        port.before = ""
+        type("spel")
+        controller.pickCandidate("spelling")
+        controller.onKey(enter)
+        assertEquals("spelling", port.before) // Enter leaves no space behind the word
+    }
+
+    @Test
+    fun `an apostrophe after a pick goes on with the word`() {
+        controller.candidateEngine = Candidates(WordList.of("john" to 150, "johnny" to 90))
+        val apostrophe = space.copy(label = "'", action = KeyAction.Text("'"))
+        textField()
+        type("jo")
+        controller.pickCandidate("john")
+        controller.onKey(apostrophe)
+        type("s")
+        assertEquals("john's", port.before)
+    }
+
+    @Test
+    fun `the globe and caps lock type nothing, so the space stays owed across them`() {
+        controller.enabledLanguages = setOf("en_US", "uk")
+        val globe = Key("globe", KeyAction.SwitchLanguage)
+        val capsLock = Key("caps", KeyAction.CapsLock)
+        for (key in listOf(globe, capsLock)) {
+            textField()
+            port.before = ""
+            type("spel")
+            controller.pickCandidate("spelling")
+            controller.onKey(key)
+            type("w")
+            assertEquals("spelling w", port.before.lowercase(), "after ${key.label}")
+        }
     }
 }

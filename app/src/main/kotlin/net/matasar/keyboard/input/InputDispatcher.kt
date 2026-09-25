@@ -1,5 +1,6 @@
 package net.matasar.keyboard.input
 
+import android.text.InputType
 import android.view.KeyEvent
 import net.matasar.keyboard.nlp.Apostrophes
 
@@ -31,8 +32,19 @@ class InputDispatcher(private val port: EditorPort) {
     /**
      * Whether the next letter should be a capital: the field asked for [reqModes] (sentences, words
      * or characters) and the text at the cursor starts one. No modes asked for, no question asked.
+     *
+     * [spaceAfter]: a phantom space is owed at the cursor. Android's answer needs the space to be
+     * in the text (after a full stop, a sentence starts only past a space), so the question is
+     * answered here as if it were: every mode starts a word there, and a sentence when the text
+     * ends in `.` `!` `?`, possibly behind closing quotes and brackets.
      */
-    fun capitalAtCursor(reqModes: Int): Boolean = reqModes != 0 && port.cursorCapsMode(reqModes) != 0
+    fun capitalAtCursor(reqModes: Int, spaceAfter: Boolean = false): Boolean {
+        if (reqModes == 0) return false
+        if (!spaceAfter) return port.cursorCapsMode(reqModes) != 0
+        if (reqModes and (InputType.TYPE_TEXT_FLAG_CAP_CHARACTERS or InputType.TYPE_TEXT_FLAG_CAP_WORDS) != 0) return true
+        val before = port.textBeforeCursor(SENTENCE_END_LOOKBACK)?.toString() ?: return false
+        return before.trimEnd { it in CLOSING_MARKS }.lastOrNull()?.let { it in SENTENCE_ENDS } == true
+    }
 
     /**
      * Whether a word committed at the cursor needs a space put in front of it: true when the
@@ -179,6 +191,11 @@ const val MAX_WORD_LENGTH = 32
  */
 /** What a picked word's space would only separate from the word. */
 private const val NO_SPACE_BEFORE = ",.!?;:)]}"
+
+/** What ends a sentence, as Android's caps mode reads it, and the marks that may close it after. */
+private const val SENTENCE_ENDS = ".!?"
+private const val CLOSING_MARKS = ")]}\"'\u201d\u2019\u00bb"
+private const val SENTENCE_END_LOOKBACK = 8
 
 private const val WORD_ENDING_PUNCTUATION = ",.!?;:)]}\"'\u201d\u2019\u00bb"
 

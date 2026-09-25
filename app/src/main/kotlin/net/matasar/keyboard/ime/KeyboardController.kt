@@ -47,6 +47,7 @@ import net.matasar.keyboard.macro.typesSecrets
 import java.security.SecureRandom
 import kotlin.random.Random
 import kotlin.random.asKotlinRandom
+import net.matasar.keyboard.nlp.Apostrophes
 import net.matasar.keyboard.nlp.Candidates
 import net.matasar.keyboard.nlp.WordCandidates
 import net.matasar.keyboard.settings.GlobeTap
@@ -139,7 +140,11 @@ class KeyboardController(
         // The symbols and code pages are the same in every language, so a language picked there
         // is a request for its letters.
         layer = LayerId.LETTERS
+        // A language change types nothing: a space owed after the last word is still owed, so a
+        // word in the new language does not join it.
+        val owed = phantomEnd
         clearCandidates()
+        phantomEnd = owed
         onLanguageChanged?.invoke(to)
     }
 
@@ -402,10 +407,14 @@ class KeyboardController(
     private data class Autocorrect(val typed: String, val correction: String, val separator: String)
 
     /**
-     * The picked word and the space the pick put after it, until the next key: punctuation
-     * then takes the space's place, and Space finds it already there.
+     * A phantom space after a picked or glided word, as AOSP's keyboard keeps one: owed, not
+     * typed, so the field never ends with a space the user did not type. The next letter or digit
+     * types it first; a mark that ends a word (`. , ! ? ; : … ) ] }`) lands against the word and
+     * keeps it owed; an apostrophe goes on with the word (John's); Space, Enter, Backspace and any
+     * other key settle it. The value is what the field ended with when the space was owed: once
+     * the text no longer ends with it (the cursor moved), nothing is owed.
      */
-    private var autoSpace: String? = null
+    private var phantomEnd: String? = null
 
     /**
      * Words whose correction the user refused in this field (lowercased): an undone correction,
@@ -720,8 +729,10 @@ class KeyboardController(
         candidatesCollapsed = false
         val undo = lastAutocorrect
         lastAutocorrect = null
-        val spaced = autoSpace
-        autoSpace = null
+        // Read before anything clears it; checked against the field only now, at the key, because
+        // some apps answer a read made right after our own commit from a copy that lags it.
+        val owed = phantomEnd?.takeIf { !modifiers.anyActive && dispatcher.textEndsWith(it) }
+        phantomEnd = null
         val glidedWord = lastGlideWord
         val glideCommit = lastGlideCommit
         if (glidedWord != null) clearCandidates()
@@ -736,17 +747,12 @@ class KeyboardController(
             return
         }
         if (key.action != KeyAction.Space) lastSpaceAt = null
-        if (spaced != null && !modifiers.anyActive && takeBackAutoSpace(key, spaced)) {
-            // Space that finds a pick's space there counts as the first of a double space.
-            if (key.action == KeyAction.Space) lastSpaceAt = clock()
-            afterKey()
+        if (owed != null) {
+            settlePhantomSpace(key, owed)
             return
         }
         val fnAction = key.fnAction
         if (modifiers.isActive(ModifierKey.FN) && fnAction != null) perform(key, fnAction) else perform(key, key.action)
-        // A page switch or Shift types nothing: on a phone ! and ) are behind ?123, and the
-        // pick's space must still be ours when they arrive.
-        if (spaced != null && (key.action is KeyAction.SwitchLayer || key.action == KeyAction.Shift)) autoSpace = spaced
         // A combination modifier or the trackpad takes the strip away; the chip has the toolbar then.
         if (modifiers.anyMetaActive || trackpad) candidates = null
     }
@@ -868,7 +874,7 @@ class KeyboardController(
      */
     private fun refreshAutoCapital() {
         autoCapital = autoCapitalize && capsModes != 0 && autoCancelledAtMs == null && shift.state == LatchState.IDLE &&
-            !modifiers.anyMetaActive && !trackpad && dispatcher.capitalAtCursor(capsModes)
+            !modifiers.anyMetaActive && !trackpad && dispatcher.capitalAtCursor(capsModes, spaceAfter = phantomEnd != null)
     }
 
     private fun onModifierTap(modifier: ModifierKey) {
@@ -959,11 +965,11 @@ class KeyboardController(
     }
 
     /**
-     * Commits the best word and keeps the rest as alternatives. No trailing space: what follows a
-     * word is the user's to choose, and a comma after one should not arrive as ` ,`. The space
-     * goes in front instead, and only when the text already there ends a word, so two glides in a
-     * row still read as two words. A word glided in front of another one still gets a space after
-     * it, or the two would join.
+     * Commits the best word and keeps the rest as alternatives. A space goes in front when the
+     * text already there ends a word (typed text, or the word before and its phantom space), and
+     * after it a phantom space is owed, as after a picked word: the next letter types it, a comma
+     * lands against the word. A word glided in front of another one gets a real space after it,
+     * or the two would join.
      */
     internal fun commitGlide(words: List<String>, capitalize: Boolean) {
         if (words.isEmpty()) return
@@ -971,10 +977,15 @@ class KeyboardController(
         // gesture: a word must not land in a password field, nor its text be read there.
         if (passwordField || terminalField) return
         val cased = words.map { if (capitalize) it.replaceFirstChar(Char::uppercase) else it }
+        // A phantom space owed by the word before ends in a letter or a mark, so this finds it too.
         val before = if (dispatcher.needsSpaceBefore()) " " else ""
-        val after = if (dispatcher.needsSpaceAfter()) " " else ""
+        phantomEnd = null
+        var after = ""
+        dispatcher.batch {
+            dispatcher.commitText(before + cased.first())
+            after = leavePhantomSpace(cased.first())
+        }
         val committed = before + cased.first() + after
-        dispatcher.commitText(committed)
         lastGlideWord = cased.first()
         lastGlideCommit = committed
         lastAutocorrect = null
@@ -985,10 +996,10 @@ class KeyboardController(
 
     /**
      * The user tapped a word in the strip: after a glide it swaps the glided word (and the
-     * alternatives stay, and glide keeps its own spacing); while typing it replaces the word
-     * being typed and puts a space after it, unless the field already has one there or a mark
-     * that takes none. The typed word itself is already in the field, so tapping it keeps it,
-     * with its space, and the field corrects it no more.
+     * alternatives stay, and the phantom space moves to the new word); while typing it replaces
+     * the word being typed and owes a phantom space after it (see [leavePhantomSpace]). The typed
+     * word itself is already in the field, so tapping it keeps it, and the field corrects it no
+     * more.
      */
     fun pickCandidate(word: String) {
         val current = candidates ?: return
@@ -997,6 +1008,7 @@ class KeyboardController(
         if (glided != null) {
             if (word == glided) return
             dispatcher.replaceWordBeforeCursor(glided, word)
+            if (phantomEnd == glided) phantomEnd = word
             lastGlideWord = word
             lastGlideCommit = when (glideCommit) {
                 " $glided " -> " $word "
@@ -1015,10 +1027,7 @@ class KeyboardController(
             // The word and its space are one change to the app.
             dispatcher.batch {
                 if (word != current.typed) dispatcher.replaceWordBeforeCursor(current.typed, word)
-                if (!dispatcher.nextCharAvoidsSpace()) {
-                    dispatcher.commitText(" ")
-                    autoSpace = "$word "
-                }
+                leavePhantomSpace(word)
             }
         }
         candidates = null
@@ -1026,26 +1035,47 @@ class KeyboardController(
     }
 
     /**
-     * The key after a pick's space: a mark that ends a word swaps places with the space
-     * ("hello! "), a closing bracket takes its place ("hello)"), and Space finds one already
-     * there. False for any other key, and when the text no longer ends with the pick (the cursor
-     * moved), so a space the user typed is never taken.
+     * A key while a phantom space is owed after [owed], what the field ends with. A letter, a digit
+     * or any other text types the space first, in one change with the key; a mark that ends a word
+     * lands against it and keeps the space owed for the next word; an apostrophe goes on with the
+     * word. A key that types nothing keeps it owed: a page switch or Shift (on a phone ! and ) are
+     * behind ?123), Caps Lock, the globe. Space, Enter, Backspace and the rest settle it by doing
+     * what they always do.
      */
-    private fun takeBackAutoSpace(key: Key, spaced: String): Boolean {
+    private fun settlePhantomSpace(key: Key, owed: String) {
         val text = when (val action = key.action) {
-            KeyAction.Space -> " "
+            is KeyAction.Letter -> if (letterUpper) action.upper else action.lower
             is KeyAction.Text -> if (shiftActive && action.shifted != null) action.shifted else action.text
-            else -> return false
+            is KeyAction.SwitchLayer, KeyAction.Shift, KeyAction.CapsLock, KeyAction.SwitchLanguage -> {
+                perform(key, key.action)
+                phantomEnd = owed
+                return
+            }
+            else -> null
         }
-        if (text != " " && text !in SWAP_BEFORE_SPACE && text !in CLOSE_ON_WORD) return false
-        if (!dispatcher.textEndsWith(spaced)) return false
-        when (text) {
-            " " -> Unit
-            in SWAP_BEFORE_SPACE -> dispatcher.replaceWordBeforeCursor(" ", "$text ")
-            else -> dispatcher.replaceWordBeforeCursor(" ", text)
+        when {
+            text == null || text.isEmpty() || Apostrophes.isApostrophe(text.first()) -> perform(key, key.action)
+            text in SWAP_BEFORE_SPACE || text in CLOSE_ON_WORD -> {
+                // Owed before the key, so the capital after a full stop sees the space coming.
+                phantomEnd = owed + text
+                perform(key, key.action)
+            }
+            else -> dispatcher.batch {
+                dispatcher.commitText(" ")
+                perform(key, key.action)
+            }
         }
-        candidates = null
-        return true
+    }
+
+    /**
+     * After a word picked or glided at [word]: owe a phantom space, or type the space at once when
+     * a letter follows the cursor (a phantom cannot part two words that already touch), or
+     * nothing when whitespace or a mark that takes none follows. Returns what it typed.
+     */
+    private fun leavePhantomSpace(word: String): String = when {
+        dispatcher.needsSpaceAfter() -> " ".also { dispatcher.commitText(it) }
+        dispatcher.nextCharAvoidsSpace() -> ""
+        else -> "".also { phantomEnd = word }
     }
 
     /**
@@ -1168,7 +1198,7 @@ class KeyboardController(
         lastGlideWord = null
         lastGlideCommit = null
         lastAutocorrect = null
-        autoSpace = null
+        phantomEnd = null
     }
 
     /** The accent candidates a long press on [key] offers, in the current case; none in passwords. */
