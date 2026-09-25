@@ -179,7 +179,9 @@ emulator profile is `medium_phone`; boot it headless with
   `settings/AccentSwatches.kt`) replaces only its four accent roles (and the secondary container,
   for Material's selected chips) with a tonal palette from
   `ui/theme/Accents.kt`, generated from each seed with material-color-utilities and kept as
-  numbers (regenerate, never hand-tune one role; `AccentsTest` checks 4.5:1). The dark and Black
+  numbers (regenerate, never hand-tune one role; `AccentsTest` checks 4.5:1). Neutral has no hue
+  to show "on", so in dark it takes tones 90/10/70/10 of its grey palette, held to 3:1 against
+  the board. The dark and Black
   surfaces never come from the accent, and Black keeps Enter grey. `KeyboardThemeFor(theme,
   accent)` is the one place the choices become colours, for the keyboard and every screen.
 - **A key is a legend line and a glyph** (`ui/KeyButton.kt`), never a stack of paddings: the

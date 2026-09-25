@@ -18,7 +18,8 @@ internal data class AccentPair(val light: AccentTones, val dark: AccentTones) {
 
 /**
  * The fixed accents: Material tonal palettes from each seed, light tones 40/100/90/10 and dark
- * 80/20/30/90, as Material's own schemes take them. Generated once with Google's
+ * 80/20/30/90, as Material's own schemes take them; Neutral, with no hue, takes 90/10/70/10 in
+ * dark (see its entry). Generated once with Google's
  * material-color-utilities (Apache-2.0) and kept as numbers; rerun it from the seeds, never
  * hand-tune one role, or its contrast with the role it sits on is no longer checked by design.
  */
