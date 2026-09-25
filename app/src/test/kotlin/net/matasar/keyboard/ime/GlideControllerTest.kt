@@ -227,4 +227,17 @@ class GlideControllerTest {
         controller.onKey(letter('s'))
         assertEquals("hello's", port.before)
     }
+
+    @Test
+    fun `a tap elsewhere after a glide drops its alternatives, so none can replace text there`() {
+        controller.onStartInput(EditorInfo().apply { inputType = InputType.TYPE_CLASS_TEXT })
+        controller.onSelectionChanged(0, 0, 0, 0)
+        controller.onGlideEnd(path("helo"), keys) // "hello", expected at 5
+        assertTrue(controller.candidates!!.words.size > 1)
+        port.before = "he"
+        controller.onSelectionChanged(5, 5, 2, 2)
+        assertTrue(controller.candidates == null || controller.candidates!!.typed != "hello")
+        controller.pickCandidate("help") // nothing to pick from: the text stays as it is
+        assertEquals("he", port.before)
+    }
 }

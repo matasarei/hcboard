@@ -672,4 +672,30 @@ class SuggestionControllerTest {
         type("s")
         assertEquals("spell s", port.before) // the owed space is still there for the next word
     }
+
+    @Test
+    fun `a tap elsewhere after a pick brings the strip back for the word there`() {
+        textField()
+        controller.onSelectionChanged(0, 0, 0, 0)
+        type("spel")
+        controller.pickCandidate("spelling") // expected at 8
+        controller.onSelectionChanged(4, 4, 8, 8) // the pick's own update: the strip stays empty
+        assertNull(controller.candidates)
+        port.before = "hel" // then a tap into an earlier word
+        controller.onSelectionChanged(8, 8, 3, 3)
+        assertEquals("hel", controller.candidates?.typed)
+        type("l")
+        assertEquals("hell", port.before) // no space owed there
+    }
+
+    @Test
+    fun `a late update for an earlier letter keeps the space owed after a pick`() {
+        textField()
+        controller.onSelectionChanged(0, 0, 0, 0)
+        type("spel")
+        controller.pickCandidate("spelling") // expected at 8
+        controller.onSelectionChanged(2, 2, 3, 3) // the "e"'s update, arriving only now
+        type("w")
+        assertEquals("spelling w", port.before)
+    }
 }

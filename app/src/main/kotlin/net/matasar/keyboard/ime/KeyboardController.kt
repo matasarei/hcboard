@@ -279,6 +279,7 @@ class KeyboardController(
      * check that the text still ends as they left it before they act.
      */
     fun onRestartInput(info: EditorInfo?) {
+        dispatcher.resetCursor(info?.initialSelStart ?: -1, info?.initialSelEnd ?: -1)
         updateFieldKind(info)
         updateFieldMic(info)
         updateFieldSuggestions(info)
@@ -539,6 +540,7 @@ class KeyboardController(
         // A macro follows its own Tab into the next field of the same app, never into another app.
         if (macroJob != null && fieldPackage != macroPackage) stopMacro()
         fieldStarts.value++
+        dispatcher.resetCursor(info?.initialSelStart ?: -1, info?.initialSelEnd ?: -1)
         updateFieldKind(info)
         layer = LayerId.LETTERS
         shift = Latch()
@@ -1128,8 +1130,19 @@ class KeyboardController(
         candidates = if (found != null && isDeclined(word)) found.copy(correction = null) else found
     }
 
-    /** The cursor moved (the service's onUpdateSelection): the word under it may be another one. */
-    fun onSelectionChanged() {
+    /**
+     * The cursor moved (the service's onUpdateSelection, with its positions; -1 when a caller has
+     * none): the word under it may be another one. When the user moved it (not our own edit, even
+     * answered late; see [InputDispatcher.cursorUpdate]), a space owed after a pick and a glide's
+     * alternatives belong to where the cursor was, and go; the capital and the strip are worked
+     * out for where it is now.
+     */
+    fun onSelectionChanged(oldStart: Int = -1, oldEnd: Int = -1, newStart: Int = -1, newEnd: Int = -1) {
+        if (dispatcher.cursorUpdate(oldStart, oldEnd, newStart, newEnd)) {
+            phantomEnd = null
+            lastGlideWord = null
+            lastGlideCommit = null
+        }
         refreshAutoCapital()
         // A glide's own commit moves the cursor too; its alternatives stay until the next key.
         if (lastGlideWord != null) return

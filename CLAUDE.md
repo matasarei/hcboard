@@ -95,8 +95,11 @@ emulator profile is `medium_phone`; boot it headless with
   ends with a space the user did not type. The next letter or digit types it first; `. , ! ? ; : …`
   and `) ] }` land against the word and keep it owed; an apostrophe goes on with the word; Space
   types one space; anything else, a moved cursor or a new field settles it. It is checked against
-  the field at the next key, never in `onSelectionChanged` (a lagging app copy would drop it), and
-  the capital after a full stop counts it (`capitalAtCursor(spaceAfter)`). A correction undone with Backspace (or the typed word tapped) is `declined` for the
+  the field at the next key, never by reading the field in `onSelectionChanged` (a lagging app copy
+  would drop it), and the capital after a full stop counts it (`capitalAtCursor(spaceAfter)`). A
+  cursor update is sorted by position instead: `InputDispatcher` tracks where its own edits leave
+  the cursor (`ExpectedCursor`, AOSP's belated-update rule), and only a move away from there is the
+  user's, which drops the owed space and a glide's alternatives; an unclear update counts as ours. A correction undone with Backspace (or the typed word tapped) is `declined` for the
   rest of the field, in memory only: only a new field forgets it, never a read of the field, because
   some apps answer from a copy that lags our own edits. The grid's letter-bounds registry is rebuilt per layout
   and the glide listener is keyed on it, or a language switch classifies against the old alphabet.

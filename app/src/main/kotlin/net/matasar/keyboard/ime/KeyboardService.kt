@@ -660,7 +660,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
     /** The cursor moved, by us or by the user: the word under it decides the candidates. */
     override fun onUpdateSelection(oldSelStart: Int, oldSelEnd: Int, newSelStart: Int, newSelEnd: Int, candidatesStart: Int, candidatesEnd: Int) {
         super.onUpdateSelection(oldSelStart, oldSelEnd, newSelStart, newSelEnd, candidatesStart, candidatesEnd)
-        controller.onSelectionChanged()
+        controller.onSelectionChanged(oldSelStart, oldSelEnd, newSelStart, newSelEnd)
     }
 
     override fun onDestroy() {
