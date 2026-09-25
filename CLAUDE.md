@@ -79,7 +79,13 @@ emulator profile is `medium_phone`; boot it headless with
   The same lists feed `nlp/Candidates.kt` (prefix completions and one-edit corrections for the word
   before the cursor, read through `InputDispatcher.wordBeforeCursor`): there is no composing region
   on purpose, words are replaced with delete-and-commit in one batch, and nothing is read in a
-  field where `suggestionsAllowed` says no. An app that asks for no suggestions is obeyed until the
+  field where `suggestionsAllowed` says no. A word is letters with apostrophes between them
+  (`nlp/Apostrophes.kt`): `'` `’` `ʼ` are one character to the lists, which store `'`, and a
+  candidate is shown with the one the user typed. A word typed without its apostrophe (whats,
+  розвязок) is restored first and past both autocorrect gates, as a ё is; a real word with an
+  apostrophe twin (its, cant) is kept and the twin offered; a word ending in an apostrophe is never
+  corrected (it may close a quote). Glide gets letter keys only, so an apostrophe key is never a
+  stop. An app that asks for no suggestions is obeyed until the
   user says otherwise in the gear sheet ("Suggest in this app", offered only where
   `noSuggestionsOverridable` holds): the package joins `Settings.suggestInPackages`, and from then
   on that one flag is advisory there — never the password, e-mail or URI variations, which decide
@@ -93,7 +99,8 @@ emulator profile is `medium_phone`; boot it headless with
   The trail is drawn from the root's draw pass: a sized canvas grows the IME window mid-gesture and
   shifts every later pointer position.
 - **Custom words** (`nlp/CustomWords.kt`, `CustomWordStore`, DataStore `words`): language tag →
-  word → frequency, 230 when added, 0 when blocked; letters only, at most 48, case kept. They are
+  word → frequency, 230 when added, 0 when blocked; letters with apostrophes between them
+  (stored as `'`), at most 48, case kept. They are
   applied when a list loads (`WordList.withOverrides`, 0 removes the word), keyed by the language
   tag so `ru` words reach `ru_bg` too, never written into the assets. The service clears its
   engine cache and reloads the current language when they change; a version counter drops a
