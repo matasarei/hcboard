@@ -3,6 +3,7 @@ package net.matasar.keyboard.input.glide
 import net.matasar.keyboard.layout.Language
 import net.matasar.keyboard.layout.Languages
 import net.matasar.keyboard.layout.PortugueseSpelling
+import net.matasar.keyboard.nlp.Apostrophes
 import net.matasar.keyboard.nlp.WordList
 import java.io.File
 import kotlin.test.Test
@@ -125,7 +126,8 @@ class MultilingualGlideTest {
         for (language in Languages.all) for (asset in assets(language)) {
             val list = wordList(asset)
             val keys = LanguageGeometry(language).keys.associateBy { it.char }
-            val untypeable = list.words.take(5_000).filter { word -> word.any { c -> baseKeyChar(c, keys) == null } }
+            // An apostrophe needs no key: glide skips it, so розв'язок is glided as розвязок.
+            val untypeable = list.words.take(5_000).filter { word -> word.any { c -> !Apostrophes.isApostrophe(c) && baseKeyChar(c, keys) == null } }
             assertTrue(untypeable.size < 50, "$asset: ${untypeable.size} of the top 5000 words need a missing key, e.g. ${untypeable.take(8)}")
         }
     }
