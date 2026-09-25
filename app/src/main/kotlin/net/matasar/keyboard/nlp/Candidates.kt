@@ -48,7 +48,7 @@ class Candidates(private val list: WordList) {
         val corrections = if (known || quoteAtEnd) emptyList() else corrections(key)
         // A ё or apostrophe restoration is the typed word spelled right, not a guess, so neither gate applies.
         val correction = corrections.firstOrNull()?.takeIf {
-            isYoRestoration(key, it) || isApostropheRestoration(key, it) ||
+            isYoRestoration(key, it) || isApostropheRestoration(key, it) || it.lowercase() == key ||
                 typed.length >= MIN_CORRECTED_LENGTH && list.frequency(it) >= AUTOCORRECT_MIN_FREQUENCY
         }
         // A real word's apostrophe twin (its and it's) is offered right after it, never applied.
@@ -100,9 +100,10 @@ class Candidates(private val list: WordList) {
         }
         for (i in 0..key.length) for (c in alphabet) consider(key.substring(0, i) + c + key.substring(i))
         found += withApostrophe(key)
+        capitalisedWithApostrophe(key)?.let { found += it }
         return found.sortedWith(
             compareByDescending<String> { isYoRestoration(key, it) }
-                .thenByDescending { isApostropheRestoration(key, it) }
+                .thenByDescending { isApostropheRestoration(key, it) || it.lowercase() == key }
                 .thenByDescending { list.frequency(it) }
                 .thenBy { it },
         )
@@ -112,6 +113,13 @@ class Candidates(private val list: WordList) {
     private fun isYoRestoration(key: String, candidate: String): Boolean =
         candidate.length == key.length && candidate != key &&
             key.indices.all { key[it] == candidate[it] || key[it] == 'е' && candidate[it] == 'ё' }
+
+    /**
+     * [key], which has an apostrophe, as the list has it capitalised (i'm and I'm, i'll and I'll);
+     * null otherwise. Only a word with an apostrophe: a name typed in lowercase stays as typed.
+     */
+    private fun capitalisedWithApostrophe(key: String): String? =
+        key.takeIf { Apostrophes.STORED in it }?.replaceFirstChar { it.uppercase() }?.takeIf { it != key && list.contains(it) }
 
     /** Whether [candidate] is [key] with one apostrophe put in (whats and what's, розвязок and розв'язок). */
     private fun isApostropheRestoration(key: String, candidate: String): Boolean =

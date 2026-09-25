@@ -113,7 +113,7 @@ class CandidatesTest {
         WordList.of(
             "what" to 200, "what's" to 154, "whatever" to 120, "don't" to 185, "done" to 170, "I'm" to 116, "in" to 250,
             "its" to 150, "it's" to 162, "cant" to 20, "can't" to 160, "can" to 230,
-            "розв'язок" to 70, "розвиток" to 150, "c'est" to 159, "hello" to 200,
+            "розв'язок" to 70, "розвиток" to 150, "c'est" to 159, "hello" to 200, "I'll" to 164, "Berlin" to 140,
         ),
     )
 
@@ -130,6 +130,14 @@ class CandidatesTest {
         // Two letters, and a word stored at 70, under autocorrect's floor of 80.
         assertEquals("I'm", apostrophes.forWord("im")!!.correction)
         assertEquals("розв'язок", apostrophes.forWord("розвязок")!!.correction)
+    }
+
+    @Test
+    fun `a lowercase word with its apostrophe typed gets the list's capital, as I'm`() {
+        assertEquals("I'm", apostrophes.forWord("i'm")!!.correction)
+        assertEquals("I’ll", apostrophes.forWord("i’ll")!!.correction) // the typed apostrophe is kept
+        // Only a word with an apostrophe: a name typed in lowercase is not capitalised.
+        assertNull(apostrophes.forWord("berlin")?.correction)
     }
 
     @Test
@@ -169,6 +177,8 @@ class CandidatesTest {
         assertEquals("what's", english.forWord("whats")!!.correction)
         assertEquals("don't", english.forWord("dont")!!.correction)
         assertEquals("I'm", english.forWord("im")!!.correction)
+        assertEquals("I'm", english.forWord("i'm")!!.correction)
+        assertEquals("I'll", english.forWord("i'll")!!.correction)
         assertNull(english.forWord("its")!!.correction)
         assertEquals("it's", english.forWord("its")!!.words[1])
         val ukrainian = bundled("uk")
