@@ -265,16 +265,15 @@ class AutoCapitalizationTest {
     }
 
     @Test
-    fun `picking a word from the strip asks the field again`() {
+    fun `picking a word from the strip starts a new word for the capital`() {
         controller.candidateEngine = Candidates(WordList.of("check" to 200, "chef" to 90))
         startIn(InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_CAP_WORDS)
         type("che")
-        val asked = port.capsQueries
         controller.pickCandidate("Check")
-        assertEquals("Check ", port.before)
-        // The pick's space starts a new word, so the field asks for a capital again.
+        assertEquals("Check", port.before)
+        // The space owed after the pick starts a new word, so the next letter is a capital,
+        // though the field, with no space in it yet, would not say so itself.
         assertTrue(controller.autoCapital)
-        assertTrue(port.capsQueries > asked)
     }
 
     @Test
@@ -299,5 +298,18 @@ class AutoCapitalizationTest {
         assertFalse(controller.autoCapital)
         controller.endTrackpad()
         assertTrue(controller.autoCapital)
+    }
+
+    @Test
+    fun `a full stop after a pick capitalises the next word, though the space is only owed`() {
+        controller.candidateEngine = Candidates(WordList.of("check" to 200, "chef" to 90))
+        startInChat()
+        type("che") // "Che", at the start of the field
+        controller.pickCandidate(controller.candidates!!.words.first { it.startsWith("Check") })
+        controller.onKey(period)
+        assertEquals("Check.", port.before)
+        assertTrue(controller.autoCapital)
+        controller.onKey(letter('y'))
+        assertEquals("Check. Y", port.before)
     }
 }
