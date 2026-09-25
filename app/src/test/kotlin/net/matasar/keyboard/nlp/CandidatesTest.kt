@@ -108,4 +108,74 @@ class CandidatesTest {
             assertNull(cand?.correction, "expected $modern to be known with no correction, got ${cand?.correction}")
         }
     }
+
+    private val apostrophes = Candidates(
+        WordList.of(
+            "what" to 200, "what's" to 154, "whatever" to 120, "don't" to 185, "done" to 170, "I'm" to 116, "in" to 250,
+            "its" to 150, "it's" to 162, "cant" to 20, "can't" to 160, "can" to 230,
+            "розв'язок" to 70, "розвиток" to 150, "c'est" to 159, "hello" to 200,
+        ),
+    )
+
+    @Test
+    fun `a word typed without its apostrophe is restored, first and applied`() {
+        val whats = assertNotNull(apostrophes.forWord("whats"))
+        assertEquals("what's", whats.correction)
+        assertEquals("what's", whats.words[1])
+        assertEquals("don't", apostrophes.forWord("dont")!!.correction)
+    }
+
+    @Test
+    fun `a restoration passes the length and frequency gates a guess must pass`() {
+        // Two letters, and a word stored at 70, under autocorrect's floor of 80.
+        assertEquals("I'm", apostrophes.forWord("im")!!.correction)
+        assertEquals("розв'язок", apostrophes.forWord("розвязок")!!.correction)
+    }
+
+    @Test
+    fun `a real word is kept and its apostrophe twin offered next to it`() {
+        val its = assertNotNull(apostrophes.forWord("its"))
+        assertNull(its.correction)
+        assertEquals(listOf("its", "it's"), its.words.take(2))
+        val cant = assertNotNull(apostrophes.forWord("cant"))
+        assertNull(cant.correction)
+        assertEquals("can't", cant.words[1])
+    }
+
+    @Test
+    fun `a word with its apostrophe typed is completed across it`() {
+        assertEquals(listOf("розв'я", "розв'язок"), apostrophes.forWord("розв'я")!!.words)
+        assertEquals("c'est", apostrophes.forWord("c'es")!!.words[1])
+        assertEquals("don't", apostrophes.forWord("don'")!!.words[1])
+    }
+
+    @Test
+    fun `the apostrophe the user typed is the one the strip gives back`() {
+        assertEquals("what’s", apostrophes.forWord("what’")!!.words[1])
+        assertEquals("розвʼязок", apostrophes.forWord("розвʼя")!!.words[1])
+        assertEquals("What’s", apostrophes.forWord("What’")!!.words[1])
+    }
+
+    @Test
+    fun `a word ending in an apostrophe is never corrected, as it may be a closing quote`() {
+        // "hello'" is one edit from "hello", but its apostrophe may close a quote.
+        assertNull(apostrophes.forWord("hello'")?.correction)
+    }
+
+    @Test
+    fun `on the bundled lists, words with apostrophes are restored, offered and completed`() {
+        fun bundled(tag: String) = Candidates(File("src/main/assets/dictionaries/$tag.txt").bufferedReader().useLines { WordList.parse(it) })
+        val english = bundled("en_US")
+        assertEquals("what's", english.forWord("whats")!!.correction)
+        assertEquals("don't", english.forWord("dont")!!.correction)
+        assertEquals("I'm", english.forWord("im")!!.correction)
+        assertNull(english.forWord("its")!!.correction)
+        assertEquals("it's", english.forWord("its")!!.words[1])
+        val ukrainian = bundled("uk")
+        assertEquals("розв'язок", ukrainian.forWord("розвязок")!!.correction)
+        assertTrue("розв'язок" in ukrainian.forWord("розв'я")!!.words, "${ukrainian.forWord("розв'я")!!.words}")
+        assertEquals("п'ять", ukrainian.forWord("пять")!!.correction)
+        assertTrue("c'est" in bundled("fr").forWord("c'es")!!.words)
+        assertTrue("dell'anno" in bundled("it").forWord("dell'an")!!.words)
+    }
 }

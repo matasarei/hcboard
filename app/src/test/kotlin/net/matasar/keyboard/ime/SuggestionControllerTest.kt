@@ -48,6 +48,31 @@ class SuggestionControllerTest {
     }
 
     @Test
+    fun `a word typed without its apostrophe is restored at the space, and backspace takes it back`() {
+        controller.candidateEngine = Candidates(WordList.of("what" to 200, "what's" to 154, "don't" to 185, "done" to 170))
+        textField()
+        type("whats")
+        controller.onKey(space)
+        assertEquals("what's ", port.before)
+        controller.onKey(backspace)
+        assertEquals("whats", port.before)
+    }
+
+    @Test
+    fun `an apostrophe typed inside a word keeps the word for the strip`() {
+        // don'ts completes don't, so the strip shows only if the whole of "don't" was read.
+        controller.candidateEngine = Candidates(WordList.of("don't" to 185, "don'ts" to 60, "done" to 170, "dog" to 150))
+        val apostrophe = space.copy(label = "'", action = KeyAction.Text("'"))
+        textField()
+        type("don")
+        controller.onKey(apostrophe)
+        type("t")
+        assertEquals("don't", controller.candidates?.typed)
+        controller.onKey(space)
+        assertEquals("don't ", port.before) // a known word: nothing to correct
+    }
+
+    @Test
     fun `space applies the correction and backspace right after takes it back`() {
         textField()
         type("chek")
