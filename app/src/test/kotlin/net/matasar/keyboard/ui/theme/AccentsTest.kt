@@ -73,4 +73,17 @@ class AccentsTest {
             assertEquals(tones.primary, scheme.withAccent(AccentColour.ORANGE, dark).toKeyboardColors(dark).action)
         }
     }
+
+    @Test
+    fun `neutral in dark mode stands out by lightness, as it has no hue to do it with`() {
+        val board = Color(0xFF171719) // the dark board, as DarkThemeTest has it
+        val pressedKey = Color(0xFF4A4B4E) // a pressed key on it (DarkSteps.PRESSED)
+        val tones = Accents.getValue(AccentColour.NEUTRAL).dark
+        // WCAG's 3:1 for a control's state: an armed key and an on switch against the board.
+        assertTrue(contrast(tones.primaryContainer, board) >= 3f, "armed key on the board")
+        assertTrue(contrast(tones.primaryContainer, pressedKey) >= 3f, "armed key against a pressed one")
+        assertTrue(contrast(tones.primary, board) >= 3f, "on switch track and locked key on the board")
+        // An on switch's thumb (onArmed) on its track (armedRing): a dark thumb on a light track.
+        assertTrue(contrast(tones.onPrimaryContainer, tones.primary) >= 3f, "switch thumb on its track")
+    }
 }
