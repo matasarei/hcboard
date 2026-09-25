@@ -8,6 +8,7 @@ import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
 import net.matasar.keyboard.input.glide.GlideGesture
+import net.matasar.keyboard.input.glide.GlideKey
 import net.matasar.keyboard.input.glide.GlidePoint
 
 /** What the layer grid tells the screen while a finger glides. Paths are in root coordinates. */
@@ -83,3 +84,12 @@ fun Modifier.glideDetector(
         }
     }
 }
+
+/**
+ * The keys a glide is classified against, from the grid's letter bounds: letters only. An
+ * apostrophe key (Ukrainian, French) is not a glide stop, so розв'язок is glided as розвязок and
+ * the classifier skips the apostrophe, which has no key.
+ */
+internal fun glideKeys(letterBounds: Map<Char, Rect>): List<GlideKey> =
+    letterBounds.filterKeys { it.isLetter() }
+        .map { (char, rect) -> GlideKey(char, rect.center.x, rect.center.y, rect.width, rect.height) }

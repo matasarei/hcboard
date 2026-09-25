@@ -42,7 +42,6 @@ import net.matasar.keyboard.autofill.AutofillActions
 import net.matasar.keyboard.R
 import net.matasar.keyboard.ime.KeyboardController
 import net.matasar.keyboard.input.LatchState
-import net.matasar.keyboard.input.glide.GlideKey
 import net.matasar.keyboard.input.glide.GlidePoint
 import net.matasar.keyboard.layout.Key
 import net.matasar.keyboard.layout.KeyAction
@@ -248,11 +247,7 @@ private fun LayerGrid(
 
                 override fun onGlideEnd(path: List<GlidePoint>) {
                     popups.trail = emptyList()
-                    // Letters only: an apostrophe key (Ukrainian, French) is not a glide stop, so
-                    // розв'язок is glided as розвязок and the classifier skips the apostrophe.
-                    val keys = letterBounds.filterKeys { it.isLetter() }
-                        .map { (char, rect) -> GlideKey(char, rect.center.x, rect.center.y, rect.width, rect.height) }
-                    controller.onGlideEnd(path, keys)
+                    controller.onGlideEnd(path, glideKeys(letterBounds))
                 }
 
                 override fun onGlideCancel() {
