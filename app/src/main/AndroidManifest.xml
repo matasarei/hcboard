@@ -4,7 +4,10 @@
     <!-- The key button names the password manager the user picked and opens it, and package
          visibility hides every other app by default: without this the sheet cannot read the
          manager's name or launch it, and says no manager is set. Only apps that offer autofill or
-         credentials are made visible, not every installed package. -->
+         credentials are made visible, not every installed package. The actions reach a manager
+         only through exported services; the managers below are named as well, because one that
+         keeps its services unexported (Enpass does) would stay hidden, and the sheet would drop
+         the user's choice and list every other manager instead. -->
     <queries>
         <intent>
             <action android:name="android.service.autofill.AutofillService" />
@@ -12,6 +15,16 @@
         <intent>
             <action android:name="android.service.credentials.CredentialProviderService" />
         </intent>
+        <package android:name="io.enpass.app" />
+        <package android:name="com.x8bit.bitwarden" />
+        <package android:name="com.onepassword.android" />
+        <package android:name="proton.android.pass" />
+        <package android:name="com.dashlane" />
+        <package android:name="com.lastpass.lpandroid" />
+        <package android:name="com.callpod.android_apps.keeper" />
+        <package android:name="com.kunzisoft.keepass.free" />
+        <package android:name="com.kunzisoft.keepass.libre" />
+        <package android:name="keepass2android.keepass2android" />
     </queries>
 
     <application
