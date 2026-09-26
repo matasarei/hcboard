@@ -18,33 +18,34 @@ class ManagerQueriesXmlTest {
 
     private val android = "http://schemas.android.com/apk/res/android"
 
-    private val queries: Element = DocumentBuilderFactory.newInstance()
+    private val manifest: Element = DocumentBuilderFactory.newInstance()
         .apply { isNamespaceAware = true }
         .newDocumentBuilder()
         .parse(File("src/main/AndroidManifest.xml"))
         .documentElement
-        .getElementsByTagName("queries").item(0) as Element
 
-    private fun named(tag: String, attributeOf: (Element) -> String): List<String> {
-        val nodes = queries.getElementsByTagName(tag)
-        return (0 until nodes.length).map { attributeOf(nodes.item(it) as Element) }
+    private val queries = manifest.getElementsByTagName("queries").item(0) as Element
+
+    private fun Element.named(tag: String): List<String> {
+        val nodes = getElementsByTagName(tag)
+        return (0 until nodes.length).map { (nodes.item(it) as Element).getAttributeNS(android, "name") }
     }
 
     @Test
     fun `every manager that offers either service is visible`() {
         assertEquals(
             listOf("android.service.autofill.AutofillService", "android.service.credentials.CredentialProviderService"),
-            named("action") { it.getAttributeNS(android, "name") },
+            queries.named("action"),
         )
     }
 
     @Test
     fun `Enpass is visible by package, since its services are not exported`() {
-        assertTrue("io.enpass.app" in named("package") { it.getAttributeNS(android, "name") })
+        assertTrue("io.enpass.app" in queries.named("package"))
     }
 
     @Test
     fun `no permission widens visibility to every installed app`() {
-        assertTrue("QUERY_ALL_PACKAGES" !in File("src/main/AndroidManifest.xml").readText())
+        assertTrue("android.permission.QUERY_ALL_PACKAGES" !in manifest.named("uses-permission"))
     }
 }
