@@ -1,0 +1,12 @@
+# Dev and chat English that must be known and never corrected: ChatVocabularyTest.
+commit commits committed push pushed merge merged rebase rebased rebasing pr prs repo repos deploy deployed
+prod staging bug bugs fix fixed hotfix hotfixes bugfix release ticket tickets jira backend frontend server logs login
+user users update updates screenshot screenshots googled googling zoom slack standup sprint deadline deadlines
+config configs build builds test tests testing debug debugging api apis endpoint endpoints database migration migrations
+script scripts framework lib libs library package packages dependency dependencies laptop smartphone android
+json yaml kubernetes kubectl docker dockerfile npm regex async await refactor refactoring timestamp localhost webhook webhooks
+backlog onboarding offboarding chatgpt llm llms prompt prompts dev devs devops rollback changelog readme codebase monorepo
+github gitlab postgres mysql redis graphql kotlin typescript python golang gradle terraform nginx middleware microservices
+tiktok reddit discord spotify macbook airpods facetime hashtag texted texting unfollow repost gif crypto bitcoin
+lol lmao omg btw imo imho tbh idk ngl fyi asap brb gonna wanna gotta kinda yeah yep nope okay thx pls plz
+cringe vibe vibes sus bruh emoji emojis meme memes dm dms selfie lgtm wip smh fomo ikr ofc tbf ttyl yolo rizz lowkey deadass finna tryna cuz slay

@@ -4,7 +4,8 @@
 #   scripts/build-wordlist.py app/src/main/assets/dictionaries/uk.txt app/src/main/assets/dictionaries/uk.txt --floor 0 \
 #     --boost scripts/wordlists/uk-everyday.tsv --boost scripts/wordlists/uk-apostrophe.tsv --boost scripts/wordlists/uk-tech.tsv
 # Tiers match uk-everyday.tsv: 180 for work and tech words, 165 for chat slang and for every word
-# of three letters or fewer; every other form of a word is ranked 15 below it (165 or 150). A word
+# of three letters or fewer; every other form of a word is ranked 45 below it (135 or 120), under
+# the everyday words its typos are near (мему stays under тему, 123). A word
 # that is also a common word's neighbour stays at 165, under it; a form that is another word's is
 # left out with !. Lowercase letters (with an apostrophe inside a word that has one) only, no names.
 
