@@ -11,10 +11,14 @@ overlay lists lemmas with a paradigm class, and this script writes all their for
     фича	155	noun-f
     закоммитить	155	verb-i
 
-    scripts/expand-paradigms.py --lang ru --form-tier 135 scripts/wordlists/ru-tech.lemmas.tsv scripts/wordlists/ru-tech.tsv
+    scripts/expand-paradigms.py --lang ru --form-step 20 --asset app/src/main/assets/dictionaries/ru.txt \
+        scripts/wordlists/ru-tech.lemmas.tsv scripts/wordlists/ru-tech.tsv
 
-The lemma keeps its tier; every other form gets --form-tier, or the lemma's tier if that is lower.
-A form two lemmas share keeps the higher. The output is an ordinary overlay for build-wordlist.py
+The lemma keeps its tier; every other form is --form-step below it. Being known is what keeps a
+form from being corrected; its rank only orders the strip, and a form ranked as high as its lemma
+would win the correction of a typo of a common word (мему over тему). A form two lemmas share
+keeps the higher. A line `!form` leaves that one form out (кожу, a form of кодить that is also
+кожа's). The output is an ordinary overlay for build-wordlist.py
 --boost, and is generated: edit the lemma file and run this again, never edit the output.
 
 The suffix tables are our own and deliberately small. Classes (the same names in both languages):
@@ -31,9 +35,10 @@ The suffix tables are our own and deliberately small. Classes (the same names in
     verb-ova  ru -овать, uk -увати (тестировать, тестувати)
     a verb class on a lemma ending in -ся (залогиниться) gives the reflexive forms.
 
-Anything irregular is written out on its own lines with no class. --asset prints, for review, every
-generated form of five letters or fewer that would outrank a known one-edit neighbour; it changes
-nothing.
+Anything irregular is written out on its own lines with no class. With --asset, a form that is the
+е spelling of a ё word the list knows (тещу, тёщу) is an error, because Candidates restores the ё
+only in a word it does not know; and every form of four letters or fewer that outranks a common
+one-edit neighbour (100 and up) is printed for review, which changes nothing.
 
     scripts/expand-paradigms.py --self-test
 """
@@ -249,9 +254,10 @@ def forms_of(lemma: str, paradigm: str, lang: str) -> list[str]:
 LEMMA_LINE = re.compile(r"([^\t]+)\t(\d+)(?:\t([^\t]*))?$")
 
 
-def expand(path: str, lang: str, form_tier: int) -> tuple[dict[str, int], list[str]]:
+def expand(path: str, lang: str, form_step: int) -> tuple[dict[str, int], list[str]]:
     """The overlay [path] expands to, and its header comment (the lemma file's, before the first word)."""
     words: dict[str, int] = {}
+    excluded: set[str] = set()
     header: list[str] = []
     seen_word = False
     with open(path, encoding="utf-8") as lemmas:
@@ -262,6 +268,9 @@ def expand(path: str, lang: str, form_tier: int) -> tuple[dict[str, int], list[s
             if not text:
                 continue
             seen_word = True
+            if text.startswith("!"):
+                excluded.add(text[1:].strip())
+                continue
             match = LEMMA_LINE.match(text)
             if not match or int(match.group(2)) > 255:
                 sys.exit(f"{path}:{number}: expected 'lemma<TAB>tier[<TAB>class]', got {line.rstrip()!r}")
@@ -271,9 +280,12 @@ def expand(path: str, lang: str, form_tier: int) -> tuple[dict[str, int], list[s
             except ValueError as error:
                 sys.exit(f"{path}:{number}: {lemma}: {error}")
             for index, form in enumerate(forms):
-                frequency = tier if index == 0 else min(tier, form_tier)
+                frequency = tier if index == 0 else max(tier - form_step, 0)
                 words[form] = max(words.get(form, 0), frequency)
-    return words, header
+    unused = excluded - words.keys()
+    if unused:
+        sys.exit(f"{path}: excluded forms that no lemma generates: {', '.join(sorted(unused))}")
+    return {w: f for w, f in words.items() if w not in excluded}, header
 
 
 def one_edit(word: str, alphabet: set[str]) -> set[str]:
@@ -291,21 +303,31 @@ def one_edit(word: str, alphabet: set[str]) -> set[str]:
     return out
 
 
-def review(words: dict[str, int], asset: str) -> None:
-    """Prints each short new form that outranks a known one-edit neighbour the user may have meant."""
+def review(words: dict[str, int], asset: str) -> bool:
+    """Prints the forms to look at; false when one is an е spelling of a known ё word."""
     known: dict[str, int] = {}
     with open(asset, encoding="utf-8") as source:
         for line in source:
             word, _, frequency = line.rstrip("\n").partition("\t")
             known[word] = int(frequency)
     alphabet = {c for word in known for c in word.lower() if c.isalpha()}
+    clean = True
     for word, frequency in words.items():
-        if len(word) > 5:
+        yo = [word[:i] + "ё" + word[i + 1:] for i, c in enumerate(word) if c == "е"]
+        # Not "unless the list has it": once the list is rebuilt it has every form, тещу too.
+        if any(spelling in known and spelling not in words for spelling in yo):
+            print(f"error: {word} is an е spelling of a ё word; leave it out with !{word}", file=sys.stderr)
+            clean = False
+        if len(word) > 4:
             continue
-        beaten = [n for n in one_edit(word, alphabet) if n in known and n not in words and known[n] < frequency]
+        beaten = [n for n in one_edit(word, alphabet) if n in known and n not in words and COMMON <= known[n] < frequency]
         if beaten:
             top = sorted(beaten, key=lambda n: -known[n])[:4]
             print(f"review: {word} {frequency} outranks " + ", ".join(f"{n} {known[n]}" for n in top), file=sys.stderr)
+    return clean
+
+
+COMMON = 100
 
 
 SELF_TEST = {
@@ -358,16 +380,19 @@ def main() -> int:
     parser.add_argument("lemmas", nargs="?")
     parser.add_argument("target", nargs="?")
     parser.add_argument("--lang", choices=["ru", "uk"])
-    parser.add_argument("--form-tier", type=int, help="the frequency of every form but the lemma")
+    parser.add_argument("--form-step", type=int, help="how far below its lemma every other form is ranked")
     parser.add_argument("--asset", help="the list the overlay goes into, to review short forms against")
     parser.add_argument("--self-test", action="store_true")
     args = parser.parse_args()
     if args.self_test:
         return self_test()
-    if not (args.lemmas and args.target and args.lang and args.form_tier is not None):
-        parser.error("lemmas, target, --lang and --form-tier are required")
-    words, header = expand(args.lemmas, args.lang, args.form_tier)
-    command = f"scripts/expand-paradigms.py --lang {args.lang} --form-tier {args.form_tier} {args.lemmas} {args.target}"
+    if not (args.lemmas and args.target and args.lang and args.form_step is not None):
+        parser.error("lemmas, target, --lang and --form-step are required")
+    words, header = expand(args.lemmas, args.lang, args.form_step)
+    if args.asset and not review(words, args.asset):
+        return 1
+    asset = f"--asset {args.asset} " if args.asset else ""
+    command = f"scripts/expand-paradigms.py --lang {args.lang} --form-step {args.form_step} {asset}{args.lemmas} {args.target}"
     with open(args.target, "w", encoding="utf-8") as target:
         target.write(f"# Generated from {args.lemmas} by\n#   {command}\n# Never edit by hand: change the lemma file and run it again.\n#\n")
         for line in header:
@@ -376,8 +401,6 @@ def main() -> int:
         for word, frequency in words.items():
             target.write(f"{word}\t{frequency}\n")
     print(f"{len(words)} forms written to {args.target}", file=sys.stderr)
-    if args.asset:
-        review(words, args.asset)
     return 0
 
 

@@ -1,0 +1,206 @@
+# IT and chat Ukrainian, as lemmas with a paradigm class: the corpus lacks these words, and an
+# overlay with one form of each made every other form a typo of it (фічу was corrected to фіча).
+# scripts/expand-paradigms.py writes every form into uk-tech.tsv, which is merged into uk.txt by
+#   scripts/build-wordlist.py app/src/main/assets/dictionaries/uk.txt app/src/main/assets/dictionaries/uk.txt --floor 0 \
+#     --boost scripts/wordlists/uk-everyday.tsv --boost scripts/wordlists/uk-apostrophe.tsv --boost scripts/wordlists/uk-tech.tsv
+# Tiers match uk-everyday.tsv: 180 for work and tech words, 165 for chat slang and for every word
+# of three letters or fewer; every other form of a word is ranked 15 below it (165 or 150). A word
+# that is also a common word's neighbour stays at 165, under it; a form that is another word's is
+# left out with !. Lowercase letters (with an apostrophe inside a word that has one) only, no names.
+
+# code and its life
+коміт	180	noun-m
+комітити	180	verb-i
+закомітити	180	verb-i
+пуш	165	noun-m
+пушити	180	verb-i
+запушити	180	verb-i
+пушнути	180	verb-nu
+мердж	180	noun-m
+мерджити	180	verb-i
+змерджити	180	verb-i
+замерджити	180	verb-i
+реквест	180	noun-m
+пулреквест	180	noun-m
+рев'ю	180
+апрув	180	noun-m
+апрувнути	180	verb-nu
+заапрувити	180	verb-i
+деплой	180	noun-m-j
+деплоїти	180	verb-i
+задеплоїти	180	verb-i
+реліз	180	noun-m
+релізити	180	verb-i
+зарелізити	180	verb-i
+прод	165	noun-m
+продакшн	180	noun-m
+продакшен	180	noun-m
+баг	165	noun-m
+фікс	180	noun-m
+хотфікс	180	noun-m
+фіксити	180	verb-i
+пофіксити	180	verb-i
+фіча	180	noun-f
+тікет	180	noun-m
+таск	165	noun-m
+таска	165	noun-f
+тасок	165
+бранч	180	noun-m
+репозиторій	180	noun-m-j
+репо	165
+конфіг	180	noun-m
+білд	165	noun-m
+збірка	180	noun-f
+тест	165	noun-m
+тестити	180	verb-i
+!тещу
+протестити	180	verb-i
+!тещу
+тестувати	180	verb-ova
+протестувати	180	verb-ova
+дебаг	180	noun-m
+дебажити	180	verb-i
+лог	165	noun-m
+логін	180	noun-m
+залогінитися	180	verb-i
+розлогінитися	180	verb-i
+кодити	180	verb-i
+!кодь
+закодити	180	verb-i
+!кодь
+бекенд	180	noun-m
+фронтенд	180	noun-m
+фронт	180	noun-m
+бек	165	noun-m
+сервер	180	noun-m
+ендпоінт	180	noun-m
+апі	165
+апішка	180	noun-f
+апішок	165
+бд	165
+фреймворк	180	noun-m
+скрипт	180	noun-m
+пакет	180	noun-m
+ліба	165	noun-f
+прога	165	noun-f
+юзер	180	noun-m
+апдейт	180	noun-m
+скрін	180	noun-m
+скріншот	180	noun-m
+заскрінити	180	verb-i
+гуглити	180	verb-i
+загуглити	180	verb-i
+погуглити	180	verb-i
+
+# work
+созвон	180	noun-m
+мітинг	180	noun-m
+стендап	180	noun-m
+дейлі	180
+спринт	180	noun-m
+дедлайн	180	noun-m
+офер	180	noun-m
+оффер	180	noun-m
+співбесіда	180	noun-f
+співбесід	165
+тімлід	180	noun-m
+техлід	180	noun-m
+лід	165	noun-m
+сеньйор	180	noun-m
+мідл	180	noun-m
+джун	180	noun-m
+девопс	180	noun-m
+тестувальник	180	noun-m
+тестер	180	noun-m
+розраб	180	noun-m
+айтішник	180	noun-m
+айті	165
+прогер	180	noun-m
+кодер	180	noun-m
+
+# apps, services and devices
+гіт	165	noun-m
+гітхаб	180	noun-m
+гітлаб	180	noun-m
+джира	180	noun-f
+докер	180	noun-m
+кубер	180	noun-m
+лінукс	180	noun-m
+тг	165
+вотсап	180	noun-m
+ютуб	180	noun-m
+тікток	180	noun-m
+зум	165	noun-m
+ноут	180	noun-m
+комп	165	noun-m
+айфон	180	noun-m
+андроїд	180	noun-m
+смартфон	180	noun-m
+застосунок	180
+застосунку	165
+застосунком	165
+застосунки	165
+застосунків	165
+застосункам	165
+застосунками	165
+застосунках	165
+додаток	180
+додатку	165
+додатком	165
+додатки	165
+додатків	165
+додаткам	165
+додатками	165
+додатках	165
+чат	165	noun-m
+
+# chat
+чекати	165	verb-a
+чекнути	165	verb-nu
+лайк	180	noun-m
+лайкати	165	verb-a
+лайкнути	165	verb-nu
+репост	180	noun-m
+репостнути	165	verb-nu
+апнути	165	verb-nu
+сторіс	180
+войс	165	noun-m
+чатик	165	noun-m
+мем	165	noun-m
+стрім	165	noun-m
+стрімер	165	noun-m
+стрімити	165	verb-i
+донат	165	noun-m
+задонатити	165	verb-i
+хейт	165	noun-m
+хейтер	165	noun-m
+хейтити	165	verb-i
+вайб	165	noun-m
+краш	165	noun-m
+крінж	165	noun-m
+крінжово	165
+крінжовий	165	adj
+кринжовий	165	adj
+жиза	165	noun-f
+чіл	165	noun-m
+чілити	165	verb-i
+хайп	165	noun-m
+імба	165	noun-f
+ачівка	165	noun-f
+ачівок	165
+ізі	165
+бро	165
+імхо	165
+кек	165
+ріл	165
+сорі	165
+сорян	165
+спс	165
+дяк	165
+дякс	165
+плз	165
+пліз	165
+зара	165
+шо	165
+шось	165
+шоб	165

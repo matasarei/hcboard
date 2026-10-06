@@ -1,0 +1,206 @@
+# IT and chat Russian, as lemmas with a paradigm class: the corpus lacks these words, and an
+# overlay with one form of each made every other form a typo of it (фичу was corrected to фича).
+# scripts/expand-paradigms.py writes every form into ru-tech.tsv, which is merged into ru.txt by
+#   scripts/build-wordlist.py app/src/main/assets/dictionaries/ru.txt app/src/main/assets/dictionaries/ru.txt \
+#     --boost scripts/wordlists/ru-everyday.tsv --boost scripts/wordlists/ru-tech.tsv
+# and ru_bg.txt is rebuilt after it. Tiers match ru-everyday.tsv: 155 for work and tech words,
+# 135 for chat slang and for every word of three letters or fewer; every other form of a word
+# is ranked 20 below it (135 or 115).
+# Lowercase letters only, no names of people, no obscene words; no е spelling of a ё word.
+# A word that is also a common word's neighbour (мерж and мере, айти and найти, репа and река)
+# stays at 135, under it; a form that is another word's (кожу) is left out with !.
+
+# code and its life
+коммит	155	noun-m
+коммитить	155	verb-i
+закоммитить	155	verb-i
+пуш	135	noun-m
+пушить	155	verb-i
+запушить	155	verb-i
+пушнуть	155	verb-nu
+мерж	135	noun-m
+мердж	155	noun-m
+мержить	155	verb-i
+смержить	155	verb-i
+замержить	155	verb-i
+мерджить	155	verb-i
+смерджить	155	verb-i
+реквест	155	noun-m
+пулреквест	155	noun-m
+ревью	155
+ревьюить	155	verb-i
+отревьюить	155	verb-i
+апрув	155	noun-m
+апрувнуть	155	verb-nu
+заапрувить	155	verb-i
+деплой	155	noun-m-j
+деплоить	155	verb-i
+задеплоить	155	verb-i
+релиз	155	noun-m
+релизить	155	verb-i
+зарелизить	155	verb-i
+прод	135	noun-m
+продакшн	155	noun-m
+продакшен	155	noun-m
+баг	135	noun-m
+фикс	155	noun-m
+хотфикс	155	noun-m
+фиксить	155	verb-i
+пофиксить	155	verb-i
+фича	155	noun-f
+тикет	155	noun-m
+таск	135	noun-m
+таска	155	noun-f
+тасок	135
+бранч	155	noun-m
+репа	135	noun-f
+репо	135
+конфиг	155	noun-m
+билд	155	noun-m
+сборка	155	noun-f
+сборок	135
+тест	135	noun-m
+тестить	155	verb-i
+!тещу
+протестить	155	verb-i
+!тещу
+затестить	155	verb-i
+!тещу
+тестировать	155	verb-ova
+протестировать	155	verb-ova
+дебаг	155	noun-m
+дебажить	155	verb-i
+лог	135	noun-m
+логин	155	noun-m
+залогиниться	155	verb-i
+разлогиниться	155	verb-i
+логиниться	155	verb-i
+кодить	155	verb-i
+!кожу
+!кодь
+закодить	155	verb-i
+!кожу
+!кодь
+бэкенд	155	noun-m
+бекенд	155	noun-m
+фронтенд	155	noun-m
+фронт	155	noun-m
+бэк	135	noun-m
+сервер	155	noun-m
+эндпоинт	155	noun-m
+апи	135
+апишка	155	noun-f
+апишек	135
+бд	135
+фреймворк	155	noun-m
+скрипт	155	noun-m
+пакет	155	noun-m
+либа	135	noun-f
+прога	155	noun-f
+джоба	155	noun-f
+юзер	155	noun-m
+апдейт	155	noun-m
+обновка	155	noun-f
+обновок	135
+скрин	155	noun-m
+скриншот	155	noun-m
+заскринить	155	verb-i
+гуглить	155	verb-i
+загуглить	155	verb-i
+погуглить	155	verb-i
+
+# work
+созвон	155	noun-m
+митинг	155	noun-m
+стендап	155	noun-m
+дейли	155
+спринт	155	noun-m
+дедлайн	155	noun-m
+оффер	155	noun-m
+собес	155	noun-m
+тимлид	155	noun-m
+техлид	155	noun-m
+лид	135	noun-m
+сеньор	155	noun-m
+мидл	155	noun-m
+джун	155	noun-m
+девопс	155	noun-m
+тестировщик	155	noun-m
+тестер	155	noun-m
+разраб	155	noun-m
+айтишник	155	noun-m
+айти	135
+прогер	155	noun-m
+кодер	155	noun-m
+
+# apps, services and devices
+гит	135	noun-m
+гитхаб	155	noun-m
+гитлаб	155	noun-m
+джира	155	noun-f
+докер	155	noun-m
+кубер	155	noun-m
+линукс	155	noun-m
+телега	155	noun-f
+тг	135
+вацап	155	noun-m
+вотсап	155	noun-m
+инста	155	noun-f
+ютуб	155	noun-m
+тикток	155	noun-m
+зум	135	noun-m
+ноут	135	noun-m
+комп	135	noun-m
+айфон	155	noun-m
+андроид	155	noun-m
+смартфон	155	noun-m
+
+# chat
+чекать	135	verb-a
+чекнуть	135	verb-nu
+лайк	135	noun-m
+лайкать	135	verb-a
+лайкнуть	135	verb-nu
+репост	135	noun-m
+репостнуть	135	verb-nu
+апнуть	135	verb-nu
+сторис	135
+войс	135	noun-m
+чатик	135	noun-m
+мем	135	noun-m
+стрим	135	noun-m
+стример	135	noun-m
+стримить	135	verb-i
+донат	135	noun-m
+задонатить	135	verb-i
+хейт	135	noun-m
+хейтер	135	noun-m
+хейтить	135	verb-i
+вайб	135	noun-m
+краш	135	noun-m
+кринж	135	noun-m
+кринжово	135
+кринжовый	135	adj
+кринжануть	135	verb-nu
+жиза	135	noun-f
+чил	135	noun-m
+чилить	135	verb-i
+хайп	135	noun-m
+имба	135	noun-f
+ачивка	135	noun-f
+ачивок	135
+изи	135
+бро	135
+имхо	135
+кек	135
+ору	135
+рил	135
+сори	135
+сорян	135
+кста	135
+спс	135
+пжлст	135
+плз	135
+щас	135
+ща	135
+мб	135

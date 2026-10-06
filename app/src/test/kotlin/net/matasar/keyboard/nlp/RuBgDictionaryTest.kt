@@ -22,8 +22,9 @@ class RuBgDictionaryTest {
     }
 
     @Test
-    fun `all 80k russian words are present in ru_bg with identical frequencies`() {
-        assertEquals(80_000, ruList.size)
+    fun `every russian word is present in ru_bg with identical frequencies`() {
+        // The AOSP list's 80 000 words and the overlays' forms on top: an overlay never pushes one out.
+        assertTrue(ruList.size >= 80_000, "ru size: ${ruList.size}")
         assertTrue(ruBgList.size >= 150_000, "ru_bg size: ${ruBgList.size}")
         for (word in ruList.words) {
             assertTrue(ruBgList.contains(word), "Missing Russian word: $word")
