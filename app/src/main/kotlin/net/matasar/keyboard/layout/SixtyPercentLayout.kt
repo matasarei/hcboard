@@ -75,18 +75,26 @@ private fun wideShiftRow(language: Language): Row {
 }
 
 /**
- * Modifiers around the space bar, which names the language. The globe sits left of Space when
- * there is more than one language to switch to. No hide key: the toolbar has one, and so does
- * the system's navigation bar.
+ * The bottom row, the phone's in order: Fn where the phone has 123, the globe when there is more
+ * than one language to switch to (Meta otherwise), the comma by the space bar, the space naming
+ * the language, the period, and the combination modifiers on the right, one of each: a latching
+ * modifier is tapped and then the key, so a second copy for the other hand earns nothing. With
+ * the globe on the board, Meta is Fn+Alt. No hide key: the toolbar has one, and so does the
+ * system's navigation bar.
  */
 private fun wideBottomRow(spaceLabel: String, withGlobe: Boolean): Row {
-    val keys = mutableListOf(mod("Ctrl", ModifierKey.CTRL, 1.25f), mod("Meta", ModifierKey.META, 1.25f), mod("Alt", ModifierKey.ALT, 1.25f))
-    if (withGlobe) keys += Key("globe", KeyAction.SwitchLanguage, 1.25f, KeyStyle.FUNCTION, KeyIcon.GLOBE)
-    keys += Key(spaceLabel, KeyAction.Space, if (withGlobe) 6.25f else 7.5f, KeyStyle.SPACE)
-    keys += mod("Alt", ModifierKey.ALT, 1.25f)
-    keys += mod("Fn", ModifierKey.FN, 1.25f)
-    keys += mod("Ctrl", ModifierKey.CTRL, 1.25f)
-    return Row(keys)
+    val left = listOf(
+        mod("Fn", ModifierKey.FN, 1.25f),
+        if (withGlobe) Key("globe", KeyAction.SwitchLanguage, 1.25f, KeyStyle.FUNCTION, KeyIcon.GLOBE) else mod("Meta", ModifierKey.META, 1.25f),
+        dual(",", "<"),
+    )
+    val alt = mod("Alt", ModifierKey.ALT, 1.25f)
+    val right = listOf(
+        dual(".", ">"),
+        if (withGlobe) alt.copy(fnLegend = "Meta", fnAction = KeyAction.Modifier(ModifierKey.META)) else alt,
+        mod("Ctrl", ModifierKey.CTRL, 1.25f),
+    )
+    return Row(left + Key(spaceLabel, KeyAction.Space, 15f - (left + right).units(), KeyStyle.SPACE) + right)
 }
 
 private val digitRow: Array<Key> = "1234567890".mapIndexed { i, c ->

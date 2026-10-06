@@ -107,6 +107,9 @@ internal object AnsiSlots {
 
 // ---- small builders so the layer files read like the boards they build ----
 
+/** How many units these keys take side by side. */
+internal fun List<Key>.units(): Float = sumOf { it.width.toDouble() }.toFloat()
+
 internal fun row(vararg keys: Key, leading: Float = 0f, trailing: Float = 0f) =
     Row(keys.toList(), leading, trailing)
 

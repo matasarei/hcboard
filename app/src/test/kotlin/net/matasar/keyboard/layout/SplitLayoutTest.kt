@@ -61,7 +61,11 @@ class SplitLayoutTest {
             val rightSpace = split.right.rows[4].keys.single { it.action == KeyAction.Space }
             assertEquals(language.nativeName, rightSpace.label)
             assertTrue(leftSpace.id != rightSpace.id)
-            assertEquals(withGlobe, split.right.rows[4].keys.any { it.action == KeyAction.SwitchLanguage })
+            // The left thumb has Fn, the globe (or Meta) and the comma; the right one the period, Alt and Ctrl.
+            val left = split.left.rows[4].keys.map { it.label }
+            val right = split.right.rows[4].keys.map { it.label }
+            assertEquals(listOf("Fn", if (withGlobe) "globe" else "Meta", ",", ""), left, language.tag)
+            assertEquals(listOf(language.nativeName, ".", "Alt", "Ctrl"), right, language.tag)
         }
     }
 

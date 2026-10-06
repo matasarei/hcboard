@@ -150,14 +150,16 @@ class SixtyPercentLayoutTest {
     }
 
     @Test
-    fun `the globe sits left of space and space shrinks to make room`() {
-        val with = sixtyPercentLayer(Languages.english, withGlobe = true).rows[4].keys
-        assertEquals(KeyAction.SwitchLanguage, with[3].action)
-        assertEquals(KeyIcon.GLOBE, with[3].icon)
-        assertEquals(KeyAction.Space, with[4].action)
-        assertEquals(6.25f, with[4].width)
-        assertEquals(7.5f, SixtyPercentLayer.rows[4].keys.first { it.action == KeyAction.Space }.width)
-        assertEquals(null, with[4].fnLegend)
+    fun `the bottom row is the phone's, with fn where the phone has 123`() {
+        fun labels(withGlobe: Boolean) = sixtyPercentLayer(Languages.english, withGlobe).rows[4].keys.map { it.label }
+        assertEquals(listOf("Fn", "globe", ",", "English", ".", "Alt", "Ctrl"), labels(withGlobe = true))
+        assertEquals(listOf("Fn", "Meta", ",", "English", ".", "Alt", "Ctrl"), labels(withGlobe = false))
+        val bottom = sixtyPercentLayer(Languages.english, withGlobe = true).rows[4].keys
+        assertEquals(KeyIcon.GLOBE, bottom[1].icon)
+        assertEquals(8f, bottom.first { it.action == KeyAction.Space }.width)
+        assertEquals(8f, SixtyPercentLayer.rows[4].keys.first { it.action == KeyAction.Space }.width)
+        assertEquals(KeyAction.Text(",", "<"), bottom[2].action)
+        assertEquals(KeyAction.Text(".", ">"), bottom[4].action)
     }
 
     @Test
@@ -169,12 +171,27 @@ class SixtyPercentLayoutTest {
     }
 
     @Test
-    fun `modifiers sit on the bottom row`() {
-        val bottom = SixtyPercentLayer.rows[4].keys.map { it.action }
-        assertTrue(KeyAction.Modifier(ModifierKey.CTRL) in bottom)
-        assertTrue(KeyAction.Modifier(ModifierKey.META) in bottom)
-        assertTrue(KeyAction.Modifier(ModifierKey.FN) in bottom)
-        assertEquals(KeyAction.Modifier(ModifierKey.CTRL), bottom.last())
+    fun `one of each modifier, ctrl in the corner, and meta only without the globe`() {
+        for (language in Languages.all) {
+            for (withGlobe in listOf(false, true)) {
+                val keys = sixtyPercentLayer(language, withGlobe).rows.flatMap { it.keys }.map { it.action }
+                for (modifier in listOf(ModifierKey.CTRL, ModifierKey.ALT, ModifierKey.FN)) {
+                    assertEquals(1, keys.count { it == KeyAction.Modifier(modifier) }, "${language.tag} $modifier globe=$withGlobe")
+                }
+                assertEquals(if (withGlobe) 0 else 1, keys.count { it == KeyAction.Modifier(ModifierKey.META) }, "${language.tag} globe=$withGlobe")
+                assertEquals(KeyAction.Modifier(ModifierKey.CTRL), keys.last())
+            }
+        }
+    }
+
+    @Test
+    fun `alt carries meta on fn only with the globe`() {
+        val withGlobe = sixtyPercentLayer(Languages.english, withGlobe = true).rows[4].keys.first { it.label == "Alt" }
+        assertEquals(KeyAction.Modifier(ModifierKey.META), withGlobe.fnAction)
+        assertEquals("Meta", withGlobe.fnLegend)
+        val without = SixtyPercentLayer.rows[4].keys.first { it.label == "Alt" }
+        assertEquals(null, without.fnAction)
+        assertEquals(null, without.fnLegend)
     }
 
     @Test

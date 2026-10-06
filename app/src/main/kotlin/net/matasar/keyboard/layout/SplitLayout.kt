@@ -27,21 +27,15 @@ fun splitLayer(language: Language, withGlobe: Boolean): SplitLayer {
     val leftUnits = leftUpper.maxOf { it.units() }
     val rightUnits = rightUpper.maxOf { it.units() }
 
-    val leftMods = listOf(
-        Key("Ctrl", KeyAction.Modifier(ModifierKey.CTRL), 1.25f, KeyStyle.MODIFIER),
-        Key("Meta", KeyAction.Modifier(ModifierKey.META), 1.25f, KeyStyle.MODIFIER),
-        Key("Alt", KeyAction.Modifier(ModifierKey.ALT), 1.25f, KeyStyle.MODIFIER),
-    )
-    val rightMods = buildList {
-        add(Key("Alt", KeyAction.Modifier(ModifierKey.ALT), 1.25f, KeyStyle.MODIFIER))
-        if (withGlobe) add(Key("globe", KeyAction.SwitchLanguage, 1.25f, KeyStyle.FUNCTION, KeyIcon.GLOBE))
-        add(Key("Fn", KeyAction.Modifier(ModifierKey.FN), 1.25f, KeyStyle.MODIFIER))
-        add(Key("Ctrl", KeyAction.Modifier(ModifierKey.CTRL), 1.25f, KeyStyle.MODIFIER))
-    }
-    // The left Space has no name: the language is on the right one, and two keys with the same
-    // label would share an id.
+    // The bottom row is the whole board's cut at its space bar: a space for each thumb, each as
+    // wide as brings its row to the widest row of its half. The left space has no name: the
+    // language is on the right one, and two keys with the same label would share an id.
+    val bottom = whole.rows[4].keys
+    val space = bottom.indexOfFirst { it.action == KeyAction.Space }
+    val leftMods = bottom.take(space)
+    val rightMods = bottom.drop(space + 1)
     val leftBottom = leftMods + Key("", KeyAction.Space, leftUnits - leftMods.units(), KeyStyle.SPACE)
-    val rightBottom = listOf(Key(language.nativeName, KeyAction.Space, rightUnits - rightMods.units(), KeyStyle.SPACE)) + rightMods
+    val rightBottom = listOf(bottom[space].copy(width = rightUnits - rightMods.units())) + rightMods
 
     // Rows shorter than their half are padded on the inner side, so each half is flush with its
     // outer edge: the left half's rows end early, the right half's start late.
@@ -52,5 +46,3 @@ fun splitLayer(language: Language, withGlobe: Boolean): SplitLayer {
         right = Layer(LayerId.LETTERS, right, units = rightUnits),
     )
 }
-
-private fun List<Key>.units(): Float = sumOf { it.width.toDouble() }.toFloat()
