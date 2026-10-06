@@ -74,6 +74,9 @@ object Dimens {
     /** The least a word label shrinks to when it is wider than its key. */
     val minWordSize = 7.sp
 
+    /** The least a corner legend shrinks to when it is wider than its half of the key. */
+    val minLegendSize = 6.sp
+
     /** From here up the window gets the 60% board. */
     val wideBreakpoint = 600.dp
     val wideKeyHeight = 46.dp
