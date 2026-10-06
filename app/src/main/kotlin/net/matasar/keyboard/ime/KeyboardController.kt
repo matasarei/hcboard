@@ -945,6 +945,8 @@ class KeyboardController(
         if (pendingLocks.remove(modifier)) {
             val chorded = usedHolds.remove(modifier)
             if (!chorded) modifiers = modifiers.longPress(modifier)
+            // No tap follows a long press to take the key's Fn meaning off the books.
+            pressedAs.remove(key.id)
         }
         refreshAutoCapital()
     }

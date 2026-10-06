@@ -293,6 +293,20 @@ class DeveloperModeTest {
     }
 
     @Test
+    fun `a long press on alt as meta locks meta and leaves nothing behind for a later click`() {
+        terminal()
+        press(wideFn)
+        controller.onModifierPressStart(wideAlt)
+        controller.onKeyLongPress(wideAlt)
+        controller.onModifierPressEnd(wideAlt)
+        assertEquals(LatchState.LOCKED, controller.modifiers.state(ModifierKey.META))
+        // A later click with no press before it (TalkBack) is plain Alt again.
+        controller.onKey(wideAlt)
+        assertEquals(LatchState.ARMED, controller.modifiers.state(ModifierKey.ALT))
+        assertEquals(LatchState.LOCKED, controller.modifiers.state(ModifierKey.META))
+    }
+
+    @Test
     fun `alt is plain alt without fn`() {
         terminal()
         press(wideAlt)
