@@ -5,10 +5,9 @@ data class SplitLayer(val left: Layer, val right: Layer)
 
 /**
  * How many keys of each of the four upper rows the left hand takes: the row's first key and five
- * more, and one more on the digits. With Esc 1.5 keys wide the 6 sits right over the T|Y line, so
- * either half would do; on the left, as on Microsoft's, Kinesis's and UHK's split boards, the
- * right half is no longer widened by its digits alone, so the board is narrower and the keys
- * can grow (unless a hinge, not the width, sets their size). On the Shift row the six are
+ * more, and one more on the digits: the 6 goes left, as on Microsoft's, Kinesis's and UHK's split
+ * boards, so the right half is not widened by its digits alone, the board is narrower and the
+ * keys can grow (unless a hinge, not the width, sets their size). On the Shift row the six are
  * `Shift \| z x c v`: the ISO key puts the B slot under the right hand, 14 letters to 12.
  */
 private val LEFT_KEYS = listOf(7, 6, 6, 6)
@@ -18,9 +17,8 @@ fun splitLayer(language: Language, withGlobe: Boolean): SplitLayer = splitLayer(
 
 /**
  * A page of the 60% board cut in two: after 6, T, G and V (or what the page has on those slots),
- * every key at its full-board width. The outer edges are
- * flush with the screen and the inner edges keep the rows' stagger, so the letters sit as far from
- * the edge as on the whole board. The bottom row is built for two thumbs, a Space on each half;
+ * every key at its full-board width. The outer edges are flush with the screen and the inner
+ * edges keep the rows' stagger, so the letters sit as far from the edge as on the whole board. The bottom row is built for two thumbs, a Space on each half;
  * each Space takes what brings its row to the widest row of its half.
  */
 fun splitLayer(whole: Layer): SplitLayer {
