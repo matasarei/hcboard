@@ -133,6 +133,8 @@ private fun CustomWordsScreen(settings: Settings, words: CustomWords, store: Cus
         }
         // A short list reads at a glance; a long one, filled from the strip a word at a time, needs finding in.
         val searching = entries.size > CustomWord.SEARCH_FROM
+        // A list shrunk back under the threshold drops its query, or the field would come back already filtered.
+        if (!searching && query.isNotEmpty()) query = ""
         if (searching) {
             OutlinedTextField(
                 value = query,
