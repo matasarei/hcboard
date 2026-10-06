@@ -58,6 +58,9 @@ private fun wideRow(language: Language, index: Int): List<Key> {
     return onSlots + slots.drop(letters.length).map(::punctuation)
 }
 
+/** How wide every row of the 60% board is, in key units. */
+const val WIDE_UNITS = 14.5f
+
 /**
  * The Shift row: `\|` beside the left Shift, where ISO boards keep a key, then the letters, `/`,
  * a narrow `` `~ `` and the right Shift, which takes what is left. The comma and period are on
@@ -68,9 +71,9 @@ private fun wideRow(language: Language, index: Int): List<Key> {
 private fun wideShiftRow(language: Language): Row {
     val letters = language.rows[2]
     require(letters.length <= 9) { "${language.tag} bottom row has ${letters.length} letters; at most 9 fit" }
-    val keys = listOf(shift(if (letters.length == 9) 2f else 2.5f), dual("\\", "|")) +
+    val keys = listOf(shift(if (letters.length == 9) 1.5f else 2f), dual("\\", "|")) +
         wideRow(language, 2).take(letters.length) + punctuation('/') + dual("`", "~", width = 0.75f)
-    return Row(keys + shift(15f - keys.units()))
+    return Row(keys + shift(WIDE_UNITS - keys.units()))
 }
 
 /** Opens the symbols page; on that page the same place reads ABC and comes back. */
@@ -97,7 +100,7 @@ private fun wideBottomRow(spaceLabel: String, withGlobe: Boolean): Row {
         if (withGlobe) alt.copy(fnLegend = "Meta", fnAction = KeyAction.Modifier(ModifierKey.META)) else alt,
         mod("Ctrl", ModifierKey.CTRL, 1.25f),
     )
-    return Row(left + Key(spaceLabel, KeyAction.Space, 15f - (left + right).units(), KeyStyle.SPACE) + right)
+    return Row(left + Key(spaceLabel, KeyAction.Space, WIDE_UNITS - (left + right).units(), KeyStyle.SPACE) + right)
 }
 
 private val digitRow: Array<Key> = "1234567890".mapIndexed { i, c ->
@@ -105,32 +108,31 @@ private val digitRow: Array<Key> = "1234567890".mapIndexed { i, c ->
 }.toTypedArray()
 
 /**
- * A 60% ANSI board for one language, 15 units per row, for windows 600 dp and wider: every key
- * visible, shifted symbols printed above the digits and punctuation, F1–F12 and navigation on
- * Fn, the letters and accents of [language] on the ANSI slots. The edges are balanced rather than
- * standard: Esc, Tab and Caps are wider and Backspace and Enter narrower, so the split between
- * the hands (T|Y 7, G|H 7.25 of 15) sits nearer the middle of the screen. Shaped for thumbs
- * rather than a desk: `\|` beside the left Shift moves B under the right hand, the comma and
+ * A 60% ANSI board for one language, [WIDE_UNITS] per row, for windows 600 dp and wider: every
+ * key visible, shifted symbols printed above the digits and punctuation, F1–F12 and navigation on
+ * Fn, the letters and accents of [language] on the ANSI slots. Shaped for thumbs rather than a
+ * desk: the left edge keys are no wider than they must be (Esc 1, Tab 1.5, Caps 1.75), so the
+ * letters get the width; `\|` beside the left Shift moves B under the right hand, the comma and
  * period sit by the space bar as on the phone, and the top row ends with the symbols page key.
  */
 fun sixtyPercentLayer(language: Language, withGlobe: Boolean) = Layer(
     id = LayerId.LETTERS,
-    units = 15f,
+    units = WIDE_UNITS,
     rows = listOf(
         row(
-            fn("Esc", KeyAction.KeyCode(KeyEvent.KEYCODE_ESCAPE), 1.5f),
+            fn("Esc", KeyAction.KeyCode(KeyEvent.KEYCODE_ESCAPE), 1f),
             *digitRow,
             dual("-", "_", fnLegend = "F11", fnAction = fkey(10)),
             dual("=", "+", fnLegend = "F12", fnAction = fkey(11)),
             Key("backspace", KeyAction.Backspace, 1.5f, KeyStyle.FUNCTION, KeyIcon.BACKSPACE, fnLegend = "Del", repeats = true),
         ),
         row(
-            fn("Tab", KeyAction.KeyCode(KeyEvent.KEYCODE_TAB), 2f),
+            fn("Tab", KeyAction.KeyCode(KeyEvent.KEYCODE_TAB), 1.5f),
             *wideRow(language, 0).toTypedArray(),
             pageKey(LayerId.SYMBOLS),
         ),
         row(
-            Key("Caps", KeyAction.CapsLock, 2.25f, KeyStyle.MODIFIER),
+            Key("Caps", KeyAction.CapsLock, 1.75f, KeyStyle.MODIFIER),
             *wideRow(language, 1).toTypedArray(),
             enterKey(1.75f),
         ),
@@ -175,7 +177,7 @@ fun sixtyPercentSymbolsLayer(letters: Layer): Layer {
 fun wideLayout(language: Language, withGlobe: Boolean): KeyboardLayout {
     val letters = sixtyPercentLayer(language, withGlobe)
     val layers = mapOf(LayerId.LETTERS to letters, LayerId.SYMBOLS to sixtyPercentSymbolsLayer(letters))
-    return KeyboardLayout(layers = layers, units = 15f, splits = layers.mapValues { splitLayer(it.value) })
+    return KeyboardLayout(layers = layers, units = WIDE_UNITS, splits = layers.mapValues { splitLayer(it.value) })
 }
 
 /** The English board with no globe. */
