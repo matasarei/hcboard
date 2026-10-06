@@ -187,6 +187,20 @@ class SuggestionControllerTest {
     }
 
     @Test
+    fun `a word capitalised only at its start is offered in lowercase, mixed case as typed`() {
+        textField()
+        controller.onKey(keys.first { it.action == KeyAction.Shift })
+        type("chek")
+        controller.pickCandidate("Chek")
+        assertEquals("chek", controller.wordToAdd) // the capital was the sentence's, not the word's
+        controller.onKey(space)
+        port.before += "ChEk"
+        controller.onSelectionChanged()
+        controller.pickCandidate("ChEk")
+        assertEquals("ChEk", controller.wordToAdd)
+    }
+
+    @Test
     fun `nothing is offered for a known word, a picked candidate, or after the next key`() {
         textField()
         type("spell")

@@ -376,6 +376,17 @@ class KeyboardController(
     /** Called with [wordToAdd] when the user taps the offer; the service stores it for the current language. */
     var onAddWord: ((String) -> Unit)? = null
 
+    /**
+     * [word] as a word to keep: lowercase when only its first letter is a capital, which a field's
+     * auto-capital or a sentence start puts there (AOSP's keyboard saves it so too), because a
+     * capitalised custom word is known only when typed with its capital. Kubectl -> kubectl, but
+     * GitHub and NASA stay as typed.
+     */
+    private fun asTyped(word: String): String {
+        val rest = word.drop(1)
+        return if (word.first().isUpperCase() && rest.none { it.isUpperCase() }) word.lowercase() else word
+    }
+
     /** The strip's offer was tapped: add the word to the user's own words. */
     fun addWord() {
         val word = wordToAdd ?: return
@@ -1097,7 +1108,7 @@ class KeyboardController(
         // word the list lacks may be added to the user's own.
         if (word == current.typed) {
             decline(word)
-            if (suggestionsAvailable && candidateEngine?.knows(word) == false && CustomWord.normalize(word) != null) wordToAdd = word
+            if (suggestionsAvailable && candidateEngine?.knows(word) == false) wordToAdd = CustomWord.normalize(asTyped(word))
         }
         // The field may have changed under the strip; replace only what is still there.
         if (dispatcher.textEndsWith(current.typed)) {
