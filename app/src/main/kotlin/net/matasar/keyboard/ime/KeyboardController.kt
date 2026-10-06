@@ -376,6 +376,8 @@ class KeyboardController(
      * strip offers to add it to their words until the next key, glide or field. Only from that
      * tap, only where candidates may be shown (never a password field), and never in a field that
      * asks for no personalized learning (an incognito tab).
+     * A word the user blocked is not in the list either, so it is offered too: tapping the offer
+     * is the user taking the block back, as adding it on the Custom words screen would be.
      */
     var wordToAdd: String? by mutableStateOf(null)
         private set
