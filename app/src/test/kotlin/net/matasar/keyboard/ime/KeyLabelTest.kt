@@ -46,7 +46,10 @@ class KeyLabelTest {
         controller.onKey(shiftKey)
         assertEquals("!", shown("1"))
         assertEquals("_", shown("-"))
-        assertEquals(",", shown("."))
+        // The period by the space bar shifts to `>`, as on a PC.
+        assertEquals(">", shown("."))
+        assertEquals("|", shown("\\"))
+        assertEquals("~", shown("`"))
         assertEquals("Й", shown("й"))
     }
 
@@ -55,12 +58,12 @@ class KeyLabelTest {
         controller.onKey(fnKey)
         assertEquals("F1", shown("1"))
         assertEquals("F12", shown("="))
-        assertEquals("`", shown("Esc"))
+        assertEquals("Esc", shown("Esc"))
         assertEquals("↑", shown("ш"))
         assertEquals("Home", shown("г"))
         assertEquals("[", shown("х"))
         assertEquals(",", shown("б"))
-        // The `.` key has no Fn meaning of its own (б and ю carry `,<` and `.>`): it stays `.`.
+        // The period by the space bar has no Fn meaning (б and ю carry `,<` and `.>`): it stays `.`.
         assertEquals(".", shown("."))
     }
 
@@ -73,7 +76,7 @@ class KeyLabelTest {
         assertEquals("}", shown("ї"))
         assertEquals("<", shown("б"))
         assertEquals(">", shown("ю"))
-        assertEquals("~", shown("Esc"))
+        assertEquals("~", shown("`"))
         // A letter with no fn meaning of its own still follows shift.
         assertEquals("Ф", shown("ф"))
         // An f-key has no shifted form; shift must not blank it.
