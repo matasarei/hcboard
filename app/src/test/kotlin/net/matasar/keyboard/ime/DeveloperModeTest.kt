@@ -123,10 +123,10 @@ class DeveloperModeTest {
     @Test
     fun `holding ctrl and tapping c is a chord and the release is not a tap`() {
         terminal()
-        controller.onModifierPressStart(ModifierKey.CTRL)
+        controller.onModifierPressStart(ctrl)
         controller.onKey(c)
         assertEquals(listOf(KeyEvent.KEYCODE_C to ctrlMeta), port.keys)
-        controller.onModifierPressEnd(ModifierKey.CTRL)
+        controller.onModifierPressEnd(ctrl)
         controller.onKey(ctrl) // the gesture's tap after the release
         assertEquals(LatchState.IDLE, controller.modifiers.state(ModifierKey.CTRL))
         controller.onKey(c)
@@ -136,10 +136,10 @@ class DeveloperModeTest {
     @Test
     fun `a long hold that chorded a key does not lock and does not swallow the next tap`() {
         terminal()
-        controller.onModifierPressStart(ModifierKey.CTRL)
+        controller.onModifierPressStart(ctrl)
         controller.onKeyLongPress(ctrl) // the gesture's long press fires while still held
         controller.onKey(c)
-        controller.onModifierPressEnd(ModifierKey.CTRL)
+        controller.onModifierPressEnd(ctrl)
         assertEquals(listOf(KeyEvent.KEYCODE_C to ctrlMeta), port.keys)
         assertEquals(LatchState.IDLE, controller.modifiers.state(ModifierKey.CTRL))
         controller.onKey(ctrl)
@@ -149,10 +149,10 @@ class DeveloperModeTest {
     @Test
     fun `a long hold with no chord locks on release`() {
         terminal()
-        controller.onModifierPressStart(ModifierKey.CTRL)
+        controller.onModifierPressStart(ctrl)
         controller.onKeyLongPress(ctrl)
         assertEquals(LatchState.IDLE, controller.modifiers.state(ModifierKey.CTRL))
-        controller.onModifierPressEnd(ModifierKey.CTRL)
+        controller.onModifierPressEnd(ctrl)
         assertEquals(LatchState.LOCKED, controller.modifiers.state(ModifierKey.CTRL))
     }
 
@@ -217,5 +217,100 @@ class DeveloperModeTest {
             ),
             port.keys,
         )
+    }
+
+    @Test
+    fun `the symbols key opens the wide symbols page and abc comes back, and a new field opens on letters`() {
+        val letters = controller.wideLayout.layer(LayerId.LETTERS)
+        controller.onKey(letters.rows[1].keys.last())
+        assertEquals(LayerId.SYMBOLS, controller.layer)
+        val symbols = controller.wideLayout.layer(LayerId.SYMBOLS)
+        controller.onKey(symbols.rows[1].keys[1])
+        assertEquals("€", port.before)
+        assertEquals(LayerId.SYMBOLS, controller.layer)
+        controller.onKey(symbols.rows[1].keys.last())
+        assertEquals(LayerId.LETTERS, controller.layer)
+        controller.onKey(letters.rows[1].keys.last())
+        controller.onStartInput(android.view.inputmethod.EditorInfo().apply { inputType = InputType.TYPE_CLASS_TEXT })
+        assertEquals(LayerId.LETTERS, controller.layer)
+    }
+
+    private val wideBottom = net.matasar.keyboard.layout.sixtyPercentLayer(net.matasar.keyboard.layout.Languages.english, withGlobe = true).rows
+    private val wideFn = wideBottom[4].keys.first { it.action == KeyAction.Modifier(ModifierKey.FN) }
+    private val wideAlt = wideBottom[4].keys.first { it.label == "Alt" }
+    private val wideOne = wideBottom[0].keys.first { it.label == "1" }
+    private val metaOn = KeyEvent.META_META_ON or KeyEvent.META_META_LEFT_ON
+
+    /** A press on the screen: press start, release, then the tap, in the order the gesture sends them. */
+    private fun press(key: Key) {
+        if (key.action is KeyAction.Modifier) controller.onModifierPressStart(key)
+        if (key.action is KeyAction.Modifier) controller.onModifierPressEnd(key)
+        controller.onKey(key)
+    }
+
+    @Test
+    fun `fn then alt arms meta and spends fn, so the next digit is a digit`() {
+        terminal()
+        press(wideFn)
+        assertEquals("Meta", controller.displayLabel(wideAlt))
+        press(wideAlt)
+        assertEquals(LatchState.ARMED, controller.modifiers.state(ModifierKey.META))
+        assertEquals(LatchState.IDLE, controller.modifiers.state(ModifierKey.ALT))
+        assertEquals(LatchState.IDLE, controller.modifiers.state(ModifierKey.FN))
+        press(wideOne)
+        assertEquals(listOf(KeyEvent.KEYCODE_1 to metaOn), port.keys)
+        assertEquals(LatchState.IDLE, controller.modifiers.state(ModifierKey.META))
+    }
+
+    @Test
+    fun `a locked fn stays locked when alt becomes meta`() {
+        terminal()
+        press(wideFn)
+        now += 100
+        press(wideFn)
+        assertEquals(LatchState.LOCKED, controller.modifiers.state(ModifierKey.FN))
+        press(wideAlt)
+        assertEquals(LatchState.ARMED, controller.modifiers.state(ModifierKey.META))
+        assertEquals(LatchState.LOCKED, controller.modifiers.state(ModifierKey.FN))
+    }
+
+    @Test
+    fun `holding fn and alt together chords meta, and releasing alt releases meta`() {
+        terminal()
+        controller.onModifierPressStart(wideFn)
+        controller.onModifierPressStart(wideAlt)
+        press(wideOne)
+        assertEquals(listOf(KeyEvent.KEYCODE_1 to metaOn), port.keys)
+        controller.onModifierPressEnd(wideAlt)
+        controller.onKey(wideAlt)
+        controller.onModifierPressEnd(wideFn)
+        controller.onKey(wideFn)
+        // Both holds were used: nothing is left armed, and Alt never went down.
+        for (modifier in listOf(ModifierKey.META, ModifierKey.ALT, ModifierKey.FN)) {
+            assertEquals(LatchState.IDLE, controller.modifiers.state(modifier), modifier.name)
+            assertTrue(modifier !in controller.modifiers.held, modifier.name)
+        }
+    }
+
+    @Test
+    fun `a long press on alt as meta locks meta and leaves nothing behind for a later click`() {
+        terminal()
+        press(wideFn)
+        controller.onModifierPressStart(wideAlt)
+        controller.onKeyLongPress(wideAlt)
+        controller.onModifierPressEnd(wideAlt)
+        assertEquals(LatchState.LOCKED, controller.modifiers.state(ModifierKey.META))
+        // A later click with no press before it (TalkBack) is plain Alt again.
+        controller.onKey(wideAlt)
+        assertEquals(LatchState.ARMED, controller.modifiers.state(ModifierKey.ALT))
+        assertEquals(LatchState.LOCKED, controller.modifiers.state(ModifierKey.META))
+    }
+
+    @Test
+    fun `alt is plain alt without fn`() {
+        terminal()
+        press(wideAlt)
+        assertEquals(LatchState.ARMED, controller.modifiers.state(ModifierKey.ALT))
+        assertEquals(LatchState.IDLE, controller.modifiers.state(ModifierKey.META))
     }
 }

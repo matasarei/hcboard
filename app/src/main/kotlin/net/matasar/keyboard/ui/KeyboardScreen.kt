@@ -261,9 +261,8 @@ private fun LayerGrid(
         val configuration = LocalConfiguration.current
         // The halves replace the whole board where a hinge or two thumbs ask for them.
         @SuppressLint("ConfigurationScreenWidthHeight")
-        val split = layout.split.takeIf {
-            controller.layer == LayerId.LETTERS &&
-                shouldSplit(feel.split, wide, hingeSeparating = hinge != null, phoneLandscape = isPhoneLandscape(configuration.screenWidthDp, configuration.screenHeightDp))
+        val split = layout.splits[layer.id]?.takeIf {
+            shouldSplit(feel.split, wide, hingeSeparating = hinge != null, phoneLandscape = isPhoneLandscape(configuration.screenWidthDp, configuration.screenHeightDp))
         }
         val sidePadding = (if (wide) Dimens.wideSidePadding else Dimens.sidePadding) + extraSidePadding
         // The gaps follow the height setting too: keys shrunk to 80% under full-size gaps read as
@@ -387,14 +386,14 @@ private class KeyScreenCallbacks(
     var wideBoard = false
 
     override fun onPressStart(key: Key, bounds: Rect) {
-        (key.action as? KeyAction.Modifier)?.let { controller.onModifierPressStart(it.modifier) }
+        if (key.action is KeyAction.Modifier) controller.onModifierPressStart(key)
         if (feel.previews && !controller.passwordField && key.showsPreview() && !controller.repeats(key)) {
             popups.preview = PressPreview(bounds, controller.displayLabel(key))
         }
     }
 
     override fun onPressEnd(key: Key) {
-        (key.action as? KeyAction.Modifier)?.let { controller.onModifierPressEnd(it.modifier) }
+        if (key.action is KeyAction.Modifier) controller.onModifierPressEnd(key)
         popups.preview = null
     }
 
@@ -498,7 +497,7 @@ internal fun keyCustomActions(key: Key, controller: KeyboardController): List<Cu
 /** A latching key's state as TalkBack reads it after the key's name; null for the rest. */
 @Composable
 internal fun keyState(key: Key, controller: KeyboardController): String? =
-    spokenState(key, controller.shift.state, controller.modifiers::state, controller.modifiers.held)?.let { stringResource(it) }
+    spokenState(key, controller.shift.state, controller.modifiers::state, controller.modifiers.held, controller.modifierFor(key))?.let { stringResource(it) }
 
 private fun Key.showsPreview(): Boolean =
     style == KeyStyle.LETTER && icon == null && label.length == 1 && action != KeyAction.Space

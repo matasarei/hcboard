@@ -42,15 +42,18 @@ class SplitLayoutTest {
     }
 
     @Test
-    fun `english halves are the balanced board's`() {
+    fun `english halves cut the board after 6, t, g and v`() {
         val split = splitLayer(Languages.english, withGlobe = true)
-        assertEquals(7.75f, split.left.units)
+        assertEquals(7.25f, split.left.units)
         // The digits no longer set the right half's width: the Y row does, half a key narrower.
         assertEquals(8f, split.right.units)
         assertEquals("Esc 1 2 3 4 5 6", split.left.rows[0].keys.joinToString(" ") { it.label })
         assertEquals("7 8 9 0 - = backspace", split.right.rows[0].keys.joinToString(" ") { it.label })
-        assertEquals("y u i o p [ ] \\", split.right.rows[1].keys.joinToString(" ") { it.label })
+        assertEquals("y u i o p [ ] €±", split.right.rows[1].keys.joinToString(" ") { it.label })
         assertEquals("h j k l ; ' enter", split.right.rows[2].keys.joinToString(" ") { it.label.lowercase() })
+        // B goes to the right hand: `\|` beside the left Shift takes its place on the left.
+        assertEquals("Shift \\ z x c v", split.left.rows[3].keys.joinToString(" ") { it.label })
+        assertEquals("b n m / ` Shift", split.right.rows[3].keys.joinToString(" ") { it.label })
     }
 
     @Test
@@ -61,7 +64,11 @@ class SplitLayoutTest {
             val rightSpace = split.right.rows[4].keys.single { it.action == KeyAction.Space }
             assertEquals(language.nativeName, rightSpace.label)
             assertTrue(leftSpace.id != rightSpace.id)
-            assertEquals(withGlobe, split.right.rows[4].keys.any { it.action == KeyAction.SwitchLanguage })
+            // The left thumb has Fn, the globe (or Meta) and the comma; the right one the period, Alt and Ctrl.
+            val left = split.left.rows[4].keys.map { it.label }
+            val right = split.right.rows[4].keys.map { it.label }
+            assertEquals(listOf("Fn", if (withGlobe) "globe" else "Meta", ",", ""), left, language.tag)
+            assertEquals(listOf(language.nativeName, ".", "Alt", "Ctrl"), right, language.tag)
         }
     }
 
@@ -75,7 +82,15 @@ class SplitLayoutTest {
     }
 
     @Test
-    fun `the wide layout carries its split`() {
-        assertNotNull(wideLayout(Languages.ukrainian, withGlobe = true).split)
+    fun `the wide layout carries a split for each page`() {
+        val layout = wideLayout(Languages.ukrainian, withGlobe = true)
+        assertEquals(setOf(LayerId.LETTERS, LayerId.SYMBOLS), layout.splits.keys)
+        val symbols = assertNotNull(layout.splits[LayerId.SYMBOLS])
+        assertEquals(LayerId.SYMBOLS, symbols.left.id)
+        // The symbols page has the letters page's geometry, so its halves are as wide.
+        val letters = assertNotNull(layout.splits[LayerId.LETTERS])
+        assertEquals(letters.left.units, symbols.left.units)
+        assertEquals(letters.right.units, symbols.right.units)
+        assertEquals("ABC", symbols.right.rows[1].keys.last().label)
     }
 }

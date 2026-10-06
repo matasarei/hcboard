@@ -52,7 +52,11 @@ internal fun spokenKey(
         KeyAction.SwitchLanguage ->
             return globeTarget?.let { Spoken.NamedFor(R.string.a11y_key_switch_to, it) } ?: Spoken.Named(R.string.a11y_key_next_language)
         KeyAction.Backspace -> if (iconShown) return Spoken.Named(R.string.a11y_key_backspace)
-        is KeyAction.Modifier -> return Spoken.Named(modifierName(action.modifier))
+        // A modifier with an Fn meaning (Alt as Meta) is named for what it shows: Meta while Fn is on.
+        is KeyAction.Modifier -> {
+            val viaFn = (key.fnAction as? KeyAction.Modifier)?.modifier?.takeIf { shown == key.fnLegend }
+            return Spoken.Named(modifierName(viaFn ?: action.modifier))
+        }
         is KeyAction.SwitchLayer -> return Spoken.Named(
             when (action.layer) {
                 LayerId.LETTERS -> R.string.a11y_key_letters
@@ -71,16 +75,24 @@ internal fun spokenKey(
 /**
  * What TalkBack adds after a key's name: the state of a key that latches (Shift, Caps Lock, the
  * modifiers), from [shift] and [modifier], a held modifier counting as armed, as it looks; null for
- * every other key.
+ * every other key. A modifier key reads the state of [meaning] when it stands for another
+ * modifier right now (Alt as Meta while Fn is on), as its name does.
  */
 @StringRes
-internal fun spokenState(key: Key, shift: LatchState, modifier: (ModifierKey) -> LatchState, held: Set<ModifierKey>): Int? =
+internal fun spokenState(
+    key: Key,
+    shift: LatchState,
+    modifier: (ModifierKey) -> LatchState,
+    held: Set<ModifierKey>,
+    meaning: ModifierKey? = null,
+): Int? =
     when (val action = key.action) {
         KeyAction.Shift -> latchName(shift)
         KeyAction.CapsLock -> if (shift == LatchState.LOCKED) R.string.a11y_state_on else R.string.a11y_state_off
-        is KeyAction.Modifier -> latchName(
-            modifier(action.modifier).takeUnless { it == LatchState.IDLE && action.modifier in held } ?: LatchState.ARMED,
-        )
+        is KeyAction.Modifier -> {
+            val which = meaning ?: action.modifier
+            latchName(modifier(which).takeUnless { it == LatchState.IDLE && which in held } ?: LatchState.ARMED)
+        }
         else -> null
     }
 

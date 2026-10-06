@@ -70,6 +70,15 @@ class KeySpeechTest {
     }
 
     @Test
+    fun `alt is named meta while fn shows it as meta, and the page keys are named`() {
+        val alt = Key("Alt", KeyAction.Modifier(ModifierKey.ALT), fnLegend = "Meta", fnAction = KeyAction.Modifier(ModifierKey.META))
+        assertEquals(Spoken.Named(R.string.a11y_key_meta), spokenKey(alt, "Meta", iconShown = false))
+        assertEquals(Spoken.Named(R.string.a11y_key_alt), spokenKey(alt, "Alt", iconShown = false))
+        val page = net.matasar.keyboard.layout.SixtyPercentLayer.rows[1].keys.last()
+        assertEquals(Spoken.Named(R.string.a11y_key_symbols), spokenKey(page, page.label, iconShown = false))
+    }
+
+    @Test
     fun `space with no language on it still says Space, never nothing`() {
         val space = letters.first { it.action == KeyAction.Space }
         assertEquals("", controller.displayLabel(space))
@@ -114,6 +123,14 @@ class KeySpeechTest {
         assertEquals(R.string.a11y_state_armed, spokenState(ctrl, LatchState.IDLE, { LatchState.IDLE }, setOf(ModifierKey.CTRL)))
         assertEquals(R.string.a11y_state_locked, spokenState(ctrl, LatchState.IDLE, { LatchState.LOCKED }, setOf(ModifierKey.CTRL)))
         assertEquals(R.string.a11y_state_armed, spokenState(ctrl, LatchState.IDLE, { if (it == ModifierKey.CTRL) LatchState.ARMED else LatchState.IDLE }, emptySet()))
+    }
+
+    @Test
+    fun `alt read as meta says meta's state`() {
+        val alt = Key("Alt", KeyAction.Modifier(ModifierKey.ALT), fnLegend = "Meta", fnAction = KeyAction.Modifier(ModifierKey.META))
+        val metaLocked = { m: ModifierKey -> if (m == ModifierKey.META) LatchState.LOCKED else LatchState.IDLE }
+        assertEquals(R.string.a11y_state_locked, spokenState(alt, LatchState.IDLE, metaLocked, emptySet(), meaning = ModifierKey.META))
+        assertEquals(R.string.a11y_state_off, spokenState(alt, LatchState.IDLE, metaLocked, emptySet()))
     }
 
     @Test

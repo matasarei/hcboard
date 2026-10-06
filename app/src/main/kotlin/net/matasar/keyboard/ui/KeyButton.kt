@@ -44,6 +44,7 @@ import androidx.compose.ui.semantics.onClick
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
@@ -248,6 +249,9 @@ fun KeyButton(
                 )
             } else {
                 val word = key.style != KeyStyle.LETTER || label.length > 1
+                // A key narrower than one unit (`~ on the 60% board) sizes even a single glyph
+                // to its width, so it never runs into the corner legend beside it.
+                val fitted = word || key.width < 1f
                 val size = when {
                     word -> Dimens.wordSize(height, labelSize, sizedForLegendLine)
                     sizedForLegendLine -> Dimens.glyphSize(height)
@@ -264,7 +268,7 @@ fun KeyButton(
                     // fit rather than wrapping, which with one line would clip its last letters.
                     // Only words: a single glyph always fits, and sizing it would cost layouts
                     // on every key each time Shift or a layer changes.
-                    autoSize = if (word) {
+                    autoSize = if (fitted) {
                         TextAutoSize.StepBased(
                             minFontSize = Dimens.minWordSize,
                             maxFontSize = size,
@@ -273,7 +277,7 @@ fun KeyButton(
                     } else {
                         null
                     },
-                    modifier = if (word) Modifier.padding(horizontal = 3.dp) else Modifier,
+                    modifier = if (fitted) Modifier.padding(horizontal = 3.dp) else Modifier,
                 )
             }
         }
@@ -297,8 +301,10 @@ fun KeyButton(
                         fontSize = legendSize,
                         lineHeight = legendSize * Dimens.legendLineHeightRatio,
                         maxLines = 1,
+                        autoSize = legendAutoSize(legendSize),
                         modifier = Modifier
                             .align(Alignment.TopStart)
+                            .fillMaxWidth(LEGEND_WIDTH)
                             .padding(start = 5.dp, top = 2.dp),
                     )
                 }
@@ -321,9 +327,12 @@ fun KeyButton(
                         fontSize = legendSize,
                         lineHeight = legendSize * Dimens.legendLineHeightRatio,
                         fontWeight = FontWeight.Medium,
+                        textAlign = TextAlign.End,
                         maxLines = 1,
+                        autoSize = legendAutoSize(legendSize),
                         modifier = Modifier
                             .align(Alignment.TopEnd)
+                            .fillMaxWidth(LEGEND_WIDTH)
                             .padding(end = 5.dp, top = 2.dp),
                     )
                 }
@@ -333,4 +342,13 @@ fun KeyButton(
 }
 
 private const val REPEAT_DELAY_MS = 350L
+
+/**
+ * Each corner legend has at most this share of the key's width, so the shifted symbol and the Fn
+ * meaning never meet on a narrow key; one that does not fit shrinks rather than overlapping.
+ */
+private const val LEGEND_WIDTH = 0.5f
+
+private fun legendAutoSize(size: TextUnit) =
+    TextAutoSize.StepBased(minFontSize = Dimens.minLegendSize, maxFontSize = size, stepSize = 0.5.sp)
 private const val REPEAT_INTERVAL_MS = 50L

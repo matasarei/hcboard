@@ -14,7 +14,6 @@ class PrintedFnLegendTest {
 
     @Test
     fun `symbols fn types are printed, both of them`() {
-        assertEquals("`~", printedFnLegend(key(Languages.english, "Esc")))
         assertEquals("[{", printedFnLegend(key(Languages.ukrainian, "х")))
         assertEquals("]}", printedFnLegend(key(Languages.ukrainian, "ї")))
         assertEquals(";:", printedFnLegend(key(Languages.ukrainian, "ж")))
@@ -27,7 +26,8 @@ class PrintedFnLegendTest {
 
     @Test
     fun `named meanings are not printed`() {
-        for (label in listOf("1", "0", "-", "=", "i", "j", "u", "h", "backspace")) {
+        // Esc has no Fn meaning now that `` `~ `` has a key; Alt's Meta is a name.
+        for (label in listOf("1", "0", "-", "=", "i", "j", "u", "h", "backspace", "Esc", "Alt")) {
             assertNull(printedFnLegend(key(Languages.english, label)), label)
         }
         assertNull(printedFnLegend(key(Languages.ukrainian, "ш")), "ш carries ↑") // the slot of i

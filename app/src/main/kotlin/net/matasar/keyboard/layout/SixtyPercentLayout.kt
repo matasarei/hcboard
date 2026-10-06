@@ -58,35 +58,49 @@ private fun wideRow(language: Language, index: Int): List<Key> {
     return onSlots + slots.drop(letters.length).map(::punctuation)
 }
 
+/** How wide every row of the 60% board is, in key units. */
+const val WIDE_UNITS = 14.25f
+
 /**
- * The Shift row. The left Shift is the wider one on every board (the thumb's side of a held
- * phone); the right one takes what is left. Seven letters leave `, . /` as on the standard
- * board. Nine (Cyrillic) would leave only `/`, so the Shifts give up a unit between them and
- * the row ends with `.` (`,` shifted) and `/`: the way Cyrillic PC keyboards do it. The `.` key
- * has nothing on Fn: б and ю, on the `,` and `.` slots, already carry `,<` and `.>` there.
+ * The Shift row: `\|` beside the left Shift, where ISO boards keep a key, then the letters, `/`,
+ * a narrow `` `~ `` and the right Shift. The comma and period are on the bottom row by the space
+ * bar, so the `,` and `.` slots hold only a letter that sits on them (б and ю, which keep `,<` and
+ * `.>` on Fn). The two Shifts share what the row leaves, equally: wider on a seven-letter row,
+ * narrower on a nine-letter one.
  */
 private fun wideShiftRow(language: Language): Row {
     val letters = language.rows[2]
     require(letters.length <= 9) { "${language.tag} bottom row has ${letters.length} letters; at most 9 fit" }
-    if (letters.length < 9) return row(shift(2.75f), *wideRow(language, 2).toTypedArray(), shift(2.25f))
-    val onSlots = wideRow(language, 2).take(letters.length)
-    val period = dual(".", ",")
-    return row(shift(2.25f), *onSlots.toTypedArray(), period, punctuation('/'), shift(1.75f))
+    val inner = listOf(dual("\\", "|")) + wideRow(language, 2).take(letters.length) + punctuation('/') + dual("`", "~", width = 0.75f)
+    val shift = (WIDE_UNITS - inner.units()) / 2f
+    return Row(listOf(shift(shift)) + inner + shift(shift))
 }
 
+/** Opens the symbols page; on that page the same place reads ABC and comes back. */
+private fun pageKey(to: LayerId) =
+    Key(if (to == LayerId.SYMBOLS) "€±" else "ABC", KeyAction.SwitchLayer(to), 1f, KeyStyle.FUNCTION)
+
 /**
- * Modifiers around the space bar, which names the language. The globe sits left of Space when
- * there is more than one language to switch to. No hide key: the toolbar has one, and so does
- * the system's navigation bar.
+ * The bottom row, the phone's in order: Fn where the phone has 123, the globe when there is more
+ * than one language to switch to (Meta otherwise), the comma by the space bar, the space naming
+ * the language, the period, and the combination modifiers on the right, one of each: a latching
+ * modifier is tapped and then the key, so a second copy for the other hand earns nothing. With
+ * the globe on the board, Meta is Fn+Alt. No hide key: the toolbar has one, and so does the
+ * system's navigation bar.
  */
 private fun wideBottomRow(spaceLabel: String, withGlobe: Boolean): Row {
-    val keys = mutableListOf(mod("Ctrl", ModifierKey.CTRL, 1.25f), mod("Meta", ModifierKey.META, 1.25f), mod("Alt", ModifierKey.ALT, 1.25f))
-    if (withGlobe) keys += Key("globe", KeyAction.SwitchLanguage, 1.25f, KeyStyle.FUNCTION, KeyIcon.GLOBE)
-    keys += Key(spaceLabel, KeyAction.Space, if (withGlobe) 6.25f else 7.5f, KeyStyle.SPACE)
-    keys += mod("Alt", ModifierKey.ALT, 1.25f)
-    keys += mod("Fn", ModifierKey.FN, 1.25f)
-    keys += mod("Ctrl", ModifierKey.CTRL, 1.25f)
-    return Row(keys)
+    val left = listOf(
+        mod("Fn", ModifierKey.FN, 1.25f),
+        if (withGlobe) Key("globe", KeyAction.SwitchLanguage, 1.25f, KeyStyle.FUNCTION, KeyIcon.GLOBE) else mod("Meta", ModifierKey.META, 1.25f),
+        dual(",", "<"),
+    )
+    val alt = mod("Alt", ModifierKey.ALT, 1.25f)
+    val right = listOf(
+        dual(".", ">"),
+        if (withGlobe) alt.copy(fnLegend = "Meta", fnAction = KeyAction.Modifier(ModifierKey.META)) else alt,
+        mod("Ctrl", ModifierKey.CTRL, 1.25f),
+    )
+    return Row(left + Key(spaceLabel, KeyAction.Space, WIDE_UNITS - (left + right).units(), KeyStyle.SPACE) + right)
 }
 
 private val digitRow: Array<Key> = "1234567890".mapIndexed { i, c ->
@@ -94,30 +108,32 @@ private val digitRow: Array<Key> = "1234567890".mapIndexed { i, c ->
 }.toTypedArray()
 
 /**
- * A 60% ANSI board for one language, 15 units per row, for windows 600 dp and wider: every key
- * visible, shifted symbols printed above the digits and punctuation, F1–F12 and navigation on
- * Fn, the letters and accents of [language] on the ANSI slots. The edges are balanced rather than
- * standard: Esc, Tab and Caps are wider and Backspace, `\` and Enter narrower, so the split
- * between the hands (T|Y 7, G|H 7.25 of 15) sits nearer the middle of the screen. No key moves.
+ * A 60% ANSI board for one language, [WIDE_UNITS] per row, for windows 600 dp and wider: every
+ * key visible, shifted symbols printed above the digits and punctuation, F1–F12 and navigation on
+ * Fn, the letters and accents of [language] on the ANSI slots. Shaped for thumbs rather than a
+ * desk: the edge keys are no wider than they must be (Esc 1, Tab and Backspace 1.25, Caps 1.5,
+ * a wide Enter 1.75, and the two Shifts sharing what their row leaves), so the letters get the
+ * width; `\|` beside the left Shift moves B under the right hand, the comma and period sit by the
+ * space bar as on the phone, and the top row ends with the symbols page key.
  */
 fun sixtyPercentLayer(language: Language, withGlobe: Boolean) = Layer(
     id = LayerId.LETTERS,
-    units = 15f,
+    units = WIDE_UNITS,
     rows = listOf(
         row(
-            fn("Esc", KeyAction.KeyCode(KeyEvent.KEYCODE_ESCAPE), 1.5f, fnLegend = "`~", fnAction = KeyAction.Text("`", "~")),
+            fn("Esc", KeyAction.KeyCode(KeyEvent.KEYCODE_ESCAPE), 1f),
             *digitRow,
             dual("-", "_", fnLegend = "F11", fnAction = fkey(10)),
             dual("=", "+", fnLegend = "F12", fnAction = fkey(11)),
-            Key("backspace", KeyAction.Backspace, 1.5f, KeyStyle.FUNCTION, KeyIcon.BACKSPACE, fnLegend = "Del", repeats = true),
+            Key("backspace", KeyAction.Backspace, 1.25f, KeyStyle.FUNCTION, KeyIcon.BACKSPACE, fnLegend = "Del", repeats = true),
         ),
         row(
-            fn("Tab", KeyAction.KeyCode(KeyEvent.KEYCODE_TAB), 2f),
+            fn("Tab", KeyAction.KeyCode(KeyEvent.KEYCODE_TAB), 1.25f),
             *wideRow(language, 0).toTypedArray(),
-            dual("\\", "|"),
+            pageKey(LayerId.SYMBOLS),
         ),
         row(
-            Key("Caps", KeyAction.CapsLock, 2.25f, KeyStyle.MODIFIER),
+            Key("Caps", KeyAction.CapsLock, 1.5f, KeyStyle.MODIFIER),
             *wideRow(language, 1).toTypedArray(),
             enterKey(1.75f),
         ),
@@ -126,13 +142,44 @@ fun sixtyPercentLayer(language: Language, withGlobe: Boolean) = Layer(
     ),
 )
 
-/** The layout for wide windows: one board carries letters, symbols and modifiers, whole or split. */
-fun wideLayout(language: Language, withGlobe: Boolean): KeyboardLayout =
-    KeyboardLayout(
-        layers = mapOf(LayerId.LETTERS to sixtyPercentLayer(language, withGlobe)),
-        units = 15f,
-        split = splitLayer(language, withGlobe),
+/**
+ * What the symbols page puts on the letter and punctuation keys, row by row, in order: what the
+ * board has no key for. The Shift row takes as many as it has keys between the left Shift and
+ * `` `~ `` (9 on English, 11 on Ukrainian), so its list is the longest a board needs.
+ */
+private val SymbolRows = listOf("€£¥₴¢©®™°§¶•", "«»„“”‘’…–—·", "±×÷≠≈≤≥∞¿¡‰")
+
+/** This row with its keys from [from] until [until] replaced by [symbols], in order. */
+private fun Row.withSymbols(from: Int, until: Int, symbols: String): Row {
+    require(until - from <= symbols.length) { "${until - from} keys for ${symbols.length} symbols" }
+    val replaced = keys.toMutableList()
+    for (i in from until until) replaced[i] = Key(symbols[i - from].toString(), KeyAction.Text(symbols[i - from].toString()))
+    return copy(keys = replaced)
+}
+
+/**
+ * The symbols page of a 60% [letters] page: the same geometry, so nothing moves under a thumb,
+ * with every key between a row's edge keys typing a symbol the board has no key for. The digits,
+ * Tab, Caps, Enter, the Shifts, `` `~ `` and the bottom row stay; €± reads ABC and comes back.
+ */
+fun sixtyPercentSymbolsLayer(letters: Layer): Layer {
+    val (digits, top, home, shiftRow) = letters.rows
+    val rows = listOf(
+        digits,
+        top.withSymbols(1, top.keys.size - 1, SymbolRows[0]).let { it.copy(keys = it.keys.dropLast(1) + pageKey(LayerId.LETTERS)) },
+        home.withSymbols(1, home.keys.size - 1, SymbolRows[1]),
+        shiftRow.withSymbols(1, shiftRow.keys.size - 2, SymbolRows[2]),
+        letters.rows[4],
     )
+    return Layer(LayerId.SYMBOLS, rows, letters.units)
+}
+
+/** The layout for wide windows: letters and a symbols page, each whole or split. */
+fun wideLayout(language: Language, withGlobe: Boolean): KeyboardLayout {
+    val letters = sixtyPercentLayer(language, withGlobe)
+    val layers = mapOf(LayerId.LETTERS to letters, LayerId.SYMBOLS to sixtyPercentSymbolsLayer(letters))
+    return KeyboardLayout(layers = layers, units = WIDE_UNITS, splits = layers.mapValues { splitLayer(it.value) })
+}
 
 /** The English board with no globe. */
 val SixtyPercentLayer: Layer = sixtyPercentLayer(Languages.english, withGlobe = false)

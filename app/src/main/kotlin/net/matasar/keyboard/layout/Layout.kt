@@ -92,8 +92,11 @@ data class Row(
 /** A page of rows; every row adds up to [units]. */
 data class Layer(val id: LayerId, val rows: List<Row>, val units: Float = 10f)
 
-/** The layers of a board; the wide board also carries its [split] halves, drawn when the window asks for them. */
-data class KeyboardLayout(val layers: Map<LayerId, Layer>, val units: Float = 10f, val split: SplitLayer? = null) {
+/**
+ * The layers of a board; the wide board also carries each page's [splits] halves, drawn when the
+ * window asks for them.
+ */
+data class KeyboardLayout(val layers: Map<LayerId, Layer>, val units: Float = 10f, val splits: Map<LayerId, SplitLayer> = emptyMap()) {
     fun layer(id: LayerId): Layer = layers.getValue(id)
 }
 
@@ -106,6 +109,9 @@ internal object AnsiSlots {
 }
 
 // ---- small builders so the layer files read like the boards they build ----
+
+/** How many units these keys take side by side. */
+internal fun List<Key>.units(): Float = sumOf { it.width.toDouble() }.toFloat()
 
 internal fun row(vararg keys: Key, leading: Float = 0f, trailing: Float = 0f) =
     Row(keys.toList(), leading, trailing)
