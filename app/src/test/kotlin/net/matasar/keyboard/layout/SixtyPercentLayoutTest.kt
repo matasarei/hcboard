@@ -222,6 +222,32 @@ class SixtyPercentLayoutTest {
     }
 
     @Test
+    fun `the symbols page keeps the letters page's geometry`() {
+        for (language in Languages.all + Languages.bulgarianStandard) {
+            for (withGlobe in listOf(false, true)) {
+                val letters = sixtyPercentLayer(language, withGlobe)
+                val symbols = sixtyPercentSymbolsLayer(letters)
+                assertEquals(LayerId.SYMBOLS, symbols.id)
+                for ((index, row) in symbols.rows.withIndex()) {
+                    assertEquals(letters.rows[index].keys.map { it.width }, row.keys.map { it.width }, "${language.tag} row $index")
+                }
+                assertEquals(letters.rows[0], symbols.rows[0])
+                assertEquals(letters.rows[4], symbols.rows[4])
+                assertEquals(KeyAction.SwitchLayer(LayerId.LETTERS), symbols.rows[1].keys.last().action)
+                // The edge keys and `~ stay; every key between them types a symbol.
+                val shiftRow = symbols.rows[3].keys
+                assertEquals(listOf("Shift", "`", "Shift"), listOf(shiftRow.first(), shiftRow[shiftRow.size - 2], shiftRow.last()).map { it.label })
+                assertTrue(shiftRow.subList(1, shiftRow.size - 2).all { it.action is KeyAction.Text && it.slot == null }, language.tag)
+            }
+        }
+        val english = sixtyPercentSymbolsLayer(SixtyPercentLayer)
+        assertEquals("Tab € £ ¥ ₴ ¢ © ® ™ ° § ¶ • ABC", english.rows[1].keys.joinToString(" ") { it.label })
+        assertEquals("Shift ± × ÷ ≠ ≈ ≤ ≥ ∞ ¿ ` Shift", english.rows[3].keys.joinToString(" ") { it.label })
+        val ukrainian = sixtyPercentSymbolsLayer(sixtyPercentLayer(Languages.ukrainian, withGlobe = true))
+        assertEquals("Shift ± × ÷ ≠ ≈ ≤ ≥ ∞ ¿ ¡ ‰ ` Shift", ukrainian.rows[3].keys.joinToString(" ") { it.label })
+    }
+
+    @Test
     fun `no hide key on the wide board`() {
         for (language in Languages.all) {
             for (withGlobe in listOf(false, true)) {

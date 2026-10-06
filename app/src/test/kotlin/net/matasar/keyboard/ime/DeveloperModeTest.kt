@@ -218,4 +218,20 @@ class DeveloperModeTest {
             port.keys,
         )
     }
+
+    @Test
+    fun `the symbols key opens the wide symbols page and abc comes back, and a new field opens on letters`() {
+        val letters = controller.wideLayout.layer(LayerId.LETTERS)
+        controller.onKey(letters.rows[1].keys.last())
+        assertEquals(LayerId.SYMBOLS, controller.layer)
+        val symbols = controller.wideLayout.layer(LayerId.SYMBOLS)
+        controller.onKey(symbols.rows[1].keys[1])
+        assertEquals("€", port.before)
+        assertEquals(LayerId.SYMBOLS, controller.layer)
+        controller.onKey(symbols.rows[1].keys.last())
+        assertEquals(LayerId.LETTERS, controller.layer)
+        controller.onKey(letters.rows[1].keys.last())
+        controller.onStartInput(android.view.inputmethod.EditorInfo().apply { inputType = InputType.TYPE_CLASS_TEXT })
+        assertEquals(LayerId.LETTERS, controller.layer)
+    }
 }

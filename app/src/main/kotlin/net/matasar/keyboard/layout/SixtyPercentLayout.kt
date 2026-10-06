@@ -139,13 +139,44 @@ fun sixtyPercentLayer(language: Language, withGlobe: Boolean) = Layer(
     ),
 )
 
-/** The layout for wide windows: one board carries letters, symbols and modifiers, whole or split. */
-fun wideLayout(language: Language, withGlobe: Boolean): KeyboardLayout =
-    KeyboardLayout(
-        layers = mapOf(LayerId.LETTERS to sixtyPercentLayer(language, withGlobe)),
-        units = 15f,
-        split = splitLayer(language, withGlobe),
+/**
+ * What the symbols page puts on the letter and punctuation keys, row by row, in order: what the
+ * board has no key for. The Shift row takes as many as it has keys between the left Shift and
+ * `` `~ `` (9 on English, 11 on Ukrainian), so its list is the longest a board needs.
+ */
+private val SymbolRows = listOf("€£¥₴¢©®™°§¶•", "«»„“”‘’…–—·", "±×÷≠≈≤≥∞¿¡‰")
+
+/** This row with its keys from [from] until [until] replaced by [symbols], in order. */
+private fun Row.withSymbols(from: Int, until: Int, symbols: String): Row {
+    require(until - from <= symbols.length) { "${until - from} keys for ${symbols.length} symbols" }
+    val replaced = keys.toMutableList()
+    for (i in from until until) replaced[i] = Key(symbols[i - from].toString(), KeyAction.Text(symbols[i - from].toString()))
+    return copy(keys = replaced)
+}
+
+/**
+ * The symbols page of a 60% [letters] page: the same geometry, so nothing moves under a thumb,
+ * with every key between a row's edge keys typing a symbol the board has no key for. The digits,
+ * Tab, Caps, Enter, the Shifts, `` `~ `` and the bottom row stay; €± reads ABC and comes back.
+ */
+fun sixtyPercentSymbolsLayer(letters: Layer): Layer {
+    val (digits, top, home, shiftRow) = letters.rows
+    val rows = listOf(
+        digits,
+        top.withSymbols(1, top.keys.size - 1, SymbolRows[0]).let { it.copy(keys = it.keys.dropLast(1) + pageKey(LayerId.LETTERS)) },
+        home.withSymbols(1, home.keys.size - 1, SymbolRows[1]),
+        shiftRow.withSymbols(1, shiftRow.keys.size - 2, SymbolRows[2]),
+        letters.rows[4],
     )
+    return Layer(LayerId.SYMBOLS, rows, letters.units)
+}
+
+/** The layout for wide windows: letters and a symbols page, each whole or split. */
+fun wideLayout(language: Language, withGlobe: Boolean): KeyboardLayout {
+    val letters = sixtyPercentLayer(language, withGlobe)
+    val layers = mapOf(LayerId.LETTERS to letters, LayerId.SYMBOLS to sixtyPercentSymbolsLayer(letters))
+    return KeyboardLayout(layers = layers, units = 15f, splits = layers.mapValues { splitLayer(it.value) })
+}
 
 /** The English board with no globe. */
 val SixtyPercentLayer: Layer = sixtyPercentLayer(Languages.english, withGlobe = false)

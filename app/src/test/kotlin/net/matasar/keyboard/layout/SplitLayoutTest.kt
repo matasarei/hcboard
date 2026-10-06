@@ -82,7 +82,15 @@ class SplitLayoutTest {
     }
 
     @Test
-    fun `the wide layout carries its split`() {
-        assertNotNull(wideLayout(Languages.ukrainian, withGlobe = true).split)
+    fun `the wide layout carries a split for each page`() {
+        val layout = wideLayout(Languages.ukrainian, withGlobe = true)
+        assertEquals(setOf(LayerId.LETTERS, LayerId.SYMBOLS), layout.splits.keys)
+        val symbols = assertNotNull(layout.splits[LayerId.SYMBOLS])
+        assertEquals(LayerId.SYMBOLS, symbols.left.id)
+        // The symbols page has the letters page's geometry, so its halves are as wide.
+        val letters = assertNotNull(layout.splits[LayerId.LETTERS])
+        assertEquals(letters.left.units, symbols.left.units)
+        assertEquals(letters.right.units, symbols.right.units)
+        assertEquals("ABC", symbols.right.rows[1].keys.last().label)
     }
 }

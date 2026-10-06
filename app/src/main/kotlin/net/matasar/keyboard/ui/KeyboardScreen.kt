@@ -261,9 +261,8 @@ private fun LayerGrid(
         val configuration = LocalConfiguration.current
         // The halves replace the whole board where a hinge or two thumbs ask for them.
         @SuppressLint("ConfigurationScreenWidthHeight")
-        val split = layout.split.takeIf {
-            controller.layer == LayerId.LETTERS &&
-                shouldSplit(feel.split, wide, hingeSeparating = hinge != null, phoneLandscape = isPhoneLandscape(configuration.screenWidthDp, configuration.screenHeightDp))
+        val split = layout.splits[layer.id]?.takeIf {
+            shouldSplit(feel.split, wide, hingeSeparating = hinge != null, phoneLandscape = isPhoneLandscape(configuration.screenWidthDp, configuration.screenHeightDp))
         }
         val sidePadding = (if (wide) Dimens.wideSidePadding else Dimens.sidePadding) + extraSidePadding
         // The gaps follow the height setting too: keys shrunk to 80% under full-size gaps read as
