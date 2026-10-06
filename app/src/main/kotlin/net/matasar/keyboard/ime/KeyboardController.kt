@@ -382,8 +382,12 @@ class KeyboardController(
     var wordToAdd: String? by mutableStateOf(null)
         private set
 
-    /** Called with [wordToAdd] when the user taps the offer; the service stores it for the current language. */
-    var onAddWord: ((String) -> Unit)? = null
+    /**
+     * Called with the current language's tag and [wordToAdd] when the user taps the offer; the
+     * service stores it. The tag is the language the word was typed in: a language change drops
+     * the offer.
+     */
+    var onAddWord: ((language: String, word: String) -> Unit)? = null
 
     /**
      * [word] as a word to keep: lowercase when only its first letter is a capital, which a field's
@@ -400,7 +404,7 @@ class KeyboardController(
     fun addWord() {
         val word = wordToAdd ?: return
         wordToAdd = null
-        onAddWord?.invoke(word)
+        onAddWord?.invoke(language.tag, word)
     }
 
     /** The chevron folded the strip away; the next key brings it back. */

@@ -242,10 +242,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
             reportCurrentSubtype(this, language)
         }
         // A word kept from the strip joins the language it was typed in; the words' own flow reloads the list.
-        controller.onAddWord = { word ->
-            val tag = controller.language.tag
-            lifecycleScope.launch { wordStore.set(tag, word, CustomWord.ADDED) }
-        }
+        controller.onAddWord = { tag, word -> lifecycleScope.launch { wordStore.set(tag, word, CustomWord.ADDED) } }
         loadLanguage(controller.language.tag)
         lifecycleRegistry.currentState = Lifecycle.State.CREATED
         watchHinge()

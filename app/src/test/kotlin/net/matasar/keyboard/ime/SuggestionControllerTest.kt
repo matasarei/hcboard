@@ -173,17 +173,17 @@ class SuggestionControllerTest {
 
     @Test
     fun `a kept word the list does not know is offered to the user's words, once`() {
-        val added = mutableListOf<String>()
-        controller.onAddWord = { added += it }
+        val added = mutableListOf<Pair<String, String>>()
+        controller.onAddWord = { language, word -> added += language to word }
         textField()
         type("chek")
         controller.pickCandidate("chek")
         assertEquals("chek", controller.wordToAdd)
         controller.addWord()
-        assertEquals(listOf("chek"), added)
+        assertEquals(listOf(Languages.english.tag to "chek"), added) // for the language it was typed in
         assertNull(controller.wordToAdd)
         controller.addWord() // a second tap has nothing left to add
-        assertEquals(listOf("chek"), added)
+        assertEquals(1, added.size)
     }
 
     @Test
@@ -237,6 +237,16 @@ class SuggestionControllerTest {
         type("chek")
         controller.pickCandidate("chek")
         assertEquals("chek", controller.wordToAdd) // the next field without the flag learns again
+    }
+
+    @Test
+    fun `a language change drops the offer, so a word never lands in the wrong language`() {
+        controller.enabledLanguages = setOf(Languages.english.tag, "uk")
+        textField()
+        type("chek")
+        controller.pickCandidate("chek")
+        controller.switchLanguage(Languages.byTag("uk")!!)
+        assertNull(controller.wordToAdd)
     }
 
     @Test
