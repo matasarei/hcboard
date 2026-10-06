@@ -15,6 +15,18 @@ Moved here from `CLAUDE.md`, which points to this file; the rules are unchanged.
 - **Every other list** has its own chat overlay, `scripts/wordlists/<language>-everyday.tsv`, with
   tiers matched to its corpus's scale: ru 175/155/135, bg 255/230/210, the rest 200/180/165.
   German nouns keep their capital.
+- **Russian and Ukrainian IT and chat words** (коммит, задеплоить, фича, крінж) come in every form,
+  because a list holding one form of a word corrects the others back to it (фичу to фича). They
+  are written as lemmas with a paradigm class in `scripts/wordlists/<ru|uk>-tech.lemmas.tsv`, and
+  `scripts/expand-paradigms.py` writes their forms into `<ru|uk>-tech.tsv` (generated, never
+  edited; its classes, `!form` exclusions and `--self-test` are in its docstring). A lemma keeps
+  its tier and its other forms rank `--form-step` below it (ru 20, uk 45): being known is what
+  stops a correction, and a form ranked higher wins the correction of a common word's typo (мему
+  for тему). With `--asset` it refuses an е spelling of a ё word and prints the short forms that
+  outrank a common one-edit neighbour.
+- `app/src/test/resources/chat-probe/` holds the words each of ru, uk and en must know and never
+  correct, and the typos of common words that must still correct (`ChatVocabularyTest`). A word
+  found missing goes into the probe first, then into the overlay.
 
 ## Words with apostrophes
 
@@ -26,8 +38,8 @@ Moved here from `CLAUDE.md`, which points to this file; the rules are unchanged.
 - **Ukrainian:** Helium314's frequencies for apostrophe words are flat (almost all 10) or shared
   by a family of forms, so `scripts/uk-apostrophe-words.py <main_uk.combined>` writes
   `scripts/wordlists/uk-apostrophe.tsv`, every one at 70 (just above the list's floor), and
-  `uk-everyday.tsv` gives the everyday ones their tiers. Rebuild with both boosts:
-  `scripts/build-wordlist.py <uk.txt> <uk.txt> --floor 0 --boost scripts/wordlists/uk-everyday.tsv --boost scripts/wordlists/uk-apostrophe.tsv`.
+  `uk-everyday.tsv` gives the everyday ones their tiers. Rebuild with every boost:
+  `scripts/build-wordlist.py <uk.txt> <uk.txt> --floor 0 --max 90000 --boost scripts/wordlists/uk-everyday.tsv --boost scripts/wordlists/uk-apostrophe.tsv --boost scripts/wordlists/uk-tech.tsv`.
   A boost only raises: to lower a word, rebuild from the list as it was before.
 - After a rebuild, `grep -v "'"` of the new list must equal the old list.
 
@@ -36,6 +48,11 @@ Moved here from `CLAUDE.md`, which points to this file; the rules are unchanged.
 - **Regenerate, never hand-edit.** The builder reads a shipped asset as its source, so
   `scripts/build-wordlist.py <asset> <asset> --boost <the tsv>` rebuilds it. `bg.txt` needs
   `--floor 0`: its frequencies go down to 2.
+- `ru.txt` and `uk.txt` hold more than the default `--max 80000` words once an overlay adds to
+  them, so rebuild them with `--max 90000`, or the words at the floor (квота, розумне) fall out
+  and are then corrected away. Russian:
+  `scripts/build-wordlist.py <ru.txt> <ru.txt> --max 90000 --boost scripts/wordlists/ru-everyday.tsv --boost scripts/wordlists/ru-tech.tsv`,
+  then `ru_bg.txt` (below). After editing a lemma file, run `expand-paradigms.py` first.
 - Each `*OverlayTest` (on `DictionaryOverlayTest`) fails when an asset drifts below its overlay. The
   test task does not track `scripts/wordlists/`, so run it with `--rerun` after editing only an
   overlay.
