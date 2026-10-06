@@ -52,7 +52,11 @@ internal fun spokenKey(
         KeyAction.SwitchLanguage ->
             return globeTarget?.let { Spoken.NamedFor(R.string.a11y_key_switch_to, it) } ?: Spoken.Named(R.string.a11y_key_next_language)
         KeyAction.Backspace -> if (iconShown) return Spoken.Named(R.string.a11y_key_backspace)
-        is KeyAction.Modifier -> return Spoken.Named(modifierName(action.modifier))
+        // A modifier with an Fn meaning (Alt as Meta) is named for what it shows: Meta while Fn is on.
+        is KeyAction.Modifier -> {
+            val viaFn = (key.fnAction as? KeyAction.Modifier)?.modifier?.takeIf { shown == key.fnLegend }
+            return Spoken.Named(modifierName(viaFn ?: action.modifier))
+        }
         is KeyAction.SwitchLayer -> return Spoken.Named(
             when (action.layer) {
                 LayerId.LETTERS -> R.string.a11y_key_letters

@@ -38,6 +38,9 @@ data class Modifiers(
     /** A key went out with these modifiers: one-shots release, locked and held stay. */
     fun consume(): Modifiers = copy(latches = latches.mapValues { it.value.consume() })
 
+    /** The same for [key] alone: a one-shot releases, a locked one stays. */
+    fun consume(key: ModifierKey): Modifiers = copy(latches = latches + (key to latch(key).consume()))
+
     fun releaseAll(): Modifiers = Modifiers()
 
     /** The KeyEvent meta flags for the active modifiers. Fn has none: it is translated instead. */

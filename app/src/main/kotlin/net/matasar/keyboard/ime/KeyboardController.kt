@@ -481,6 +481,12 @@ class KeyboardController(
     /** Held modifiers whose long press wants to lock them; decided when the finger lifts. */
     private val pendingLocks = mutableSetOf<ModifierKey>()
 
+    /**
+     * Modifier keys pressed while Fn gave them another meaning (Alt as Meta), by key id: the
+     * release and the tap that follow the press go to the same modifier, though Fn is spent by then.
+     */
+    private val pressedAs = mutableMapOf<String, ModifierKey>()
+
     /** Shift is on, by the latch or the strip's modifier: the key would type its shifted symbol. */
     val shiftActive: Boolean get() = shift.active || modifiers.isActive(ModifierKey.SHIFT)
 
@@ -549,6 +555,7 @@ class KeyboardController(
         modifiers = Modifiers()
         usedHolds.clear()
         pendingLocks.clear()
+        pressedAs.clear()
         editorActionId = info?.let { editorActionFor(it.imeOptions, it.inputType) }
         // A new field, so the previous app's answer does not carry: the service restores this
         // one's a moment later, and until it does the app's own request stands.
@@ -579,6 +586,7 @@ class KeyboardController(
         modifiers = Modifiers()
         usedHolds.clear()
         pendingLocks.clear()
+        pressedAs.clear()
         endTrackpad()
         suggestions = emptyList()
         managerSheetOpen = false
@@ -754,7 +762,17 @@ class KeyboardController(
             return
         }
         val fnAction = key.fnAction
-        if (modifiers.isActive(ModifierKey.FN) && fnAction != null) perform(key, fnAction) else perform(key, key.action)
+        val pressedModifier = pressedAs.remove(key.id)
+        when {
+            pressedModifier != null -> perform(key, KeyAction.Modifier(pressedModifier))
+            modifiers.isActive(ModifierKey.FN) && fnAction is KeyAction.Modifier -> {
+                // A click with no press before it (TalkBack): Fn is spent on the meaning here.
+                spendFn()
+                perform(key, fnAction)
+            }
+            modifiers.isActive(ModifierKey.FN) && fnAction != null -> perform(key, fnAction)
+            else -> perform(key, key.action)
+        }
         // A combination modifier or the trackpad takes the strip away; the chip has the toolbar then.
         if (modifiers.anyMetaActive || trackpad) candidates = null
     }
@@ -885,8 +903,34 @@ class KeyboardController(
         refreshAutoCapital()
     }
 
+    /** The modifier [key] stands for right now: its Fn meaning while Fn is active (Alt is Meta then), else its own. */
+    fun modifierFor(key: Key): ModifierKey? {
+        val viaFn = (key.fnAction as? KeyAction.Modifier)?.modifier?.takeIf { modifiers.isActive(ModifierKey.FN) }
+        return viaFn ?: (key.action as? KeyAction.Modifier)?.modifier
+    }
+
+    /**
+     * Fn went into a modifier's Fn meaning (Alt as Meta), so it is used up: a one-shot or held Fn
+     * lets go, or the next key would take its Fn meaning too (Meta+F1 for Meta+1). A locked Fn
+     * stays locked: that was asked for.
+     */
+    private fun spendFn() {
+        if (ModifierKey.FN in modifiers.held) {
+            modifiers = modifiers.releaseHold(ModifierKey.FN)
+            usedHolds += ModifierKey.FN
+        }
+        modifiers = modifiers.consume(ModifierKey.FN)
+    }
+
     /** A finger lands on a modifier: it is held until the finger lifts (chording). */
-    fun onModifierPressStart(modifier: ModifierKey) {
+    fun onModifierPressStart(key: Key) {
+        val modifier = modifierFor(key) ?: return
+        if (modifier != (key.action as? KeyAction.Modifier)?.modifier) {
+            pressedAs[key.id] = modifier
+            spendFn()
+        } else {
+            pressedAs.remove(key.id)
+        }
         modifiers = modifiers.hold(modifier)
         refreshAutoCapital()
     }
@@ -895,7 +939,8 @@ class KeyboardController(
      * The finger lifts. After a short press the gesture's tap follows (ignored if another key
      * used the hold). After a long press no tap follows: lock now, unless the hold was a chord.
      */
-    fun onModifierPressEnd(modifier: ModifierKey) {
+    fun onModifierPressEnd(key: Key) {
+        val modifier = pressedAs[key.id] ?: (key.action as? KeyAction.Modifier)?.modifier ?: return
         modifiers = modifiers.releaseHold(modifier)
         if (pendingLocks.remove(modifier)) {
             val chorded = usedHolds.remove(modifier)
@@ -942,12 +987,14 @@ class KeyboardController(
                 refreshAutoCapital()
             }
             // A held modifier waits for the finger to lift: the hold may still be a chord.
-            is KeyAction.Modifier ->
-                if (action.modifier in modifiers.held) pendingLocks += action.modifier
+            is KeyAction.Modifier -> {
+                val modifier = pressedAs[key.id] ?: action.modifier
+                if (modifier in modifiers.held) pendingLocks += modifier
                 else {
-                    modifiers = modifiers.longPress(action.modifier)
+                    modifiers = modifiers.longPress(modifier)
                     refreshAutoCapital()
                 }
+            }
             else -> Unit
         }
     }

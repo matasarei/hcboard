@@ -70,6 +70,15 @@ class KeySpeechTest {
     }
 
     @Test
+    fun `alt is named meta while fn shows it as meta, and the page keys are named`() {
+        val alt = Key("Alt", KeyAction.Modifier(ModifierKey.ALT), fnLegend = "Meta", fnAction = KeyAction.Modifier(ModifierKey.META))
+        assertEquals(Spoken.Named(R.string.a11y_key_meta), spokenKey(alt, "Meta", iconShown = false))
+        assertEquals(Spoken.Named(R.string.a11y_key_alt), spokenKey(alt, "Alt", iconShown = false))
+        val page = net.matasar.keyboard.layout.SixtyPercentLayer.rows[1].keys.last()
+        assertEquals(Spoken.Named(R.string.a11y_key_symbols), spokenKey(page, page.label, iconShown = false))
+    }
+
+    @Test
     fun `space with no language on it still says Space, never nothing`() {
         val space = letters.first { it.action == KeyAction.Space }
         assertEquals("", controller.displayLabel(space))

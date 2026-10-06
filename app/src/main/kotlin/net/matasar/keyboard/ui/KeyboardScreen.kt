@@ -386,14 +386,14 @@ private class KeyScreenCallbacks(
     var wideBoard = false
 
     override fun onPressStart(key: Key, bounds: Rect) {
-        (key.action as? KeyAction.Modifier)?.let { controller.onModifierPressStart(it.modifier) }
+        if (key.action is KeyAction.Modifier) controller.onModifierPressStart(key)
         if (feel.previews && !controller.passwordField && key.showsPreview() && !controller.repeats(key)) {
             popups.preview = PressPreview(bounds, controller.displayLabel(key))
         }
     }
 
     override fun onPressEnd(key: Key) {
-        (key.action as? KeyAction.Modifier)?.let { controller.onModifierPressEnd(it.modifier) }
+        if (key.action is KeyAction.Modifier) controller.onModifierPressEnd(key)
         popups.preview = null
     }
 
