@@ -323,6 +323,12 @@ class KeyboardController(
     /** Whether the field's input type lets candidates be read and shown. */
     private var fieldAllowsSuggestions = true
 
+    /**
+     * Whether the field lets the keyboard learn from what is typed in it: an incognito tab sets
+     * IME_FLAG_NO_PERSONALIZED_LEARNING, and then the strip never offers to keep a word.
+     */
+    private var fieldAllowsLearning = true
+
     /** Setting: a quick second Space after a word types ". ", as on the iPhone. */
     var doubleSpacePeriod: Boolean = true
 
@@ -368,7 +374,8 @@ class KeyboardController(
     /**
      * A word the user kept as typed by tapping it in the strip, which the list does not know: the
      * strip offers to add it to their words until the next key, glide or field. Only from that
-     * tap, and only where candidates may be shown, so never from a password field.
+     * tap, only where candidates may be shown (never a password field), and never in a field that
+     * asks for no personalized learning (an incognito tab).
      */
     var wordToAdd: String? by mutableStateOf(null)
         private set
@@ -726,6 +733,7 @@ class KeyboardController(
      */
     fun updateFieldSuggestions(info: EditorInfo?) {
         fieldInputType = info?.inputType
+        fieldAllowsLearning = info?.let { it.imeOptions and EditorInfo.IME_FLAG_NO_PERSONALIZED_LEARNING == 0 } ?: true
         fieldOverridable = info?.let { noSuggestionsOverridable(it.inputType) } ?: false
         applySuggestionRules()
     }
@@ -1108,7 +1116,7 @@ class KeyboardController(
         // word the list lacks may be added to the user's own.
         if (word == current.typed) {
             decline(word)
-            if (suggestionsAvailable && candidateEngine?.knows(word) == false) wordToAdd = CustomWord.normalize(asTyped(word))
+            if (suggestionsAvailable && fieldAllowsLearning && candidateEngine?.knows(word) == false) wordToAdd = CustomWord.normalize(asTyped(word))
         }
         // The field may have changed under the strip; replace only what is still there.
         if (dispatcher.textEndsWith(current.typed)) {

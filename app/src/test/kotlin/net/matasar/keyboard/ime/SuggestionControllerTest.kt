@@ -224,6 +224,22 @@ class SuggestionControllerTest {
     }
 
     @Test
+    fun `nothing is offered in a field that asks for no personalized learning`() {
+        controller.onStartInput(EditorInfo().apply {
+            inputType = InputType.TYPE_CLASS_TEXT
+            imeOptions = EditorInfo.IME_FLAG_NO_PERSONALIZED_LEARNING
+        })
+        type("chek")
+        assertNotNull(controller.candidates) // suggestions still show in an incognito tab
+        controller.pickCandidate("chek")
+        assertNull(controller.wordToAdd)
+        controller.onRestartInput(EditorInfo().apply { inputType = InputType.TYPE_CLASS_TEXT })
+        type("chek")
+        controller.pickCandidate("chek")
+        assertEquals("chek", controller.wordToAdd) // the next field without the flag learns again
+    }
+
+    @Test
     fun `nothing is offered where candidates are not shown`() {
         textField(InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD)
         type("chek")
