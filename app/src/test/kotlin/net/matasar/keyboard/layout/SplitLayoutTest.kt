@@ -42,7 +42,7 @@ class SplitLayoutTest {
     }
 
     @Test
-    fun `english halves are the balanced board's`() {
+    fun `english halves cut the board after 6, t, g and v`() {
         val split = splitLayer(Languages.english, withGlobe = true)
         assertEquals(7.25f, split.left.units)
         // The digits no longer set the right half's width: the Y row does, half a key narrower.
