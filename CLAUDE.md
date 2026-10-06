@@ -58,7 +58,10 @@ emulator profile is `medium_phone`; boot it headless with
 - **Modifier semantics** (`input/ModifierState.kt`, `ime/KeyboardController.kt`): tap arms for one
   key, double tap or long press locks, holding and tapping another key chords; modifiers persist
   across layer switches and reset only on a new field. Ctrl+A/C/V/X in ordinary text fields use
-  `performContextMenuAction`; in `TYPE_NULL` fields (terminals) they stay key events.
+  `performContextMenuAction`; in `TYPE_NULL` fields (terminals) they stay key events. The wide
+  board has one of each: Fn on the left, Alt and Ctrl on the right; Meta is its own key only
+  without the globe, and otherwise Fn+Alt (`KeyboardController.modifierFor`: a press resolves it
+  once by key id, and Fn is spent on it, unless locked).
 - **Macros** (`macro/`): a stack of blocks (text, key or combination by name, random keys, repeat,
   wait, paste, copy field) kept as JSON (kotlinx.serialization) in their own DataStore, `macros`, apart from
   the settings. `MacroRunner` plays them through `InputDispatcher` only: repeats are unrolled and
@@ -129,8 +132,8 @@ emulator profile is `medium_phone`; boot it headless with
   row, Shift and backspace take 1 to 1.5 units and a short row opens a gap beside them
   (`Row.innerGapUnits`). The
   bottom row, the same on every page and in every language (widths are shares of the board,
-  scaled from ten units), is 123 or ABC, comma (`@` or `/` in address fields, `FieldMarks`), the
-  globe, space, period and a wide return; a quick double space after a word types ". "
+  scaled from ten units), is 123 or ABC, the globe, comma (`@` or `/` in address fields,
+  `FieldMarks`) by the space bar, space, period and a wide return; a quick double space after a word types ". "
   (`KeyboardController.periodShortcut`, prose fields only, the `doubleSpacePeriod` setting); the
   symbol pages are the iPhone's 123 and #+= (`LayerId.CODE`).
   Bulgarian has two boards, Phonetic (default) and Standard/БДС (`Settings.bulgarianLayout`,
@@ -164,13 +167,18 @@ emulator profile is `medium_phone`; boot it headless with
   digit row. The 60% board is
   built from the same data (`layout/SixtyPercentLayout.kt`): letters fill the ANSI slots of
   `AnsiSlots.rows` left to right, a letter on a punctuation slot carries that punctuation on Fn,
-  and a nine-letter Shift row shrinks both Shifts to keep `.` and `/` (eight letters in Bulgarian leave standard shifts and punctuation). Ukrainian and Russian fill
+  and the board is shaped for thumbs: the bottom row is the phone's (Fn where it has 123, the
+  globe or Meta, comma, space, period, Alt, Ctrl), the Shift row is ``Shift \| letters / `~ Shift``
+  (`\|` where ISO boards have a key; a nine-letter row takes half a unit from the left
+  Shift), the top row ends with `€±`, which opens `sixtyPercentSymbolsLayer` (the same geometry,
+  symbols the board has no key for, `ABC` to come back), and Esc is only Esc. Ukrainian and Russian fill
   all twelve top-row slots (ї, ъ), while Bulgarian fills eleven (ч on `[`), so `[` and `]` are Fn or punctuation keys. Every
   letter key carries `Key.slot`, the US character of its slot: modifier combinations send the slot
   (Ctrl+С is Ctrl+C) and `displayLabel` shows it while Ctrl, Alt or Meta is active.
-  The wide board splits (`layout/SplitLayout.kt`) by cutting the balanced board after its sixth
-  key per row (the seventh on the digits, so 6 is on the left), every key at its full-board
-  width, the rows padded on the inner side;
+  The wide board splits (`layout/SplitLayout.kt`), each page on its own (`KeyboardLayout.splits`),
+  by cutting it after its sixth key per row (the seventh on the digits, so 6 is on the left; on
+  the Shift row the six end at V, so B is under the right hand) and the bottom row at its space
+  bar, every key at its full-board width, the rows padded on the inner side;
   `ui/SplitGeometry.kt` decides when (Off/Auto/Always; Auto = a separating vertical hinge from
   androidx.window, or a landscape window under 480 dp high) and sizes the unit so no key lands on
   a hinge.
@@ -193,7 +201,8 @@ emulator profile is `medium_phone`; boot it headless with
   accent)` is the one place the choices become colours, for the keyboard and every screen.
 - **A key is a legend line and a glyph** (`ui/KeyButton.kt`), never a stack of paddings: the
   shifted symbol sits top-left, the Fn meaning top-right only when it is a symbol, both of the pair
-  (`[{`, `` `~ ``; `printedFnLegend`) — named meanings (F1, arrows, Home, Del) show as the glyph
+  (`[{`, `,<`; `printedFnLegend`), each in at most half the key's width and shrinking rather than
+  overlapping (a glyph on a key under one unit fits its width too) — named meanings (F1, arrows, Home, Del) show as the glyph
   while Fn is active — and the glyph fills what is left.
   Nothing is dropped on a short key — both zones are sized from the key's own height by the
   functions in `ui/Dimens.kt`, because the height setting starts at 80% (a 36.8 dp key) and a
