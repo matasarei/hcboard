@@ -172,6 +172,92 @@ class SuggestionControllerTest {
     }
 
     @Test
+    fun `a kept word the list does not know is offered to the user's words, once`() {
+        val added = mutableListOf<Pair<String, String>>()
+        controller.onAddWord = { language, word -> added += language to word }
+        textField()
+        type("chek")
+        controller.pickCandidate("chek")
+        assertEquals("chek", controller.wordToAdd)
+        controller.addWord()
+        assertEquals(listOf(Languages.english.tag to "chek"), added) // for the language it was typed in
+        assertNull(controller.wordToAdd)
+        controller.addWord() // a second tap has nothing left to add
+        assertEquals(1, added.size)
+    }
+
+    @Test
+    fun `a word capitalised only at its start is offered in lowercase, mixed case as typed`() {
+        textField()
+        controller.onKey(keys.first { it.action == KeyAction.Shift })
+        type("chek")
+        controller.pickCandidate("Chek")
+        assertEquals("chek", controller.wordToAdd) // the capital was the sentence's, not the word's
+        controller.onKey(space)
+        port.before += "ChEk"
+        controller.onSelectionChanged()
+        controller.pickCandidate("ChEk")
+        assertEquals("ChEk", controller.wordToAdd)
+    }
+
+    @Test
+    fun `nothing is offered for a known word, a picked candidate, or after the next key`() {
+        textField()
+        type("spell")
+        controller.pickCandidate("spell")
+        assertNull(controller.wordToAdd) // known already
+        controller.onKey(space)
+        type("chek")
+        controller.pickCandidate("check")
+        assertNull(controller.wordToAdd) // a candidate, not the typed word
+        controller.onKey(space)
+        type("chek")
+        controller.pickCandidate("chek")
+        assertEquals("chek", controller.wordToAdd)
+        controller.onKey(space)
+        assertNull(controller.wordToAdd) // only until the next key
+        type("chek")
+        controller.pickCandidate("chek")
+        controller.onFinishInput()
+        textField()
+        assertNull(controller.wordToAdd) // nor into the next field
+    }
+
+    @Test
+    fun `nothing is offered in a field that asks for no personalized learning`() {
+        controller.onStartInput(EditorInfo().apply {
+            inputType = InputType.TYPE_CLASS_TEXT
+            imeOptions = EditorInfo.IME_FLAG_NO_PERSONALIZED_LEARNING
+        })
+        type("chek")
+        assertNotNull(controller.candidates) // suggestions still show in an incognito tab
+        controller.pickCandidate("chek")
+        assertNull(controller.wordToAdd)
+        controller.onRestartInput(EditorInfo().apply { inputType = InputType.TYPE_CLASS_TEXT })
+        type("chek")
+        controller.pickCandidate("chek")
+        assertEquals("chek", controller.wordToAdd) // the next field without the flag learns again
+    }
+
+    @Test
+    fun `a language change drops the offer, so a word never lands in the wrong language`() {
+        controller.enabledLanguages = setOf(Languages.english.tag, "uk")
+        textField()
+        type("chek")
+        controller.pickCandidate("chek")
+        controller.switchLanguage(Languages.byTag("uk")!!)
+        assertNull(controller.wordToAdd)
+    }
+
+    @Test
+    fun `nothing is offered where candidates are not shown`() {
+        textField(InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD)
+        type("chek")
+        controller.pickCandidate("chek")
+        assertNull(controller.wordToAdd)
+    }
+
+    @Test
     fun `tapping a candidate replaces the word in one batch and owes a space after it`() {
         textField()
         type("spel")

@@ -78,7 +78,9 @@ emulator profile is `medium_phone`; boot it headless with
   The editor is `MacrosActivity`; the keyboard only plays, from `ui/MacroSheet.kt`.
 - **Glide typing:** `input/glide/GlideClassifier.kt` is an approved Apache-2.0 copy of FlorisBoard's
   classifier with its header kept; do not "clean it up". Word lists live in `assets/dictionaries/`;
-  how they are built, overlaid and rebuilt (regenerate, never hand-edit) is in `docs/wordlists.md`.
+  how they are built, overlaid and rebuilt (regenerate, never hand-edit) is in `docs/wordlists.md`;
+  Russian and Ukrainian IT and chat words are lemmas expanded into every form
+  (`scripts/expand-paradigms.py`), and `ChatVocabularyTest` holds the words ru, uk and en must keep.
   The same lists feed `nlp/Candidates.kt` (prefix completions and one-edit corrections for the word
   before the cursor, read through `InputDispatcher.wordBeforeCursor`): there is no composing region
   on purpose, words are replaced with delete-and-commit in one batch, and nothing is read in a
@@ -114,7 +116,10 @@ emulator profile is `medium_phone`; boot it headless with
   applied when a list loads (`WordList.withOverrides`, 0 removes the word), keyed by the language
   tag so `ru` words reach `ru_bg` too, never written into the assets. The service clears its
   engine cache and reloads the current language when they change; a version counter drops a
-  list that was still loading with the old words.
+  list that was still loading with the old words. A word is added on the screen, or from the strip:
+  tapping the typed word when the list lacks it offers `Add “word”` (`KeyboardController.wordToAdd`)
+  until the next key, only from that tap and only where candidates show. The screen searches a
+  language's words once it has more than `CustomWord.SEARCH_FROM`.
 - **Backup** (`backup/`, UI in `settings/BackupSection.kt`): one JSON file (`"format":
   "hcboard-backup"`, version 1) with `Settings` (serializable; `Settings.sanitized()` clamps a
   restored one), custom words and macros, through the system file picker only. Secret texts are

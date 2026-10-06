@@ -29,6 +29,18 @@ class CustomWordsTest {
     }
 
     @Test
+    fun `a search finds words containing it, ignoring case and the apostrophe's style`() {
+        val entries = mapOf("Kubectl" to 230, "kotlin" to 230, "розв'язок" to 230, "ducking" to 0).entries.toList()
+        fun found(query: String) = CustomWord.matching(entries, query).map { it.key }
+        assertEquals(listOf("Kubectl", "kotlin", "розв'язок", "ducking"), found("  "))
+        assertEquals(listOf("Kubectl"), found("KUBE"))
+        assertEquals(listOf("Kubectl", "kotlin", "ducking"), found("k"))
+        assertEquals(listOf("розв'язок"), found("розвʼяз"))
+        assertEquals(listOf("розв'язок"), found(" в’я "))
+        assertEquals(emptyList(), found("python"))
+    }
+
+    @Test
     fun `words survive a round trip`() {
         val words: CustomWords = mapOf("en_US" to mapOf("kubectl" to 230, "ducking" to 0), "uk" to mapOf("вайбкодинг" to 230))
         assertEquals(words, CustomWordsJson.decode(CustomWordsJson.encode(words)))

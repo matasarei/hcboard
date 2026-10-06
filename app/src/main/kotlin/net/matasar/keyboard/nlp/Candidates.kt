@@ -37,12 +37,18 @@ class Candidates(private val list: WordList) {
         list.completions("a", 1)
     }
 
+    /** Whether the list knows [typed], in its case or in lowercase, with any apostrophe. */
+    fun knows(typed: String): Boolean {
+        val stored = Apostrophes.normalize(typed)
+        return list.contains(stored.lowercase()) || list.contains(stored)
+    }
+
     /** Candidates for [typed], or null when it is empty or nothing but the word itself is known. */
     fun forWord(typed: String): WordCandidates? {
         if (typed.isEmpty()) return null
         val stored = Apostrophes.normalize(typed)
         val key = stored.lowercase()
-        val known = list.contains(key) || list.contains(stored)
+        val known = knows(typed)
         // A trailing apostrophe may be a closing quote ('hello'): complete it, never correct it.
         val quoteAtEnd = Apostrophes.isApostrophe(typed.last())
         val corrections = if (known || quoteAtEnd) emptyList() else corrections(key)

@@ -15,10 +15,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import net.matasar.keyboard.R
 import net.matasar.keyboard.nlp.Candidates
 import net.matasar.keyboard.nlp.WordCandidates
 import net.matasar.keyboard.ui.theme.LocalKeyboardColors
@@ -64,6 +66,32 @@ fun CandidateStrip(candidates: WordCandidates, onPick: (String) -> Unit, modifie
                 }
             }
         }
+    }
+}
+
+/**
+ * The offer after the user kept a word the list does not know by tapping it: one tap adds it to
+ * their words for this language, as AOSP's keyboard offers to save it. It lasts until the next key.
+ */
+@Composable
+fun AddWordOffer(word: String, onAdd: () -> Unit, modifier: Modifier = Modifier) {
+    val colors = LocalKeyboardColors.current
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(32.dp)
+            .clip(RoundedCornerShape(8.dp))
+            .clickable(onClick = onAdd)
+            .padding(horizontal = 8.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        BasicText(
+            text = stringResource(R.string.strip_add_word, word),
+            style = LocalTextStyle.current.copy(color = colors.armedRing, fontWeight = FontWeight.Medium),
+            maxLines = 1,
+            overflow = TextOverflow.MiddleEllipsis,
+            autoSize = TextAutoSize.StepBased(minFontSize = MIN_FONT_SIZE, maxFontSize = 16.sp, stepSize = 1.sp),
+        )
     }
 }
 

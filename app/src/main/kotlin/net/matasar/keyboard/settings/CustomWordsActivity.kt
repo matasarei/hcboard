@@ -29,6 +29,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -83,6 +84,7 @@ private fun CustomWordsScreen(settings: Settings, words: CustomWords, store: Cus
         ?: languages.firstOrNull()
         ?: return
     var input by rememberSaveable { mutableStateOf("") }
+    var query by rememberSaveable { mutableStateOf("") }
     val word = CustomWord.normalize(input)
     fun save(frequency: Int) {
         val clean = word ?: return
@@ -103,7 +105,7 @@ private fun CustomWordsScreen(settings: Settings, words: CustomWords, store: Cus
         if (languages.size > 1) {
             FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 for (option in languages) {
-                    FilterChip(selected = option == language, onClick = { chosen = option.tag }, label = { Text(option.nativeName) })
+                    FilterChip(selected = option == language, onClick = { chosen = option.tag; query = "" }, label = { Text(option.nativeName) })
                 }
             }
         }
@@ -130,7 +132,25 @@ private fun CustomWordsScreen(settings: Settings, words: CustomWords, store: Cus
         if (entries.isEmpty()) {
             Text(stringResource(R.string.words_empty), color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
-        for ((entry, frequency) in entries) {
+        // A short list reads at a glance; a long one, filled from the strip a word at a time, needs finding in.
+        val searching = entries.size > CustomWord.SEARCH_FROM
+        // A list shrunk back under the threshold drops its query, or the field would come back already filtered.
+        LaunchedEffect(searching) { if (!searching) query = "" }
+        if (searching) {
+            OutlinedTextField(
+                value = query,
+                onValueChange = { query = it },
+                label = { Text(stringResource(R.string.words_search)) },
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(autoCorrectEnabled = false, imeAction = ImeAction.Search),
+                modifier = Modifier.fillMaxWidth(),
+            )
+        }
+        val shown = if (searching) CustomWord.matching(entries, query) else entries
+        if (searching && shown.isEmpty()) {
+            Text(stringResource(R.string.words_no_match, query.trim()), color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+        for ((entry, frequency) in shown) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(entry, style = MaterialTheme.typography.titleMedium)

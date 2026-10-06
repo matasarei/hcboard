@@ -184,6 +184,7 @@
     <string name="languages_globe_tap_last_used">Last used</string>
     <string name="languages_globe_tap_next">Next language</string>
     <string name="languages_globe_tap_hint">Last used goes back to the language you came from, and more taps in a row go on through the rest, as on an iPhone; Next language always goes on to the next one. Hold the globe for the full list.</string>
+    <string name="strip_add_word">Add “%1$s” to your words</string>
     <string name="words_title">Custom words</string>
     <string name="words_hint">Added words are suggested, glide-typed and never corrected away. Blocked words are never suggested or used as corrections. Each language has its own list. Add a word in lowercase unless it always starts with a capital: a capitalised word is offered only when you start it with one.</string>
     <string name="words_field">A word in %1$s</string>
@@ -191,6 +192,8 @@
     <string name="words_add">Add</string>
     <string name="words_block">Block</string>
     <string name="words_empty">No words of your own in this language yet.</string>
+    <string name="words_search">Search your words</string>
+    <string name="words_no_match">No word contains “%1$s”</string>
     <string name="words_added">Added</string>
     <string name="words_blocked">Blocked</string>
     <string name="words_delete">Delete %1$s</string>

@@ -129,8 +129,13 @@ fun KeyboardScreen(
                     collapsible = controller.toolbarFolds(wide),
                     expanded = controller.toolbarExpanded,
                     onExpand = controller::expandToolbar,
-                    // The password manager's chips win the toolbar; word candidates take it next.
-                    center = if (controller.suggestions.isNotEmpty()) ({ SuggestionStrip(controller.suggestions) }) else null,
+                    // The password manager's chips win the toolbar; word candidates take it next, and
+                    // the offer to add a kept word stands in the middle once they are gone.
+                    center = when {
+                        controller.suggestions.isNotEmpty() -> ({ SuggestionStrip(controller.suggestions) })
+                        chipText == null -> controller.wordToAdd?.let { word -> { AddWordOffer(word, controller::addWord) } }
+                        else -> null
+                    },
                     candidates = controller.candidates.takeIf { controller.suggestions.isEmpty() && chipText == null && !controller.candidatesCollapsed },
                     onPickCandidate = controller::pickCandidate,
                     onCollapseCandidates = controller::collapseCandidates,

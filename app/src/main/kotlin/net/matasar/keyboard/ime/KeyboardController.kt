@@ -49,6 +49,7 @@ import kotlin.random.Random
 import kotlin.random.asKotlinRandom
 import net.matasar.keyboard.nlp.Apostrophes
 import net.matasar.keyboard.nlp.Candidates
+import net.matasar.keyboard.nlp.CustomWord
 import net.matasar.keyboard.nlp.WordCandidates
 import net.matasar.keyboard.settings.GlobeTap
 
@@ -322,6 +323,12 @@ class KeyboardController(
     /** Whether the field's input type lets candidates be read and shown. */
     private var fieldAllowsSuggestions = true
 
+    /**
+     * Whether the field lets the keyboard learn from what is typed in it: an incognito tab sets
+     * IME_FLAG_NO_PERSONALIZED_LEARNING, and then the strip never offers to keep a word.
+     */
+    private var fieldAllowsLearning = true
+
     /** Setting: a quick second Space after a word types ". ", as on the iPhone. */
     var doubleSpacePeriod: Boolean = true
 
@@ -364,6 +371,42 @@ class KeyboardController(
     var candidates: WordCandidates? by mutableStateOf(null)
         private set
 
+    /**
+     * A word the user kept as typed by tapping it in the strip, which the list does not know: the
+     * strip offers to add it to their words until the next key, glide or field. Only from that
+     * tap, only where candidates may be shown (never a password field), and never in a field that
+     * asks for no personalized learning (an incognito tab).
+     * A word the user blocked is not in the list either, so it is offered too: tapping the offer
+     * is the user taking the block back, as adding it on the Custom words screen would be.
+     */
+    var wordToAdd: String? by mutableStateOf(null)
+        private set
+
+    /**
+     * Called with the current language's tag and [wordToAdd] when the user taps the offer; the
+     * service stores it. The tag is the language the word was typed in: a language change drops
+     * the offer.
+     */
+    var onAddWord: ((language: String, word: String) -> Unit)? = null
+
+    /**
+     * [word] as a word to keep: lowercase when only its first letter is a capital, which a field's
+     * auto-capital or a sentence start puts there (AOSP's keyboard saves it so too), because a
+     * capitalised custom word is known only when typed with its capital. Kubectl -> kubectl, but
+     * GitHub and NASA stay as typed.
+     */
+    private fun asTyped(word: String): String {
+        val rest = word.drop(1)
+        return if (word.first().isUpperCase() && rest.none { it.isUpperCase() }) word.lowercase() else word
+    }
+
+    /** The strip's offer was tapped: add the word to the user's own words. */
+    fun addWord() {
+        val word = wordToAdd ?: return
+        wordToAdd = null
+        onAddWord?.invoke(language.tag, word)
+    }
+
     /** The chevron folded the strip away; the next key brings it back. */
     var candidatesCollapsed: Boolean by mutableStateOf(false)
         private set
@@ -394,9 +437,10 @@ class KeyboardController(
         toolbarExpanded = true
     }
 
-    /** The keyboard went away: the next time it shows, the strip is folded. */
+    /** The keyboard went away: the next time it shows, the strip is folded and offers nothing to add. */
     fun onKeyboardHidden() {
         toolbarExpanded = false
+        wordToAdd = null
     }
 
     private var lastGlideWord: String? = null
@@ -695,6 +739,7 @@ class KeyboardController(
      */
     fun updateFieldSuggestions(info: EditorInfo?) {
         fieldInputType = info?.inputType
+        fieldAllowsLearning = info?.let { it.imeOptions and EditorInfo.IME_FLAG_NO_PERSONALIZED_LEARNING == 0 } ?: true
         fieldOverridable = info?.let { noSuggestionsOverridable(it.inputType) } ?: false
         applySuggestionRules()
     }
@@ -735,6 +780,7 @@ class KeyboardController(
 
     fun onKey(key: Key) {
         if (key.action != KeyAction.SwitchLanguage) globeTapsInARow = false
+        wordToAdd = null
         passwordTyped = false
         candidatesCollapsed = false
         val undo = lastAutocorrect
@@ -1004,6 +1050,7 @@ class KeyboardController(
     /** A glide ended over the letter keys [keys]: classify off the main thread, then commit the best word. */
     fun onGlideEnd(path: List<GlidePoint>, keys: List<GlideKey>) {
         globeTapsInARow = false
+        wordToAdd = null
         val engine = glideEngine ?: return
         val scope = scope ?: return
         if (!glideAvailable || path.size < 2) return
@@ -1071,8 +1118,12 @@ class KeyboardController(
             refreshAutoCapital()
             return
         }
-        // Keeping the word as typed: the next separator must not correct it after all.
-        if (word == current.typed) decline(word)
+        // Keeping the word as typed: the next separator must not correct it after all, and a
+        // word the list lacks may be added to the user's own.
+        if (word == current.typed) {
+            decline(word)
+            if (suggestionsAvailable && fieldAllowsLearning && candidateEngine?.knows(word) == false) wordToAdd = CustomWord.normalize(asTyped(word))
+        }
         // The field may have changed under the strip; replace only what is still there.
         if (dispatcher.textEndsWith(current.typed)) {
             // The word and its space are one change to the app.
@@ -1191,6 +1242,7 @@ class KeyboardController(
             phantomEnd = null
             lastGlideWord = null
             lastGlideCommit = null
+            wordToAdd = null
         }
         refreshAutoCapital()
         // A glide's own commit moves the cursor too; its alternatives stay until the next key.
@@ -1259,6 +1311,7 @@ class KeyboardController(
 
     private fun clearCandidates() {
         candidates = null
+        wordToAdd = null
         candidatesCollapsed = false
         lastGlideWord = null
         lastGlideCommit = null
