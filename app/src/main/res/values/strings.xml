@@ -192,6 +192,8 @@
     <string name="words_add">Add</string>
     <string name="words_block">Block</string>
     <string name="words_empty">No words of your own in this language yet.</string>
+    <string name="words_search">Search your words</string>
+    <string name="words_no_match">No word contains “%1$s”</string>
     <string name="words_added">Added</string>
     <string name="words_blocked">Blocked</string>
     <string name="words_delete">Delete %1$s</string>
