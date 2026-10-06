@@ -18,8 +18,9 @@ fun splitLayer(language: Language, withGlobe: Boolean): SplitLayer = splitLayer(
 /**
  * A page of the 60% board cut in two: after 6, T, G and V (or what the page has on those slots),
  * every key at its full-board width. The outer edges are flush with the screen and the inner
- * edges keep the rows' stagger, so the letters sit as far from the edge as on the whole board. The bottom row is built for two thumbs, a Space on each half;
- * each Space takes what brings its row to the widest row of its half.
+ * edges keep the rows' stagger, so the letters sit as far from the edge as on the whole board.
+ * The bottom row is built for two thumbs, a Space on each half; each Space takes what brings its
+ * row to the widest row of its half.
  */
 fun splitLayer(whole: Layer): SplitLayer {
     val upper = whole.rows.take(4)
