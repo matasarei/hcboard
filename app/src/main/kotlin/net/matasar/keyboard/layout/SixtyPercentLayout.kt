@@ -112,8 +112,9 @@ private val digitRow: Array<Key> = "1234567890".mapIndexed { i, c ->
  * key visible, shifted symbols printed above the digits and punctuation, F1–F12 and navigation on
  * Fn, the letters and accents of [language] on the ANSI slots. Shaped for thumbs rather than a
  * desk: the edge keys are no wider than they must be (Esc 1, Tab and Backspace 1.25, Caps 1.5,
- * Shift as wide as their row leaves them, a wide Enter 1.75), so the letters get the width; `\|` beside the left Shift moves B under the right hand, the comma and
- * period sit by the space bar as on the phone, and the top row ends with the symbols page key.
+ * a wide Enter 1.75, and the two Shifts sharing what their row leaves), so the letters get the
+ * width; `\|` beside the left Shift moves B under the right hand, the comma and period sit by the
+ * space bar as on the phone, and the top row ends with the symbols page key.
  */
 fun sixtyPercentLayer(language: Language, withGlobe: Boolean) = Layer(
     id = LayerId.LETTERS,
