@@ -59,22 +59,25 @@ private fun wideRow(language: Language, index: Int): List<Key> {
 }
 
 /** How wide every row of the 60% board is, in key units. */
-const val WIDE_UNITS = 14.5f
+const val WIDE_UNITS = 14.25f
+
+/** The widest a Shift gets on the 60% board; a short row opens a gap beside it instead. */
+private const val SHIFT_KEY = 1.5f
 
 /**
  * The Shift row: `\|` beside the left Shift, where ISO boards keep a key, then the letters, `/`,
- * `` `~ `` and the right Shift, which takes what is left. With seven letters (most Latin boards)
- * `` `~ `` is a key and a quarter, so the right Shift is about as wide as the left one; longer rows
- * keep it narrow. The comma and period are on the bottom row by the space bar, so the `,` and
- * `.` slots hold only a letter that sits on them (б and ю, which keep `,<` and `.>` on Fn). Nine
- * letters (Cyrillic) take half a unit from the left Shift.
+ * a narrow `` `~ `` and the right Shift. The comma and period are on the bottom row by the space
+ * bar, so the `,` and `.` slots hold only a letter that sits on them (б and ю, which keep `,<` and
+ * `.>` on Fn). The Shifts are at most [SHIFT_KEY] wide and the same on both sides; a row of seven
+ * or eight letters opens a gap beside each, as the phone board does, rather than growing them.
  */
 private fun wideShiftRow(language: Language): Row {
     val letters = language.rows[2]
     require(letters.length <= 9) { "${language.tag} bottom row has ${letters.length} letters; at most 9 fit" }
-    val keys = listOf(shift(if (letters.length == 9) 1.5f else 2f), dual("\\", "|")) +
-        wideRow(language, 2).take(letters.length) + punctuation('/') + dual("`", "~", width = if (letters.length <= 7) 1.25f else 0.75f)
-    return Row(keys + shift(WIDE_UNITS - keys.units()))
+    val inner = listOf(dual("\\", "|")) + wideRow(language, 2).take(letters.length) + punctuation('/') + dual("`", "~", width = 0.75f)
+    val shift = minOf(SHIFT_KEY, (WIDE_UNITS - inner.units()) / 2f)
+    val gap = (WIDE_UNITS - inner.units() - shift * 2f) / 2f
+    return Row(listOf(shift(shift)) + inner + shift(shift), innerGapUnits = gap)
 }
 
 /** Opens the symbols page; on that page the same place reads ABC and comes back. */
@@ -112,8 +115,8 @@ private val digitRow: Array<Key> = "1234567890".mapIndexed { i, c ->
  * A 60% ANSI board for one language, [WIDE_UNITS] per row, for windows 600 dp and wider: every
  * key visible, shifted symbols printed above the digits and punctuation, F1–F12 and navigation on
  * Fn, the letters and accents of [language] on the ANSI slots. Shaped for thumbs rather than a
- * desk: the left edge keys are no wider than they must be (Esc 1, Tab 1.5, Caps 1.75), so the
- * letters get the width; `\|` beside the left Shift moves B under the right hand, the comma and
+ * desk: the edge keys are no wider than they must be (Esc 1, Tab and Backspace 1.25, Caps and
+ * Shift 1.5, a wide Enter 1.75), so the letters get the width; `\|` beside the left Shift moves B under the right hand, the comma and
  * period sit by the space bar as on the phone, and the top row ends with the symbols page key.
  */
 fun sixtyPercentLayer(language: Language, withGlobe: Boolean) = Layer(
@@ -125,15 +128,15 @@ fun sixtyPercentLayer(language: Language, withGlobe: Boolean) = Layer(
             *digitRow,
             dual("-", "_", fnLegend = "F11", fnAction = fkey(10)),
             dual("=", "+", fnLegend = "F12", fnAction = fkey(11)),
-            Key("backspace", KeyAction.Backspace, 1.5f, KeyStyle.FUNCTION, KeyIcon.BACKSPACE, fnLegend = "Del", repeats = true),
+            Key("backspace", KeyAction.Backspace, 1.25f, KeyStyle.FUNCTION, KeyIcon.BACKSPACE, fnLegend = "Del", repeats = true),
         ),
         row(
-            fn("Tab", KeyAction.KeyCode(KeyEvent.KEYCODE_TAB), 1.5f),
+            fn("Tab", KeyAction.KeyCode(KeyEvent.KEYCODE_TAB), 1.25f),
             *wideRow(language, 0).toTypedArray(),
             pageKey(LayerId.SYMBOLS),
         ),
         row(
-            Key("Caps", KeyAction.CapsLock, 1.75f, KeyStyle.MODIFIER),
+            Key("Caps", KeyAction.CapsLock, 1.5f, KeyStyle.MODIFIER),
             *wideRow(language, 1).toTypedArray(),
             enterKey(1.75f),
         ),

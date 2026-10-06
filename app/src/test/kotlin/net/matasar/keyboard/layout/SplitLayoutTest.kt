@@ -44,7 +44,7 @@ class SplitLayoutTest {
     @Test
     fun `english halves are the balanced board's`() {
         val split = splitLayer(Languages.english, withGlobe = true)
-        assertEquals(7f, split.left.units)
+        assertEquals(7.25f, split.left.units)
         // The digits no longer set the right half's width: the Y row does, half a key narrower.
         assertEquals(8f, split.right.units)
         assertEquals("Esc 1 2 3 4 5 6", split.left.rows[0].keys.joinToString(" ") { it.label })
@@ -54,6 +54,10 @@ class SplitLayoutTest {
         // B goes to the right hand: `\|` beside the left Shift takes its place on the left.
         assertEquals("Shift \\ z x c v", split.left.rows[3].keys.joinToString(" ") { it.label })
         assertEquals("b n m / ` Shift", split.right.rows[3].keys.joinToString(" ") { it.label })
+        // The gap beside each Shift stays beside it in its half.
+        assertEquals(InnerGaps.AFTER_FIRST, split.left.rows[3].innerGaps)
+        assertEquals(InnerGaps.BEFORE_LAST, split.right.rows[3].innerGaps)
+        assertEquals(0.75f, split.left.rows[3].innerGapUnits)
     }
 
     @Test

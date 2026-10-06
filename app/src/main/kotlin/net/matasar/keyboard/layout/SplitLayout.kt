@@ -25,10 +25,15 @@ fun splitLayer(language: Language, withGlobe: Boolean): SplitLayer = splitLayer(
  */
 fun splitLayer(whole: Layer): SplitLayer {
     val upper = whole.rows.take(4)
-    val leftUpper = upper.mapIndexed { index, row -> row.keys.take(LEFT_KEYS[index]) }
-    val rightUpper = upper.mapIndexed { index, row -> row.keys.drop(LEFT_KEYS[index]) }
-    val leftUnits = leftUpper.maxOf { it.units() }
-    val rightUnits = rightUpper.maxOf { it.units() }
+    // A row's gaps beside its Shifts go with them: after the left Shift, before the right one.
+    val leftUpper = upper.mapIndexed { index, row ->
+        Row(row.keys.take(LEFT_KEYS[index]), innerGapUnits = row.innerGapUnits, innerGaps = InnerGaps.AFTER_FIRST)
+    }
+    val rightUpper = upper.mapIndexed { index, row ->
+        Row(row.keys.drop(LEFT_KEYS[index]), innerGapUnits = row.innerGapUnits, innerGaps = InnerGaps.BEFORE_LAST)
+    }
+    val leftUnits = leftUpper.maxOf { it.totalUnits }
+    val rightUnits = rightUpper.maxOf { it.totalUnits }
 
     // The bottom row is the whole board's cut at its space bar: a space for each thumb, each as
     // wide as brings its row to the widest row of its half. The left space has no name: the
@@ -37,13 +42,13 @@ fun splitLayer(whole: Layer): SplitLayer {
     val space = bottom.indexOfFirst { it.action == KeyAction.Space }
     val leftMods = bottom.take(space)
     val rightMods = bottom.drop(space + 1)
-    val leftBottom = leftMods + Key("", KeyAction.Space, leftUnits - leftMods.units(), KeyStyle.SPACE)
-    val rightBottom = listOf(bottom[space].copy(width = rightUnits - rightMods.units())) + rightMods
+    val leftBottom = Row(leftMods + Key("", KeyAction.Space, leftUnits - leftMods.units(), KeyStyle.SPACE))
+    val rightBottom = Row(listOf(bottom[space].copy(width = rightUnits - rightMods.units())) + rightMods)
 
     // Rows shorter than their half are padded on the inner side, so each half is flush with its
     // outer edge: the left half's rows end early, the right half's start late.
-    val left = (leftUpper + listOf(leftBottom)).map { Row(it, trailingUnits = leftUnits - it.units()) }
-    val right = (rightUpper + listOf(rightBottom)).map { Row(it, leadingUnits = rightUnits - it.units()) }
+    val left = (leftUpper + leftBottom).map { it.copy(trailingUnits = leftUnits - it.totalUnits) }
+    val right = (rightUpper + rightBottom).map { it.copy(leadingUnits = rightUnits - it.totalUnits) }
     return SplitLayer(
         left = Layer(whole.id, left, units = leftUnits),
         right = Layer(whole.id, right, units = rightUnits),

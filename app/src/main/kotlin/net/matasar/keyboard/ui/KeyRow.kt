@@ -11,6 +11,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import net.matasar.keyboard.layout.InnerGaps
 import net.matasar.keyboard.layout.Key
 import net.matasar.keyboard.layout.Row as LayoutRow
 
@@ -38,11 +39,11 @@ fun KeyRow(
     ) {
         val innerGap = ((unitWidth + gap) * row.innerGapUnits - gap).coerceAtLeast(0.dp)
         for ((index, key) in row.keys.withIndex()) {
-            if (row.innerGapUnits > 0f && index == row.keys.lastIndex && index > 0) Spacer(Modifier.width(innerGap))
+            if (row.innerGapUnits > 0f && row.innerGaps != InnerGaps.AFTER_FIRST && index == row.keys.lastIndex && index > 0) Spacer(Modifier.width(innerGap))
             Box(modifier = Modifier.weight(key.width)) {
                 content(key)
             }
-            if (row.innerGapUnits > 0f && index == 0 && row.keys.size > 1) Spacer(Modifier.width(innerGap))
+            if (row.innerGapUnits > 0f && row.innerGaps != InnerGaps.BEFORE_LAST && index == 0 && row.keys.size > 1) Spacer(Modifier.width(innerGap))
         }
     }
 }

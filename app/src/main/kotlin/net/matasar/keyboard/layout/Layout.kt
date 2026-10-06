@@ -74,19 +74,24 @@ data class Key(
     val id: String get() = "$label:$action"
 }
 
+/** Where a row's [Row.innerGapUnits] open: beside both edge keys, or beside one (a split half's row). */
+enum class InnerGaps { BOTH, AFTER_FIRST, BEFORE_LAST }
+
 /**
  * A row of keys. [leadingUnits] and [trailingUnits] indent the row by whole or half key widths,
  * the way the home row sits half a key in from the top row. [innerGapUnits] opens a gap of that
- * many units after the first key and another before the last, the way the iPhone sets Shift and
- * backspace apart from a short row of letters.
+ * many units after the first key and another before the last ([innerGaps] says which of the two),
+ * the way the iPhone sets Shift and backspace apart from a short row of letters.
  */
 data class Row(
     val keys: List<Key>,
     val leadingUnits: Float = 0f,
     val trailingUnits: Float = 0f,
     val innerGapUnits: Float = 0f,
+    val innerGaps: InnerGaps = InnerGaps.BOTH,
 ) {
-    val totalUnits: Float get() = keys.sumOf { it.width.toDouble() }.toFloat() + leadingUnits + trailingUnits + innerGapUnits * 2
+    val totalUnits: Float get() =
+        keys.sumOf { it.width.toDouble() }.toFloat() + leadingUnits + trailingUnits + innerGapUnits * (if (innerGaps == InnerGaps.BOTH) 2 else 1)
 }
 
 /** A page of rows; every row adds up to [units]. */
