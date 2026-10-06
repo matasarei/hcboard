@@ -75,16 +75,24 @@ internal fun spokenKey(
 /**
  * What TalkBack adds after a key's name: the state of a key that latches (Shift, Caps Lock, the
  * modifiers), from [shift] and [modifier], a held modifier counting as armed, as it looks; null for
- * every other key.
+ * every other key. A modifier key reads the state of [meaning] when it stands for another
+ * modifier right now (Alt as Meta while Fn is on), as its name does.
  */
 @StringRes
-internal fun spokenState(key: Key, shift: LatchState, modifier: (ModifierKey) -> LatchState, held: Set<ModifierKey>): Int? =
+internal fun spokenState(
+    key: Key,
+    shift: LatchState,
+    modifier: (ModifierKey) -> LatchState,
+    held: Set<ModifierKey>,
+    meaning: ModifierKey? = null,
+): Int? =
     when (val action = key.action) {
         KeyAction.Shift -> latchName(shift)
         KeyAction.CapsLock -> if (shift == LatchState.LOCKED) R.string.a11y_state_on else R.string.a11y_state_off
-        is KeyAction.Modifier -> latchName(
-            modifier(action.modifier).takeUnless { it == LatchState.IDLE && action.modifier in held } ?: LatchState.ARMED,
-        )
+        is KeyAction.Modifier -> {
+            val which = meaning ?: action.modifier
+            latchName(modifier(which).takeUnless { it == LatchState.IDLE && which in held } ?: LatchState.ARMED)
+        }
         else -> null
     }
 

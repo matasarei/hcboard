@@ -126,6 +126,14 @@ class KeySpeechTest {
     }
 
     @Test
+    fun `alt read as meta says meta's state`() {
+        val alt = Key("Alt", KeyAction.Modifier(ModifierKey.ALT), fnLegend = "Meta", fnAction = KeyAction.Modifier(ModifierKey.META))
+        val metaLocked = { m: ModifierKey -> if (m == ModifierKey.META) LatchState.LOCKED else LatchState.IDLE }
+        assertEquals(R.string.a11y_state_locked, spokenState(alt, LatchState.IDLE, metaLocked, emptySet(), meaning = ModifierKey.META))
+        assertEquals(R.string.a11y_state_off, spokenState(alt, LatchState.IDLE, metaLocked, emptySet()))
+    }
+
+    @Test
     fun `keys that do not latch have no state`() {
         for (key in letters.filter { it.action != KeyAction.Shift }) assertNull(state(key), key.id)
     }

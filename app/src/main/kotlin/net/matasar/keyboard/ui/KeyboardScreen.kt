@@ -497,7 +497,7 @@ internal fun keyCustomActions(key: Key, controller: KeyboardController): List<Cu
 /** A latching key's state as TalkBack reads it after the key's name; null for the rest. */
 @Composable
 internal fun keyState(key: Key, controller: KeyboardController): String? =
-    spokenState(key, controller.shift.state, controller.modifiers::state, controller.modifiers.held)?.let { stringResource(it) }
+    spokenState(key, controller.shift.state, controller.modifiers::state, controller.modifiers.held, controller.modifierFor(key))?.let { stringResource(it) }
 
 private fun Key.showsPreview(): Boolean =
     style == KeyStyle.LETTER && icon == null && label.length == 1 && action != KeyAction.Space
