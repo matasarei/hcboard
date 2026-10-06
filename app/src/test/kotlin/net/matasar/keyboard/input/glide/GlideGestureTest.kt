@@ -52,6 +52,17 @@ class GlideGestureTest {
     }
 
     @Test
+    fun `a glide started after a short rest is still a glide though the timeout passes on the way`() {
+        val g = gesture()
+        // The finger rests a moment, then sets off: half a key out when the long-press timeout
+        // passes. It is moving, so it is no long press...
+        assertEquals(GlideGesture.State.PENDING, g.add(100f, 100f, 1250, 'h'))
+        assertEquals(GlideGesture.State.PENDING, g.add(120f, 100f, 1420, 'h'))
+        // ...and it becomes a glide once it reaches the next letter.
+        assertEquals(GlideGesture.State.GLIDING, g.add(140f, 100f, 1460, 'j'))
+    }
+
+    @Test
     fun `a press that slid off onto a key with no letter waits instead of turning into a long press`() {
         val g = gesture()
         // Slid a key's width onto Enter, say, and rests there past the timeout: it has moved, so
