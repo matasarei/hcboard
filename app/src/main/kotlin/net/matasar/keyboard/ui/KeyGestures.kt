@@ -8,6 +8,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
 import kotlinx.coroutines.withTimeoutOrNull
+import net.matasar.keyboard.input.glide.GlideGesture
 
 /** What a long press did: opened something the finger steers, did its own thing, or nothing. */
 enum class LongPressResult { STEER, HANDLED, NONE }
@@ -31,10 +32,13 @@ interface KeyGestureListener {
  * key is that key's own gesture, which is what chording needs.
  *
  * The keyboard's glide detector runs on the same pass, earlier, and consumes the pointer once a
- * press has become a glide; a consumed change ends this gesture without a tap.
+ * press has become a glide; a consumed change ends this gesture without a tap. With
+ * [movedCancelsLongPress] (letter keys, where a glide may start), a finger that has set off — a
+ * third of the key's width, [GlideGesture.MOVED_FRACTION], the glide's own rule — before the
+ * long-press timeout is no long press: it types on release, or the glide takes it.
  */
-fun Modifier.keyGestures(key: Any, longPressMs: Long, listener: KeyGestureListener): Modifier =
-    pointerInput(key, listener) {
+fun Modifier.keyGestures(key: Any, longPressMs: Long, listener: KeyGestureListener, movedCancelsLongPress: Boolean = false): Modifier =
+    pointerInput(key, listener, movedCancelsLongPress) {
         awaitEachGesture {
             val down = awaitFirstDown(requireUnconsumed = false, pass = PointerEventPass.Initial)
             if (down.isConsumed) return@awaitEachGesture
@@ -43,11 +47,17 @@ fun Modifier.keyGestures(key: Any, longPressMs: Long, listener: KeyGestureListen
 
             var longPressed = false
             var up = false
+            var setOff = false
+            val setOffPx = size.width * GlideGesture.MOVED_FRACTION
             // Pointer timestamps are on the uptime clock; compare against the same clock.
             val deadline = down.uptimeMillis + longPressMs
             while (!up && !longPressed) {
                 val remaining = deadline - SystemClock.uptimeMillis()
-                val event = withTimeoutOrNull(remaining.coerceAtLeast(1)) { awaitPointerEvent(PointerEventPass.Initial) }
+                val event = if (setOff) {
+                    awaitPointerEvent(PointerEventPass.Initial)
+                } else {
+                    withTimeoutOrNull(remaining.coerceAtLeast(1)) { awaitPointerEvent(PointerEventPass.Initial) }
+                }
                 if (event == null) {
                     longPressed = true
                 } else {
@@ -59,6 +69,7 @@ fun Modifier.keyGestures(key: Any, longPressMs: Long, listener: KeyGestureListen
                     }
                     change.consume()
                     if (!change.pressed) up = true
+                    if (movedCancelsLongPress && (change.position - down.position).getDistance() >= setOffPx) setOff = true
                 }
             }
 

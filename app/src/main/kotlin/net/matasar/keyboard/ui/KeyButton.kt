@@ -55,6 +55,7 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import net.matasar.keyboard.haptics.keyDownTick
 import net.matasar.keyboard.layout.Key
+import net.matasar.keyboard.layout.KeyAction
 import net.matasar.keyboard.layout.KeyIcon
 import net.matasar.keyboard.layout.KeyStyle
 import net.matasar.keyboard.ui.theme.LocalKeyboardColors
@@ -217,7 +218,7 @@ fun KeyButton(
             .clip(shape)
             .background(if (pressed) colors.pressedKey else visual.background)
             .then(if (visual.ring != null) Modifier.border(2.dp, visual.ring, shape) else Modifier)
-            .keyGestures(key.id, longPressMs, listener),
+            .keyGestures(key.id, longPressMs, listener, movedCancelsLongPress = key.action is KeyAction.Letter),
     ) {
         if (!showLabel) return@Box
         // Every key centers its main glyph in the key, so all letters in a row share the exact
