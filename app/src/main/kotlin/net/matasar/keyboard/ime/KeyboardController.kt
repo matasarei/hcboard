@@ -49,6 +49,7 @@ import kotlin.random.Random
 import kotlin.random.asKotlinRandom
 import net.matasar.keyboard.nlp.Apostrophes
 import net.matasar.keyboard.nlp.Candidates
+import net.matasar.keyboard.nlp.CustomWord
 import net.matasar.keyboard.nlp.WordCandidates
 import net.matasar.keyboard.settings.GlobeTap
 
@@ -364,6 +365,24 @@ class KeyboardController(
     var candidates: WordCandidates? by mutableStateOf(null)
         private set
 
+    /**
+     * A word the user kept as typed by tapping it in the strip, which the list does not know: the
+     * strip offers to add it to their words until the next key, glide or field. Only from that
+     * tap, and only where candidates may be shown, so never from a password field.
+     */
+    var wordToAdd: String? by mutableStateOf(null)
+        private set
+
+    /** Called with [wordToAdd] when the user taps the offer; the service stores it for the current language. */
+    var onAddWord: ((String) -> Unit)? = null
+
+    /** The strip's offer was tapped: add the word to the user's own words. */
+    fun addWord() {
+        val word = wordToAdd ?: return
+        wordToAdd = null
+        onAddWord?.invoke(word)
+    }
+
     /** The chevron folded the strip away; the next key brings it back. */
     var candidatesCollapsed: Boolean by mutableStateOf(false)
         private set
@@ -394,9 +413,10 @@ class KeyboardController(
         toolbarExpanded = true
     }
 
-    /** The keyboard went away: the next time it shows, the strip is folded. */
+    /** The keyboard went away: the next time it shows, the strip is folded and offers nothing to add. */
     fun onKeyboardHidden() {
         toolbarExpanded = false
+        wordToAdd = null
     }
 
     private var lastGlideWord: String? = null
@@ -735,6 +755,7 @@ class KeyboardController(
 
     fun onKey(key: Key) {
         if (key.action != KeyAction.SwitchLanguage) globeTapsInARow = false
+        wordToAdd = null
         passwordTyped = false
         candidatesCollapsed = false
         val undo = lastAutocorrect
@@ -1004,6 +1025,7 @@ class KeyboardController(
     /** A glide ended over the letter keys [keys]: classify off the main thread, then commit the best word. */
     fun onGlideEnd(path: List<GlidePoint>, keys: List<GlideKey>) {
         globeTapsInARow = false
+        wordToAdd = null
         val engine = glideEngine ?: return
         val scope = scope ?: return
         if (!glideAvailable || path.size < 2) return
@@ -1071,8 +1093,12 @@ class KeyboardController(
             refreshAutoCapital()
             return
         }
-        // Keeping the word as typed: the next separator must not correct it after all.
-        if (word == current.typed) decline(word)
+        // Keeping the word as typed: the next separator must not correct it after all, and a
+        // word the list lacks may be added to the user's own.
+        if (word == current.typed) {
+            decline(word)
+            if (suggestionsAvailable && candidateEngine?.knows(word) == false && CustomWord.normalize(word) != null) wordToAdd = word
+        }
         // The field may have changed under the strip; replace only what is still there.
         if (dispatcher.textEndsWith(current.typed)) {
             // The word and its space are one change to the app.
@@ -1191,6 +1217,7 @@ class KeyboardController(
             phantomEnd = null
             lastGlideWord = null
             lastGlideCommit = null
+            wordToAdd = null
         }
         refreshAutoCapital()
         // A glide's own commit moves the cursor too; its alternatives stay until the next key.
@@ -1259,6 +1286,7 @@ class KeyboardController(
 
     private fun clearCandidates() {
         candidates = null
+        wordToAdd = null
         candidatesCollapsed = false
         lastGlideWord = null
         lastGlideCommit = null

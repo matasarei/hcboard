@@ -69,6 +69,7 @@ import net.matasar.keyboard.input.AndroidEditorPort
 import net.matasar.keyboard.input.InputDispatcher
 import net.matasar.keyboard.input.glide.GlideEngine
 import net.matasar.keyboard.nlp.Candidates
+import net.matasar.keyboard.nlp.CustomWord
 import net.matasar.keyboard.nlp.CustomWordStore
 import net.matasar.keyboard.nlp.CustomWords
 import net.matasar.keyboard.nlp.WordList
@@ -239,6 +240,11 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
             lifecycleScope.launch { prefs.setCurrentLanguage(language.tag) }
             loadLanguage(language.tag)
             reportCurrentSubtype(this, language)
+        }
+        // A word kept from the strip joins the language it was typed in; the words' own flow reloads the list.
+        controller.onAddWord = { word ->
+            val tag = controller.language.tag
+            lifecycleScope.launch { wordStore.set(tag, word, CustomWord.ADDED) }
         }
         loadLanguage(controller.language.tag)
         lifecycleRegistry.currentState = Lifecycle.State.CREATED

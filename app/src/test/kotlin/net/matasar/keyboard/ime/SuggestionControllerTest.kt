@@ -172,6 +172,52 @@ class SuggestionControllerTest {
     }
 
     @Test
+    fun `a kept word the list does not know is offered to the user's words, once`() {
+        val added = mutableListOf<String>()
+        controller.onAddWord = { added += it }
+        textField()
+        type("chek")
+        controller.pickCandidate("chek")
+        assertEquals("chek", controller.wordToAdd)
+        controller.addWord()
+        assertEquals(listOf("chek"), added)
+        assertNull(controller.wordToAdd)
+        controller.addWord() // a second tap has nothing left to add
+        assertEquals(listOf("chek"), added)
+    }
+
+    @Test
+    fun `nothing is offered for a known word, a picked candidate, or after the next key`() {
+        textField()
+        type("spell")
+        controller.pickCandidate("spell")
+        assertNull(controller.wordToAdd) // known already
+        controller.onKey(space)
+        type("chek")
+        controller.pickCandidate("check")
+        assertNull(controller.wordToAdd) // a candidate, not the typed word
+        controller.onKey(space)
+        type("chek")
+        controller.pickCandidate("chek")
+        assertEquals("chek", controller.wordToAdd)
+        controller.onKey(space)
+        assertNull(controller.wordToAdd) // only until the next key
+        type("chek")
+        controller.pickCandidate("chek")
+        controller.onFinishInput()
+        textField()
+        assertNull(controller.wordToAdd) // nor into the next field
+    }
+
+    @Test
+    fun `nothing is offered where candidates are not shown`() {
+        textField(InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD)
+        type("chek")
+        controller.pickCandidate("chek")
+        assertNull(controller.wordToAdd)
+    }
+
+    @Test
     fun `tapping a candidate replaces the word in one batch and owes a space after it`() {
         textField()
         type("spel")
