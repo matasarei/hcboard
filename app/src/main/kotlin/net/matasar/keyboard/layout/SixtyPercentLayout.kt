@@ -63,16 +63,17 @@ const val WIDE_UNITS = 14.5f
 
 /**
  * The Shift row: `\|` beside the left Shift, where ISO boards keep a key, then the letters, `/`,
- * a narrow `` `~ `` and the right Shift, which takes what is left. The comma and period are on
- * the bottom row by the space bar, so the `,` and `.` slots hold only a letter that sits on them
- * (б and ю, which keep `,<` and `.>` on Fn). Nine letters (Cyrillic) take half a unit from the
- * left Shift.
+ * `` `~ `` and the right Shift, which takes what is left. With seven letters (most Latin boards)
+ * `` `~ `` is a key and a quarter, so the right Shift is about as wide as the left one; longer rows
+ * keep it narrow. The comma and period are on the bottom row by the space bar, so the `,` and
+ * `.` slots hold only a letter that sits on them (б and ю, which keep `,<` and `.>` on Fn). Nine
+ * letters (Cyrillic) take half a unit from the left Shift.
  */
 private fun wideShiftRow(language: Language): Row {
     val letters = language.rows[2]
     require(letters.length <= 9) { "${language.tag} bottom row has ${letters.length} letters; at most 9 fit" }
     val keys = listOf(shift(if (letters.length == 9) 1.5f else 2f), dual("\\", "|")) +
-        wideRow(language, 2).take(letters.length) + punctuation('/') + dual("`", "~", width = 0.75f)
+        wideRow(language, 2).take(letters.length) + punctuation('/') + dual("`", "~", width = if (letters.length <= 7) 1.25f else 0.75f)
     return Row(keys + shift(WIDE_UNITS - keys.units()))
 }
 

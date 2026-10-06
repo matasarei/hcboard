@@ -142,7 +142,7 @@ class SixtyPercentLayoutTest {
     @Test
     fun `english renders the standard board and its letters carry their own slot`() {
         assertEquals("Shift \\ z x c v b n m / ` Shift", SixtyPercentLayer.rows[3].keys.joinToString(" ") { it.label })
-        assertEquals(listOf(2f, 2.75f), listOf(SixtyPercentLayer.rows[3].keys.first().width, SixtyPercentLayer.rows[3].keys.last().width))
+        assertEquals(listOf(2f, 2.25f), listOf(SixtyPercentLayer.rows[3].keys.first().width, SixtyPercentLayer.rows[3].keys.last().width))
         assertEquals('c', SixtyPercentLayer.rows[3].keys.first { it.label == "c" }.slot)
         assertEquals(null, SixtyPercentLayer.rows[3].keys.first { it.label == "/" }.slot)
     }
@@ -201,7 +201,10 @@ class SixtyPercentLayoutTest {
         assertEquals(KeyAction.Text("\\", "|"), shiftRow[1].action)
         val backtick = shiftRow[shiftRow.size - 2]
         assertEquals(KeyAction.Text("`", "~"), backtick.action)
-        assertEquals(0.75f, backtick.width)
+        // A key and a quarter on seven letters, so the right Shift is about the left one's width.
+        assertEquals(1.25f, backtick.width)
+        val ukrainian = sixtyPercentLayer(Languages.ukrainian, withGlobe = true).rows[3].keys
+        assertEquals(0.75f, ukrainian[ukrainian.size - 2].width)
         val esc = SixtyPercentLayer.rows[0].keys.first()
         assertEquals(null, esc.fnAction)
         assertEquals(null, esc.fnLegend)
