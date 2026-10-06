@@ -54,10 +54,6 @@ class SplitLayoutTest {
         // B goes to the right hand: `\|` beside the left Shift takes its place on the left.
         assertEquals("Shift \\ z x c v", split.left.rows[3].keys.joinToString(" ") { it.label })
         assertEquals("b n m / ` Shift", split.right.rows[3].keys.joinToString(" ") { it.label })
-        // The gap beside each Shift stays beside it in its half.
-        assertEquals(InnerGaps.AFTER_FIRST, split.left.rows[3].innerGaps)
-        assertEquals(InnerGaps.BEFORE_LAST, split.right.rows[3].innerGaps)
-        assertEquals(0.75f, split.left.rows[3].innerGapUnits)
     }
 
     @Test

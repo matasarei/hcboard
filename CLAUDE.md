@@ -169,9 +169,8 @@ emulator profile is `medium_phone`; boot it headless with
   `AnsiSlots.rows` left to right, a letter on a punctuation slot carries that punctuation on Fn,
   and the board is shaped for thumbs: the bottom row is the phone's (Fn where it has 123, the
   globe or Meta, comma, space, period, Alt, Ctrl), the Shift row is ``Shift \| letters / `~ Shift``
-  (`\|` where ISO boards have a key; side keys at most 1.5 wide on a `WIDE_UNITS` = 14.25
-  board, and a short Shift row opens a gap beside each Shift, `InnerGaps` keeping it beside its
-  Shift in a split half), the top row ends with `€±`, which opens `sixtyPercentSymbolsLayer` (the same geometry,
+  (`\|` where ISO boards have a key; slim side keys on a `WIDE_UNITS` = 14.25 board; the two
+  Shifts share what their row leaves, equally), the top row ends with `€±`, which opens `sixtyPercentSymbolsLayer` (the same geometry,
   symbols the board has no key for, `ABC` to come back), and Esc is only Esc. Ukrainian and Russian fill
   all twelve top-row slots (ї, ъ), while Bulgarian fills eleven (ч on `[`), so `[` and `]` are Fn or punctuation keys. Every
   letter key carries `Key.slot`, the US character of its slot: modifier combinations send the slot

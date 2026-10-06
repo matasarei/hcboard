@@ -25,13 +25,8 @@ fun splitLayer(language: Language, withGlobe: Boolean): SplitLayer = splitLayer(
  */
 fun splitLayer(whole: Layer): SplitLayer {
     val upper = whole.rows.take(4)
-    // A row's gaps beside its Shifts go with them: after the left Shift, before the right one.
-    val leftUpper = upper.mapIndexed { index, row ->
-        Row(row.keys.take(LEFT_KEYS[index]), innerGapUnits = row.innerGapUnits, innerGaps = InnerGaps.AFTER_FIRST)
-    }
-    val rightUpper = upper.mapIndexed { index, row ->
-        Row(row.keys.drop(LEFT_KEYS[index]), innerGapUnits = row.innerGapUnits, innerGaps = InnerGaps.BEFORE_LAST)
-    }
+    val leftUpper = upper.mapIndexed { index, row -> Row(row.keys.take(LEFT_KEYS[index])) }
+    val rightUpper = upper.mapIndexed { index, row -> Row(row.keys.drop(LEFT_KEYS[index])) }
     val leftUnits = leftUpper.maxOf { it.totalUnits }
     val rightUnits = rightUpper.maxOf { it.totalUnits }
 

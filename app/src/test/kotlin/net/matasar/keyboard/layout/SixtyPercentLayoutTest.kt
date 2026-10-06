@@ -126,7 +126,7 @@ class SixtyPercentLayoutTest {
 
         val shiftRow = layer.rows[3].keys
         assertEquals("Shift \\ з ь ц ж б н м ю / ` Shift", shiftRow.joinToString(" ") { it.label })
-        assertEquals(listOf(1.5f, 1.5f), listOf(shiftRow.first().width, shiftRow.last().width))
+        assertEquals(listOf(1.75f, 1.75f), listOf(shiftRow.first().width, shiftRow.last().width))
         assertEquals(',', keys.first { it.label == "ю" }.slot)
         assertEquals(",<", keys.first { it.label == "ю" }.fnLegend)
     }
@@ -142,9 +142,8 @@ class SixtyPercentLayoutTest {
     @Test
     fun `english renders the standard board and its letters carry their own slot`() {
         assertEquals("Shift \\ z x c v b n m / ` Shift", SixtyPercentLayer.rows[3].keys.joinToString(" ") { it.label })
-        // Seven letters leave room: the Shifts stay 1.5 and a gap opens beside each, as on the phone.
-        assertEquals(listOf(1.5f, 1.5f), listOf(SixtyPercentLayer.rows[3].keys.first().width, SixtyPercentLayer.rows[3].keys.last().width))
-        assertEquals(0.75f, SixtyPercentLayer.rows[3].innerGapUnits)
+        // The Shifts share what the row leaves, equally.
+        assertEquals(listOf(2.25f, 2.25f), listOf(SixtyPercentLayer.rows[3].keys.first().width, SixtyPercentLayer.rows[3].keys.last().width))
         assertEquals('c', SixtyPercentLayer.rows[3].keys.first { it.label == "c" }.slot)
         assertEquals(null, SixtyPercentLayer.rows[3].keys.first { it.label == "/" }.slot)
     }
@@ -254,13 +253,12 @@ class SixtyPercentLayoutTest {
     @Test
     fun `the left edge keys are no wider than they must be`() {
         val widths = SixtyPercentLayer.rows.map { it.keys.first().width }
-        assertEquals(listOf(1f, 1.25f, 1.5f, 1.5f, 1.25f), widths) // Esc, Tab, Caps, Shift, Fn
+        assertEquals(listOf(1f, 1.25f, 1.5f, 2.25f, 1.25f), widths) // Esc, Tab, Caps, Shift, Fn
         val rightEdge = SixtyPercentLayer.rows.map { it.keys.last().width }
-        assertEquals(listOf(1.25f, 1f, 1.75f, 1.5f, 1.25f), rightEdge) // Backspace, €±, Enter, Shift, Ctrl
-        // Nine letters leave no room for a gap: the Shifts narrow to fit instead.
+        assertEquals(listOf(1.25f, 1f, 1.75f, 2.25f, 1.25f), rightEdge) // Backspace, €±, Enter, Shift, Ctrl
+        // Nine letters leave less: the Shifts narrow, still equal.
         val ukrainian = sixtyPercentLayer(Languages.ukrainian, withGlobe = true).rows[3]
         assertEquals(listOf(1.25f, 1.25f), listOf(ukrainian.keys.first().width, ukrainian.keys.last().width))
-        assertEquals(0f, ukrainian.innerGapUnits)
     }
 
     @Test
@@ -280,8 +278,7 @@ class SixtyPercentLayoutTest {
         assertEquals(6.25f, startOf(SixtyPercentLayer.rows[1], "y"))
         assertEquals(6.5f, startOf(SixtyPercentLayer.rows[2], "h"))
         // `\|` beside the left Shift moves B under the right hand.
-        // Keys only: the 0.75 gap beside the left Shift comes on top, so B starts at 7.25.
-        assertEquals(6.5f, startOf(SixtyPercentLayer.rows[3], "b"))
+        assertEquals(7.25f, startOf(SixtyPercentLayer.rows[3], "b"))
         assertEquals(1.25f, SixtyPercentLayer.rows[0].keys.last().width) // Backspace
         assertEquals(1.75f, SixtyPercentLayer.rows[2].keys.last().width) // Enter
     }

@@ -61,23 +61,19 @@ private fun wideRow(language: Language, index: Int): List<Key> {
 /** How wide every row of the 60% board is, in key units. */
 const val WIDE_UNITS = 14.25f
 
-/** The widest a Shift gets on the 60% board; a short row opens a gap beside it instead. */
-private const val SHIFT_KEY = 1.5f
-
 /**
  * The Shift row: `\|` beside the left Shift, where ISO boards keep a key, then the letters, `/`,
  * a narrow `` `~ `` and the right Shift. The comma and period are on the bottom row by the space
  * bar, so the `,` and `.` slots hold only a letter that sits on them (б and ю, which keep `,<` and
- * `.>` on Fn). The Shifts are at most [SHIFT_KEY] wide and the same on both sides; a row of seven
- * or eight letters opens a gap beside each, as the phone board does, rather than growing them.
+ * `.>` on Fn). The two Shifts share what the row leaves, equally: wider on a seven-letter row,
+ * narrower on a nine-letter one.
  */
 private fun wideShiftRow(language: Language): Row {
     val letters = language.rows[2]
     require(letters.length <= 9) { "${language.tag} bottom row has ${letters.length} letters; at most 9 fit" }
     val inner = listOf(dual("\\", "|")) + wideRow(language, 2).take(letters.length) + punctuation('/') + dual("`", "~", width = 0.75f)
-    val shift = minOf(SHIFT_KEY, (WIDE_UNITS - inner.units()) / 2f)
-    val gap = (WIDE_UNITS - inner.units() - shift * 2f) / 2f
-    return Row(listOf(shift(shift)) + inner + shift(shift), innerGapUnits = gap)
+    val shift = (WIDE_UNITS - inner.units()) / 2f
+    return Row(listOf(shift(shift)) + inner + shift(shift))
 }
 
 /** Opens the symbols page; on that page the same place reads ABC and comes back. */
@@ -115,8 +111,8 @@ private val digitRow: Array<Key> = "1234567890".mapIndexed { i, c ->
  * A 60% ANSI board for one language, [WIDE_UNITS] per row, for windows 600 dp and wider: every
  * key visible, shifted symbols printed above the digits and punctuation, F1–F12 and navigation on
  * Fn, the letters and accents of [language] on the ANSI slots. Shaped for thumbs rather than a
- * desk: the edge keys are no wider than they must be (Esc 1, Tab and Backspace 1.25, Caps and
- * Shift 1.5, a wide Enter 1.75), so the letters get the width; `\|` beside the left Shift moves B under the right hand, the comma and
+ * desk: the edge keys are no wider than they must be (Esc 1, Tab and Backspace 1.25, Caps 1.5,
+ * Shift as wide as their row leaves them, a wide Enter 1.75), so the letters get the width; `\|` beside the left Shift moves B under the right hand, the comma and
  * period sit by the space bar as on the phone, and the top row ends with the symbols page key.
  */
 fun sixtyPercentLayer(language: Language, withGlobe: Boolean) = Layer(
