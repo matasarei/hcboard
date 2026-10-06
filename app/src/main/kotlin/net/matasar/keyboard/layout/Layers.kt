@@ -8,8 +8,9 @@ enum class FieldMarks(val beforeSpace: String) { NONE(","), EMAIL("@"), URL("/")
 
 /**
  * The bottom row every phone page shares, the same keys at the same places on every page and in
- * every language: the page switch, a comma (or its field's [marks]), the globe when more than one
- * language is enabled, space named after the language, a period and a wide return. Its widths are
+ * every language: the page switch, the globe when more than one language is enabled, a comma (or
+ * its field's [marks]) right by the space bar, space named after the language, a period and a
+ * wide return. The wide board's bottom row has the same order, with Fn where this one has 123. Its widths are
  * shares of the board's width, set on a ten-unit board and scaled to the layer's [units], so a
  * twelve-key Ukrainian page or a symbols page does not move or resize a key under the thumb.
  */
@@ -23,11 +24,9 @@ internal fun bottomRow(
 ): Row {
     val scale = units / BOTTOM_ROW_UNITS
     val fixed = SWITCH_KEY + MARK_KEY * 2 + RETURN_KEY + (if (withGlobe) GLOBE_KEY else 0f)
-    val keys = mutableListOf(
-        function(switchLabel, KeyAction.SwitchLayer(switchTo), SWITCH_KEY * scale),
-        function(marks.beforeSpace, KeyAction.Text(marks.beforeSpace), MARK_KEY * scale),
-    )
+    val keys = mutableListOf(function(switchLabel, KeyAction.SwitchLayer(switchTo), SWITCH_KEY * scale))
     if (withGlobe) keys += Key("globe", KeyAction.SwitchLanguage, GLOBE_KEY * scale, KeyStyle.FUNCTION, KeyIcon.GLOBE)
+    keys += function(marks.beforeSpace, KeyAction.Text(marks.beforeSpace), MARK_KEY * scale)
     keys += spaceKey((BOTTOM_ROW_UNITS - fixed) * scale, spaceLabel)
     keys += function(".", KeyAction.Text("."), MARK_KEY * scale)
     keys += enterKey(RETURN_KEY * scale)
