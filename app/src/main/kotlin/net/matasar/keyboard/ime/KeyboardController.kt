@@ -1319,9 +1319,11 @@ class KeyboardController(
         phantomEnd = null
     }
 
-    /** The accent candidates a long press on [key] offers, in the current case; none in passwords. */
+    /** The accent candidates a long press on [key] offers, in the current case; none in passwords or on a key Fn has taken. */
     fun accentsFor(key: Key): List<String> = when {
         passwordField -> emptyList()
+        // Under Fn the key means Home or F1, not its letter: a hold must not offer the letter's accents.
+        fnLive(key) -> emptyList()
         letterUpper -> key.longPress.map { it.uppercase() }
         else -> key.longPress
     }
@@ -1331,7 +1333,8 @@ class KeyboardController(
      * reachable through Shift. Caps Lock inverts it, because a tap there already gives the shifted
      * symbol. Null where the rule does not apply — a letter, a key with no shifted symbol, or any
      * key while Fn is active, which gives the key another meaning. Accents are not checked here:
-     * the caller offers [accentsFor] first, and a key with accents never reaches this.
+     * the caller offers [accentsFor] first, so a key with accents reaches this only under Fn,
+     * which has none to offer, and there this gives up as well.
      */
     fun longPressText(key: Key): String? {
         if (fnActive) return null

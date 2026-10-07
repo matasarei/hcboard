@@ -159,6 +159,16 @@ class KeyLabelTest {
     }
 
     @Test
+    fun `a long press offers no accents on a key fn has taken, and keeps them where fn changes nothing`() {
+        // г sits on the U slot, which is Home under Fn; е, on T, has no Fn meaning.
+        assertEquals(listOf("ґ"), controller.accentsFor(key("г")))
+        controller.onKey(fnKey)
+        assertEquals("Home", shown("г"))
+        assertEquals(emptyList(), controller.accentsFor(key("г")))
+        assertEquals(listOf("ё"), controller.accentsFor(key("е")))
+    }
+
+    @Test
     fun `with one modifier armed its own legend is the live one`() {
         // Nothing armed, nothing live: the shifted symbol is printed, the Fn legend is not tinted.
         assertFalse(controller.fnLive(key("1")))
