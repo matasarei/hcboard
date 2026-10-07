@@ -551,7 +551,7 @@ class KeyboardController(
      */
     fun displayLabel(key: Key): String = labelFor(key, shiftActive, fnActive)
 
-    /** Whether Fn is what makes this key's glyph what it is: the key is filled as Fn's (visualFor). */
+    /** Whether Fn is what makes this key's glyph what it is: the key is filled as Fn's (visualFor), unless its own modifier is active. */
     fun fnLive(key: Key): Boolean = fnActive && labelFor(key, shift = shiftActive, fn = false) != displayLabel(key)
 
     /**
