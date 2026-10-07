@@ -57,6 +57,14 @@ class FnKeysVisualTest {
     }
 
     @Test
+    fun `a cyrillic letter on a punctuation slot is fn's too`() {
+        val kha = sixtyPercentLayer(Languages.ukrainian, withGlobe = true).rows.flatMap { it.keys }.first { it.label == "х" }
+        controller.onKey(fnKey)
+        assertEquals("[", controller.displayLabel(kha))
+        assertEquals(fnFill, visualFor(kha, controller, colors))
+    }
+
+    @Test
     fun `a locked modifier keeps its locked look under fn`() {
         controller.onKey(altKey)
         controller.onKey(altKey) // a double tap locks it
