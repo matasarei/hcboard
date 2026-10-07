@@ -8,9 +8,11 @@
     The keyboard's own settings stay the one source of truth for languages. On Android 14 and
     later the keyboard enables exactly its enabled languages here (ime/SystemSubtypes.kt), follows
     a pick from Android's switcher when that language is enabled, and reports the globe's choice
-    back as the current subtype. Only English overrides the implicitly enabled subtypes, so until
-    the first push, and on older Android, the list reads "English" rather than being filled from
-    the phone's own languages, which is what the keyboard's settings used to disagree with.
+    back as the current subtype. Below Android 14 only English overrides the implicitly enabled
+    subtypes, so the list reads "English" rather than being filled from the phone's own languages,
+    which is what the keyboard's settings used to disagree with. From 14 on it does not
+    (values-v34/bools.xml): the keyboard pushes its own set there, and Android's switcher shows an
+    overriding subtype under the keyboard's name alone, as if English were not enabled.
 
     Each subtypeId is fixed and matches Language.subtypeId (MethodXmlTest checks both): Android
     otherwise hashes one from the locale, mode and flags, and a later change to any of them would
@@ -33,7 +35,7 @@
         android:languageTag="en-US"
         android:imeSubtypeMode="keyboard"
         android:isAsciiCapable="true"
-        android:overridesImplicitlyEnabledSubtype="true" />
+        android:overridesImplicitlyEnabledSubtype="@bool/english_overrides_implicit_subtypes" />
 
     <subtype
         android:label="@string/subtype_uk"
