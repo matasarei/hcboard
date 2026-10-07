@@ -19,6 +19,9 @@ object KeyboardDiagnostics {
     var insets: String by mutableStateOf("The keyboard has not been shown yet.")
     var field: String by mutableStateOf("No field yet.")
 
+    /** How many of the keyboard window's moves [events] keeps. */
+    const val EVENT_LIMIT = 24
+
     /** The keyboard window's last [EVENT_LIMIT] moves, oldest first: what led up to a keyboard that did not draw. */
     var events: String by mutableStateOf("No window events yet.")
         private set
@@ -30,8 +33,6 @@ object KeyboardDiagnostics {
         while (eventLines.size > EVENT_LIMIT) eventLines.removeFirst()
         events = "window events (uptime):\n" + eventLines.joinToString("\n")
     }
-
-    const val EVENT_LIMIT = 24
 
     /** The installed build: its version name and the commit CI built it from, or `local build`. */
     fun versionLine(version: String = BuildConfig.VERSION_NAME, commit: String = BuildConfig.COMMIT): String =
