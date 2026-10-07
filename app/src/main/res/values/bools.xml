@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+        Whether English stands in for the implicitly enabled subtypes (res/xml/method.xml). Below
+        Android 14 the keyboard cannot enable its own subtypes, so without it Android would fill
+        the list from the phone's languages. values-v34 turns it off: there the keyboard always
+        pushes its own set, and Android's switcher shows a subtype with this flag with no name.
+    -->
+    <bool name="english_overrides_implicit_subtypes">true</bool>
+</resources>

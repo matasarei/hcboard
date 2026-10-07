@@ -47,9 +47,24 @@ class MethodXmlTest {
         }
     }
 
+    /** The `<bool>` resources in `res/<dir>/bools.xml`, by name. */
+    private fun bools(dir: String): Map<String, String> = parse("src/main/res/$dir/bools.xml").getElementsByTagName("bool")
+        .let { list -> (0 until list.length).map { list.item(it) as Element } }
+        .associate { it.getAttribute("name") to it.textContent.trim() }
+
+    /** The locales whose subtype overrides the implicitly enabled ones, with `@bool/` resolved from [bools]. */
+    private fun overriding(bools: Map<String, String>): List<String> = subtypes.filter {
+        val value = it.attr("overridesImplicitlyEnabledSubtype")
+        (if (value.startsWith("@bool/")) bools[value.removePrefix("@bool/")] else value) == "true"
+    }.map { it.attr("imeSubtypeLocale") }
+
     @Test
-    fun `only English stands in for the implicitly enabled subtypes`() {
-        val overriding = subtypes.filter { it.attr("overridesImplicitlyEnabledSubtype") == "true" }
-        assertEquals(listOf(Languages.english.tag), overriding.map { it.attr("imeSubtypeLocale") })
+    fun `below Android 14 only English stands in for the implicitly enabled subtypes`() {
+        assertEquals(listOf(Languages.english.tag), overriding(bools("values")))
+    }
+
+    @Test
+    fun `from Android 14 no subtype stands in, so the switcher names English like the rest`() {
+        assertEquals(emptyList(), overriding(bools("values") + bools("values-v34")))
     }
 }
