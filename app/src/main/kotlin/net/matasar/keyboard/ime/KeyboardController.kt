@@ -1319,9 +1319,11 @@ class KeyboardController(
         phantomEnd = null
     }
 
-    /** The accent candidates a long press on [key] offers, in the current case; none in passwords. */
+    /** The accent candidates a long press on [key] offers, in the current case; none in passwords or on a key Fn has taken. */
     fun accentsFor(key: Key): List<String> = when {
         passwordField -> emptyList()
+        // Under Fn the key means Home or F1, not its letter: a hold must not offer the letter's accents.
+        fnLive(key) -> emptyList()
         letterUpper -> key.longPress.map { it.uppercase() }
         else -> key.longPress
     }
