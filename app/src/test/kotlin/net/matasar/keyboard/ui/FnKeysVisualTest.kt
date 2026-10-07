@@ -55,4 +55,13 @@ class FnKeysVisualTest {
         // Fn itself keeps its armed look, ring and all.
         assertEquals(KeyVisual(colors.armed, colors.onArmed, ring = colors.armedRing), visualFor(fnKey, controller, colors))
     }
+
+    @Test
+    fun `a locked modifier keeps its locked look under fn`() {
+        controller.onKey(altKey)
+        controller.onKey(altKey) // a double tap locks it
+        controller.onKey(fnKey)
+        assertEquals("Meta", controller.displayLabel(altKey))
+        assertEquals(KeyVisual(colors.locked, colors.onLocked), visualFor(altKey, controller, colors))
+    }
 }

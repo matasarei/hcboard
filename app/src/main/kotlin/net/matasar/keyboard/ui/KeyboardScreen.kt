@@ -532,7 +532,10 @@ internal fun printedFnLegend(key: Key): String? = key.fnLegend.takeIf { key.fnAc
  * modifier's own.
  */
 internal fun visualFor(key: Key, controller: KeyboardController, colors: KeyboardColors): KeyVisual {
-    if (controller.fnLive(key)) return KeyVisual(colors.armed, colors.onArmed)
+    // A modifier armed, held or locked keeps its own look under Fn: a locked Alt that reads Meta
+    // must still show it is locked.
+    val ownModifierActive = (key.action as? KeyAction.Modifier)?.let { controller.modifiers.isActive(it.modifier) } == true
+    if (controller.fnLive(key) && !ownModifierActive) return KeyVisual(colors.armed, colors.onArmed)
     if (key.action is KeyAction.Modifier) return modifierVisual(key, controller, colors)
     if (key.action == KeyAction.Shift || key.action == KeyAction.CapsLock) {
         return when (controller.shift.state) {
