@@ -341,11 +341,12 @@ private fun LayerGrid(
                     showLabel = !controller.trackpad,
                     legendBand = wide,
                     // Only symbols are printed as Fn legends (see printedFnLegend); the live one
-                    // tints. The shifted symbol tints while Shift is what makes the glyph what it
-                    // is: Shift with Fn does nothing to a digit, so `!` stays subtle then.
+                    // tints. The shifted symbol goes while Shift is what makes the glyph what it
+                    // is, or the key would show it twice: Shift with Fn does nothing to a digit,
+                    // so `!` stays then, above F1.
                     legend = printedFnLegend(key),
                     legendColor = if (printedFnLegend(key) != null && controller.fnLive(key)) colors.armedRing else null,
-                    topLegendColor = if (controller.shiftLive(key)) colors.armedRing else null,
+                    topLegend = controller.shiftedLegend(key),
                     onBounds = if (key.action is KeyAction.Letter) ({ k, rect -> letterBounds[(k.action as KeyAction.Letter).lower[0]] = rect }) else null,
                     repeats = controller.repeats(key),
                     stateDescription = keyState(key, controller),

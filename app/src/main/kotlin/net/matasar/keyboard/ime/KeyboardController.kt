@@ -558,6 +558,12 @@ class KeyboardController(
      */
     fun shiftLive(key: Key): Boolean = shiftActive && labelFor(key, shift = false, fn = fnActive) != displayLabel(key)
 
+    /**
+     * The shifted symbol printed in the key's corner, or null while Shift has put it on the glyph:
+     * the key would show it twice.
+     */
+    fun shiftedLegend(key: Key): String? = key.shiftedLabel.takeUnless { shiftLive(key) }
+
     /** The same question for Fn. */
     fun fnLive(key: Key): Boolean = fnActive && labelFor(key, shift = shiftActive, fn = false) != displayLabel(key)
 

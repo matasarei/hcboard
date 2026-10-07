@@ -11,6 +11,7 @@ import net.matasar.keyboard.layout.sixtyPercentLayer
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 /**
@@ -134,6 +135,18 @@ class KeyLabelTest {
         // A letter with no Fn meaning of its own: Shift alone makes its glyph.
         assertFalse(controller.fnLive(key("ф")))
         assertTrue(controller.shiftLive(key("ф")))
+    }
+
+    @Test
+    fun `the shifted legend goes while shift has put it on the glyph`() {
+        assertEquals("!", controller.shiftedLegend(key("1")))
+        controller.onKey(shiftKey)
+        assertEquals("!", shown("1"))
+        assertNull(controller.shiftedLegend(key("1")))
+        assertNull(controller.shiftedLegend(key("/")))
+        // Fn+Shift on a digit types F1: the `!` is not on the glyph, so it stays in the corner.
+        controller.onKey(fnKey)
+        assertEquals("!", controller.shiftedLegend(key("1")))
     }
 
     @Test
