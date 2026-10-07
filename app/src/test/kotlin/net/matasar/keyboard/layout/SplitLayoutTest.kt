@@ -2,6 +2,7 @@ package net.matasar.keyboard.layout
 
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
@@ -84,6 +85,18 @@ class SplitLayoutTest {
         assertEquals("Esc=1.25", split.left.rows[0].keys.first().let { "${it.label}=${it.width}" })
         assertEquals(listOf(1.25f, 2.25f, 2.25f, 2.25f), split.left.rows.take(4).map { it.keys.first().width })
         assertEquals(listOf(2f, 1f, 2f, 3f), split.right.rows.take(4).map { it.keys.last().width })
+    }
+
+    @Test
+    fun `a shift row too long for its half is refused rather than drawn with a sliver of a shift`() {
+        // Six letters on the right of a one-unit Shift: the row sets the half's width, and the
+        // full-size `~ would leave that Shift three quarters of a unit.
+        val whole = sixtyPercentLayer(Languages.english, withGlobe = false)
+        val shiftRow = whole.rows[3].keys
+        val crowded = shiftRow.take(6) + "qwerty".map { Key(it.toString(), KeyAction.Text(it.toString())) } +
+            shiftRow.subList(shiftRow.size - 3, shiftRow.size - 1) + shiftRow.last().copy(width = 1f)
+        val rows = whole.rows.toMutableList().also { it[3] = Row(crowded) }
+        assertFailsWith<IllegalArgumentException> { splitLayer(whole.copy(rows = rows)) }
     }
 
     @Test
