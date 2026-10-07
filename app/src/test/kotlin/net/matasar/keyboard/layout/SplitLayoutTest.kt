@@ -9,14 +9,32 @@ class SplitLayoutTest {
 
     private val everyBoard = Languages.all.flatMap { language -> listOf(false, true).map { language to it } }
 
+    /** Every split page: letters and symbols, every language, with and without the globe. */
+    private val everySplit = everyBoard.flatMap { (language, withGlobe) ->
+        wideLayout(language, withGlobe).splits.values.map { "${language.tag} globe=$withGlobe ${it.left.id}" to it }
+    }
+
+    private fun Key.widthless() = copy(width = 0f)
+
+    private fun Row.widths() = keys.joinToString(" ") { "${it.label}=${it.width}" }
+
     @Test
-    fun `the upper rows are the whole board cut in two, every key at its own width`() {
+    fun `the upper rows are the whole board cut in two, every inner key at its own width`() {
         for ((language, withGlobe) in everyBoard) {
             val whole = sixtyPercentLayer(language, withGlobe)
             val split = splitLayer(language, withGlobe)
             for (index in 0..3) {
-                val halves = split.left.rows[index].keys + split.right.rows[index].keys
-                assertEquals(whole.rows[index].keys, halves, "${language.tag} globe=$withGlobe row $index")
+                val left = split.left.rows[index].keys
+                val right = split.right.rows[index].keys
+                val halves = left + right
+                val tag = "${language.tag} globe=$withGlobe row $index"
+                assertEquals(whole.rows[index].keys.map { it.widthless() }, halves.map { it.widthless() }, tag)
+                // Only the outer keys and `~ change width.
+                val inner = left.drop(1) + right.dropLast(1)
+                val wholeInner = whole.rows[index].keys.let { it.subList(1, it.size - 1) }
+                for ((key, original) in inner.zip(wholeInner)) {
+                    if (key.action != KeyAction.Text("`", "~")) assertEquals(original.width, key.width, "$tag ${key.label}")
+                }
                 // Esc, 1 to 6 on the digits; the row's first key and five letters below.
                 assertEquals(if (index == 0) 7 else 6, split.left.rows[index].keys.size, "${language.tag} row $index")
             }
@@ -24,20 +42,28 @@ class SplitLayoutTest {
     }
 
     @Test
-    fun `every row of a half fills the half, padded on the inner side`() {
-        for ((language, withGlobe) in everyBoard) {
-            val split = splitLayer(language, withGlobe)
-            for (row in split.left.rows) {
-                assertEquals(split.left.units, row.totalUnits, "${language.tag} left")
-                assertEquals(0f, row.leadingUnits)
+    fun `every row of a half fills the half with no padding, its outer function key taking the slack`() {
+        for ((tag, split) in everySplit) {
+            for ((half, rows, units) in listOf(Triple("left", split.left.rows, split.left.units), Triple("right", split.right.rows, split.right.units))) {
+                for (row in rows) {
+                    assertEquals(units, row.totalUnits, "$tag $half ${row.widths()}")
+                    assertEquals(0f, row.leadingUnits, "$tag $half")
+                    assertEquals(0f, row.trailingUnits, "$tag $half")
+                    assertTrue(row.keys.all { it.width >= 0.75f }, "$tag $half ${row.widths()}")
+                }
+                // A letter or a digit is never stretched: only function keys stand on the outer edge.
+                val outer = rows.take(4).map { if (half == "left") it.keys.first() else it.keys.last() }
+                assertTrue(outer.none { it.style == KeyStyle.LETTER }, "$tag $half ${outer.map { it.label }}")
             }
-            for (row in split.right.rows) {
-                assertEquals(split.right.units, row.totalUnits, "${language.tag} right")
-                assertEquals(0f, row.trailingUnits)
-            }
-            // A half is as wide as its widest letter row, so that row needs no padding at all.
-            assertTrue(split.left.rows.take(4).any { it.trailingUnits == 0f }, "${language.tag} left")
-            assertTrue(split.right.rows.take(4).any { it.leadingUnits == 0f }, "${language.tag} right")
+        }
+    }
+
+    @Test
+    fun `the backtick is a full key on every right half, and the right shift never under one unit`() {
+        for ((tag, split) in everySplit) {
+            val shiftRow = split.right.rows[3]
+            assertEquals(1f, shiftRow.keys.single { it.action == KeyAction.Text("`", "~") }.width, tag)
+            assertTrue(shiftRow.keys.last().width >= 1f, "$tag ${shiftRow.widths()}")
         }
     }
 
@@ -54,6 +80,28 @@ class SplitLayoutTest {
         // B goes to the right hand: `\|` beside the left Shift takes its place on the left.
         assertEquals("Shift \\ z x c v", split.left.rows[3].keys.joinToString(" ") { it.label })
         assertEquals("b n m / ` Shift", split.right.rows[3].keys.joinToString(" ") { it.label })
+        // The outer keys take the slack, so both edges are straight.
+        assertEquals("Esc=1.25", split.left.rows[0].keys.first().let { "${it.label}=${it.width}" })
+        assertEquals(listOf(1.25f, 2.25f, 2.25f, 2.25f), split.left.rows.take(4).map { it.keys.first().width })
+        assertEquals(listOf(2f, 1f, 2f, 3f), split.right.rows.take(4).map { it.keys.last().width })
+    }
+
+    @Test
+    fun `nine letters on the shift row narrow the right shift to one unit`() {
+        val split = splitLayer(Languages.russian, withGlobe = true)
+        assertEquals(7f, split.left.units)
+        assertEquals(8f, split.right.units)
+        assertEquals(listOf(1f, 2f, 2f, 2f), split.left.rows.take(4).map { it.keys.first().width })
+        assertEquals(listOf(2f, 1f, 2f, 1f), split.right.rows.take(4).map { it.keys.last().width })
+        assertEquals("и т ь б ю / ` Shift", split.right.rows[3].keys.joinToString(" ") { it.label })
+    }
+
+    @Test
+    fun `eight letters on the shift row leave the right shift two units`() {
+        val split = splitLayer(Languages.bulgarian, withGlobe = true)
+        assertEquals(7f, split.left.units)
+        assertEquals(listOf(1f, 2f, 2f, 2f), split.left.rows.take(4).map { it.keys.first().width })
+        assertEquals(listOf(2f, 1f, 2f, 2f), split.right.rows.take(4).map { it.keys.last().width })
     }
 
     @Test
