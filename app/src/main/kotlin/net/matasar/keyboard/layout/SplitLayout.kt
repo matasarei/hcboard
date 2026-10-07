@@ -62,6 +62,7 @@ fun splitLayer(whole: Layer): SplitLayer {
 
 /** This row with its first (or last) key [by] units wider; refuses to leave that key under one unit. */
 private fun Row.widenEdgeKey(first: Boolean, by: Float): Row {
+    // Exact: every width on the board is a multiple of a quarter unit, which a Float holds exactly.
     if (by == 0f) return this
     val index = if (first) 0 else keys.lastIndex
     val edge = keys[index]
