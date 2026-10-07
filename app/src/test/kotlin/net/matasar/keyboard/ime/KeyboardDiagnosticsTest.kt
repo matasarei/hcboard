@@ -22,11 +22,22 @@ class KeyboardDiagnosticsTest {
     }
 
     @Test
-    fun `the report opens with the version, then the field, then the insets`() {
+    fun `the report opens with the version, then the field, the insets and the window events`() {
         assertEquals(
-            "hcboard 1.2.3 (local build)\n\nfield line\n\ninsets line",
-            KeyboardDiagnostics.report("hcboard 1.2.3 (local build)", "field line", "insets line"),
+            "hcboard 1.2.3 (local build)\n\nfield line\n\ninsets line\n\nevents line",
+            KeyboardDiagnostics.report("hcboard 1.2.3 (local build)", "field line", "insets line", "events line"),
         )
+    }
+
+    @Test
+    fun `window events keep the newest, oldest first, with their uptime`() {
+        repeat(KeyboardDiagnostics.EVENT_LIMIT + 6) { KeyboardDiagnostics.event("move $it", at = 1000L + it) }
+        val lines = KeyboardDiagnostics.events.lines()
+        assertEquals("window events (uptime):", lines.first())
+        assertEquals(KeyboardDiagnostics.EVENT_LIMIT, lines.size - 1)
+        assertEquals("1006ms move 6", lines[1])
+        assertEquals("1029ms move 29", lines.last())
+        assertTrue(KeyboardDiagnostics.report().endsWith("1029ms move 29"))
     }
 
     @Test
@@ -35,6 +46,6 @@ class KeyboardDiagnosticsTest {
         KeyboardDiagnostics.insets = "navigation bar 48 px"
         val report = KeyboardDiagnostics.report()
         assertTrue(report.startsWith(KeyboardDiagnostics.versionLine() + "\n\n"))
-        assertTrue(report.endsWith("inputType=0x1 package=com.example\n\nnavigation bar 48 px"))
+        assertTrue(report.endsWith("inputType=0x1 package=com.example\n\nnavigation bar 48 px\n\n" + KeyboardDiagnostics.events))
     }
 }

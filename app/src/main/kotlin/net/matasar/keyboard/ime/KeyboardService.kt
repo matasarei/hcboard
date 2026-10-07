@@ -10,6 +10,7 @@ import android.inputmethodservice.InputMethodService
 import android.os.Build
 import android.os.Bundle
 import android.os.PersistableBundle
+import android.os.SystemClock
 import android.view.inputmethod.InlineSuggestionsRequest
 import android.view.inputmethod.InlineSuggestionsResponse
 import androidx.compose.ui.graphics.luminance
@@ -48,7 +49,9 @@ import androidx.window.layout.FoldingFeature
 import androidx.window.layout.WindowInfoTracker
 import java.io.FileDescriptor
 import java.io.PrintWriter
+import androidx.compose.runtime.Recomposer
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.findViewTreeCompositionContext
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
@@ -311,7 +314,9 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
         super.onConfigurationChanged(newConfig)
         val previous = lastConfiguration
         lastConfiguration = Configuration(newConfig)
-        if (!rebuildsInputView(previous.diff(newConfig))) return
+        val diff = previous.diff(newConfig)
+        noteWindowEvent("configuration diff=0x${Integer.toHexString(diff)} rebuild=${rebuildsInputView(diff)}")
+        if (!rebuildsInputView(diff)) return
         inputViewRebuilds++
         // onCreateInputView drops the lifecycle back to STARTED; a keyboard that is up right now
         // is still resumed, and its composition must not be told otherwise.
@@ -345,6 +350,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
     private val layoutListener = ViewTreeObserver.OnGlobalLayoutListener { measureBottomBarOverlap() }
 
     override fun onCreateInputView(): View {
+        noteWindowEvent("createInputView")
         // A rebuild replaces the view, but the lifecycle it was composed under is the service's
         // and lives on: without this the old composition keeps collecting and recomposing.
         // The listener removal only reaches the old window's observer while the old view is still
@@ -551,7 +557,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
         return if (id != 0) resources.getDimensionPixelSize(id) else 0
     }
 
-    /** `adb shell dumpsys activity service net.matasar.keyboard/.ime.KeyboardService`: the build, the field and the insets. */
+    /** `adb shell dumpsys activity service net.matasar.keyboard/.ime.KeyboardService`: the build, the field, the insets and the window's last moves. */
     override fun dump(fd: FileDescriptor, fout: PrintWriter, args: Array<String>) {
         super.dump(fd, fout, args)
         fout.println(KeyboardDiagnostics.report())
@@ -605,6 +611,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
             controller.restoreSuggestInApp(currentPackage in settings.suggestInPackages)
         }
         lifecycleRegistry.currentState = Lifecycle.State.RESUMED
+        noteWindowEvent("startInputView restarting=$restarting")
     }
 
     override fun onFinishInputView(finishingInput: Boolean) {
@@ -612,6 +619,39 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
         if (lifecycleRegistry.currentState == Lifecycle.State.RESUMED) {
             lifecycleRegistry.currentState = Lifecycle.State.STARTED
         }
+        noteWindowEvent("finishInputView finishingInput=$finishingInput")
+    }
+
+    /**
+     * The keyboard window is on screen again: after an unlock or an unfold a Galaxy Fold has shown
+     * it with nothing drawn and nothing to tap, so the view is asked to lay out and draw again.
+     */
+    override fun onWindowShown() {
+        super.onWindowShown()
+        inputView?.apply {
+            requestLayout()
+            invalidate()
+        }
+        noteWindowEvent("windowShown")
+    }
+
+    /**
+     * One move of the keyboard window for the diagnostics report, with the lifecycle and what the
+     * input view looks like then: sizes and flags only, never anything typed.
+     */
+    private fun noteWindowEvent(what: String) {
+        val view = inputView
+        val viewState = if (view == null) {
+            "view=none"
+        } else {
+            // The window's recomposer sits on a view above the keyboard and is shut down when that
+            // window is detached; a keyboard composed against a dead one draws nothing and takes no taps.
+            val recomposer = (view.findViewTreeCompositionContext() as? Recomposer)?.currentState?.value
+            "view=${view.width}x${view.height} attached=${view.isAttachedToWindow} shown=${view.isShown} " +
+                "composed=${(view as? ComposeView)?.hasComposition} children=${(view as? android.view.ViewGroup)?.childCount} " +
+                "recomposer=${recomposer ?: "none"}"
+        }
+        KeyboardDiagnostics.event("$what lifecycle=${lifecycleRegistry.currentState} $viewState", SystemClock.uptimeMillis())
     }
 
     /**
@@ -658,6 +698,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
         super.onWindowHidden()
         controller.stopMacro()
         controller.onKeyboardHidden()
+        noteWindowEvent("windowHidden")
     }
 
     /** The cursor moved, by us or by the user: the word under it decides the candidates. */
