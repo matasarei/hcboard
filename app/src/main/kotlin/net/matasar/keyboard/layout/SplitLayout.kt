@@ -15,6 +15,9 @@ private val LEFT_KEYS = listOf(7, 6, 6, 6)
 /** The split letters page for [language]. */
 fun splitLayer(language: Language, withGlobe: Boolean): SplitLayer = splitLayer(sixtyPercentLayer(language, withGlobe))
 
+/** Where the Shift row is among the four upper rows. */
+private const val SHIFT_ROW = 3
+
 /** The `` `~ `` key, slim on the whole board and a full key on a half. */
 private val Backtick = KeyAction.Text("`", "~")
 
@@ -33,8 +36,10 @@ fun splitLayer(whole: Layer): SplitLayer {
     val rightCut = upper.mapIndexed { index, row -> Row(row.keys.drop(LEFT_KEYS[index])) }
     val leftUnits = leftUpper.maxOf { it.totalUnits }
     val rightUnits = rightCut.maxOf { it.totalUnits }
-    // Measured first, so a wider `~ comes out of its row's Shift rather than widening the half.
-    val rightUpper = rightCut.map { row -> row.copy(keys = row.keys.map { if (it.action == Backtick) it.copy(width = 1f) else it }) }
+    // Measured first, so a wider `~ comes out of the Shift row's Shift rather than widening the half.
+    val rightUpper = rightCut.mapIndexed { index, row ->
+        if (index != SHIFT_ROW) row else row.copy(keys = row.keys.map { if (it.action == Backtick) it.copy(width = 1f) else it })
+    }
 
     // The bottom row is the whole board's cut at its space bar: a space for each thumb, each as
     // wide as brings its row to the widest row of its half. The left space has no name: the
