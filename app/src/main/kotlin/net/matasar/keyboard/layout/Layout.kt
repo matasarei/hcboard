@@ -53,7 +53,10 @@ data class Key(
     val width: Float = 1f,
     val style: KeyStyle = KeyStyle.LETTER,
     val icon: KeyIcon? = null,
-    /** Printed above the main glyph on the 60% board and sent when Shift is active. */
+    /**
+     * Printed above the main glyph on the 60% board, except while it is the glyph
+     * (`KeyboardController.shiftedLegend`), and sent when Shift is active.
+     */
     val shiftedLabel: String? = null,
     /** What the key means while Fn is active, shown as its glyph then (F1, Home, an arrow, Del). */
     val fnLegend: String? = null,

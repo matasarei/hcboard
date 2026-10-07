@@ -11,6 +11,7 @@ import net.matasar.keyboard.layout.sixtyPercentLayer
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 /**
@@ -125,29 +126,40 @@ class KeyLabelTest {
     fun `a legend is live only when its modifier is what makes the glyph`() {
         controller.onKey(fnKey)
         controller.onKey(shiftKey)
-        // Fn+Shift on a digit types F1 whether or not Shift is armed, so only the Fn legend is live.
+        // Fn+Shift on a digit types F1 whether or not Shift is armed: the Fn legend is live, and
+        // the shifted `!` is not on the glyph, so it stays printed.
         assertTrue(controller.fnLive(key("1")))
-        assertFalse(controller.shiftLive(key("1")))
-        // On a bracket slot Shift does change it, from [ to {, so both legends are live.
+        assertEquals("!", controller.shiftedLegend(key("1")))
+        // On a bracket slot Fn makes the glyph, with Shift choosing { over [.
         assertTrue(controller.fnLive(key("х")))
-        assertTrue(controller.shiftLive(key("х")))
-        // A letter with no Fn meaning of its own: Shift alone makes its glyph.
+        // A letter with no Fn meaning of its own: Fn does nothing to it.
         assertFalse(controller.fnLive(key("ф")))
-        assertTrue(controller.shiftLive(key("ф")))
+    }
+
+    @Test
+    fun `the shifted legend goes while shift has put it on the glyph`() {
+        assertEquals("!", controller.shiftedLegend(key("1")))
+        controller.onKey(shiftKey)
+        assertEquals("!", shown("1"))
+        assertNull(controller.shiftedLegend(key("1")))
+        assertNull(controller.shiftedLegend(key("/")))
+        // Fn+Shift on a digit types F1: the `!` is not on the glyph, so it stays in the corner.
+        controller.onKey(fnKey)
+        assertEquals("!", controller.shiftedLegend(key("1")))
     }
 
     @Test
     fun `with one modifier armed its own legend is the live one`() {
-        // Nothing armed, nothing live.
+        // Nothing armed, nothing live: the shifted symbol is printed, the Fn legend is not tinted.
         assertFalse(controller.fnLive(key("1")))
-        assertFalse(controller.shiftLive(key("1")))
+        assertEquals("!", controller.shiftedLegend(key("1")))
         controller.onKey(shiftKey)
-        assertTrue(controller.shiftLive(key("1")))
+        assertNull(controller.shiftedLegend(key("1")))
         assertFalse(controller.fnLive(key("1")))
         controller.onStartInput(null) // a new field releases both
         controller.onKey(fnKey)
         assertTrue(controller.fnLive(key("1")))
-        assertFalse(controller.shiftLive(key("1")))
+        assertEquals("!", controller.shiftedLegend(key("1")))
     }
 
     @Test

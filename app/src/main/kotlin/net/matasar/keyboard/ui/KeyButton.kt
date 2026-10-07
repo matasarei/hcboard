@@ -99,8 +99,6 @@ fun KeyButton(
     /** Tints the Fn legend while Fn is active: the legend that is live right now. */
     legendColor: Color? = null,
     topLegend: String? = key.shiftedLabel,
-    /** Tints the shifted legend while Shift is active, the same way. */
-    topLegendColor: Color? = null,
     /** Overrides the size of a small (word) label; the strip's narrow keys use it. */
     labelSize: TextUnit = Dimens.labelSize,
     /** Receives the key's bounds in root coordinates; the glide detector maps fingers to keys with it. */
@@ -289,7 +287,7 @@ fun KeyButton(
                 if (arrow != null) {
                     ArrowSymbol(
                         direction = arrow,
-                        color = topLegendColor ?: colors.subtle,
+                        color = colors.subtle,
                         size = legendSize.value.dp,
                         modifier = Modifier
                             .align(Alignment.TopStart)
@@ -298,7 +296,7 @@ fun KeyButton(
                 } else {
                     Text(
                         text = topLegend,
-                        color = topLegendColor ?: colors.subtle,
+                        color = colors.subtle,
                         fontSize = legendSize,
                         lineHeight = legendSize * Dimens.legendLineHeightRatio,
                         maxLines = 1,
