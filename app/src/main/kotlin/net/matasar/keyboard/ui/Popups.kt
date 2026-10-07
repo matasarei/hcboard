@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
@@ -24,6 +25,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import net.matasar.keyboard.ui.theme.LocalKeyboardColors
 import kotlin.math.roundToInt
 
@@ -113,11 +115,16 @@ fun PopupLayer(state: PopupState) {
                     strokeWidth = 2.4.dp,
                 )
             } else {
+                // A named Fn meaning (PgUp, Home, F10) is a word, not a character: it stays on one
+                // line and shrinks to the bubble, or it wraps and spills out of it.
                 Text(
                     preview.label,
                     color = colors.onPopup,
-                    fontSize = PopupMetrics.glyphSize,
                     fontWeight = FontWeight.Medium,
+                    maxLines = 1,
+                    softWrap = false,
+                    autoSize = TextAutoSize.StepBased(minFontSize = 10.sp, maxFontSize = PopupMetrics.glyphSize, stepSize = 0.5.sp),
+                    modifier = Modifier.padding(horizontal = 4.dp),
                 )
             }
         }
