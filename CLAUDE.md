@@ -183,7 +183,10 @@ emulator profile is `medium_phone`; boot it headless with
   The wide board splits (`layout/SplitLayout.kt`), each page on its own (`KeyboardLayout.splits`),
   by cutting it after its sixth key per row (the seventh on the digits, so 6 is on the left; on
   the Shift row the six end at V, so B is under the right hand) and the bottom row at its space
-  bar, every key at its full-board width, the rows padded on the inner side;
+  bar, every key at its full-board width but each row's outer one (Esc, Tab, Caps, Shift;
+  Backspace, €±, Enter, Shift), which takes what brings its row to the half's width, so both edges
+  of a half are straight; `` `~ `` is a full key on the right half, from its Shift (one unit on a
+  nine-letter row);
   `ui/SplitGeometry.kt` decides when (Off/Auto/Always; Auto = a separating vertical hinge from
   androidx.window, or a landscape window under 480 dp high) and sizes the unit so no key lands on
   a hinge.
