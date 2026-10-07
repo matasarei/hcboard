@@ -1333,7 +1333,8 @@ class KeyboardController(
      * reachable through Shift. Caps Lock inverts it, because a tap there already gives the shifted
      * symbol. Null where the rule does not apply — a letter, a key with no shifted symbol, or any
      * key while Fn is active, which gives the key another meaning. Accents are not checked here:
-     * the caller offers [accentsFor] first, and a key with accents never reaches this.
+     * the caller offers [accentsFor] first, so a key with accents reaches this only under Fn,
+     * which has none to offer, and there this gives up as well.
      */
     fun longPressText(key: Key): String? {
         if (fnActive) return null
