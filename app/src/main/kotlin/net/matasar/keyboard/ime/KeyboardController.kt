@@ -551,14 +551,15 @@ class KeyboardController(
      */
     fun displayLabel(key: Key): String = labelFor(key, shiftActive, fnActive)
 
-    /** Whether Fn is what makes this key's glyph what it is, so its legend is the live one, which tints. */
+    /** Whether Fn is what makes this key's glyph what it is: the key is filled as Fn's (visualFor). */
     fun fnLive(key: Key): Boolean = fnActive && labelFor(key, shift = shiftActive, fn = false) != displayLabel(key)
 
     /**
-     * The shifted symbol printed in the key's corner, or null while it is the glyph: the key
-     * would show it twice. Under Fn+Shift a digit reads F1, so its `!` stays in the corner.
+     * The shifted symbol printed in the key's corner, or null while it is the glyph (the key would
+     * show it twice) or Fn has given the key another meaning (F1 under Fn or Fn+Shift: the symbol
+     * cannot be typed from it).
      */
-    fun shiftedLegend(key: Key): String? = key.shiftedLabel.takeUnless { it == displayLabel(key) }
+    fun shiftedLegend(key: Key): String? = key.shiftedLabel.takeUnless { it == displayLabel(key) || fnLive(key) }
 
     private fun labelFor(key: Key, shift: Boolean, fn: Boolean): String {
         // With English alone there is nothing to tell apart, so space stays blank. The key keeps

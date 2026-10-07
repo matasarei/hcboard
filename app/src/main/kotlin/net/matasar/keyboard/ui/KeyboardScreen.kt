@@ -340,12 +340,12 @@ private fun LayerGrid(
                     haptics = feel.haptics,
                     showLabel = !controller.trackpad,
                     legendBand = wide,
-                    // Only symbols are printed as Fn legends (see printedFnLegend); the live one
-                    // tints. The shifted symbol goes while Shift is what makes the glyph what it
-                    // is, or the key would show it twice: Shift with Fn does nothing to a digit,
-                    // so `!` stays then, above F1.
+                    // Only symbols are printed as Fn legends (see printedFnLegend). A key Fn gives
+                    // a meaning is filled (visualFor), so its legend takes the fill's text colour.
+                    // The shifted symbol goes while it is the glyph or Fn has taken the key
+                    // (shiftedLegend).
                     legend = printedFnLegend(key),
-                    legendColor = if (printedFnLegend(key) != null && controller.fnLive(key)) colors.armedRing else null,
+                    legendColor = if (printedFnLegend(key) != null && controller.fnLive(key)) colors.onArmed else null,
                     topLegend = controller.shiftedLegend(key),
                     onBounds = if (key.action is KeyAction.Letter) ({ k, rect -> letterBounds[(k.action as KeyAction.Letter).lower[0]] = rect }) else null,
                     repeats = controller.repeats(key),
@@ -527,9 +527,12 @@ internal fun printedFnLegend(key: Key): String? = key.fnLegend.takeIf { key.fnAc
 /**
  * Background and foreground for a key, including the shift key's armed and locked looks. An
  * automatic capital makes Shift (not Caps Lock) look armed: the next letter is a capital, as
- * after a tap on Shift.
+ * after a tap on Shift. While Fn is on, a key it gives a meaning (F1, Del, Home, an arrow, Meta)
+ * takes the armed fill without the ring, so Fn's keys read as Fn's; the ring stays the armed
+ * modifier's own.
  */
 internal fun visualFor(key: Key, controller: KeyboardController, colors: KeyboardColors): KeyVisual {
+    if (controller.fnLive(key)) return KeyVisual(colors.armed, colors.onArmed)
     if (key.action is KeyAction.Modifier) return modifierVisual(key, controller, colors)
     if (key.action == KeyAction.Shift || key.action == KeyAction.CapsLock) {
         return when (controller.shift.state) {

@@ -126,10 +126,10 @@ class KeyLabelTest {
     fun `a legend is live only when its modifier is what makes the glyph`() {
         controller.onKey(fnKey)
         controller.onKey(shiftKey)
-        // Fn+Shift on a digit types F1 whether or not Shift is armed: the Fn legend is live, and
-        // the shifted `!` is not on the glyph, so it stays printed.
+        // Fn+Shift on a digit types F1 whether or not Shift is armed: Fn has the key, and the
+        // shifted `!` cannot be typed from it, so it is not printed.
         assertTrue(controller.fnLive(key("1")))
-        assertEquals("!", controller.shiftedLegend(key("1")))
+        assertNull(controller.shiftedLegend(key("1")))
         // On a bracket slot Fn makes the glyph, with Shift choosing { over [.
         assertTrue(controller.fnLive(key("х")))
         // A letter with no Fn meaning of its own: Fn does nothing to it.
@@ -137,15 +137,25 @@ class KeyLabelTest {
     }
 
     @Test
-    fun `the shifted legend goes while shift has put it on the glyph`() {
+    fun `the shifted legend goes while it is the glyph or fn has the key`() {
         assertEquals("!", controller.shiftedLegend(key("1")))
         controller.onKey(shiftKey)
         assertEquals("!", shown("1"))
         assertNull(controller.shiftedLegend(key("1")))
         assertNull(controller.shiftedLegend(key("/")))
-        // Fn+Shift on a digit types F1: the `!` is not on the glyph, so it stays in the corner.
+        // Fn+Shift on a digit types F1: the `!` cannot be typed from it, so it goes too.
         controller.onKey(fnKey)
-        assertEquals("!", controller.shiftedLegend(key("1")))
+        assertNull(controller.shiftedLegend(key("1")))
+        // `/` has no Fn meaning: under Fn+Shift it is still `?`, the glyph.
+        assertNull(controller.shiftedLegend(key("/")))
+    }
+
+    @Test
+    fun `under fn alone the keys fn takes lose their shifted legend, the rest keep it`() {
+        controller.onKey(fnKey)
+        assertEquals("F1", shown("1"))
+        assertNull(controller.shiftedLegend(key("1")))
+        assertEquals("?", controller.shiftedLegend(key("/")))
     }
 
     @Test
@@ -159,7 +169,7 @@ class KeyLabelTest {
         controller.onStartInput(null) // a new field releases both
         controller.onKey(fnKey)
         assertTrue(controller.fnLive(key("1")))
-        assertEquals("!", controller.shiftedLegend(key("1")))
+        assertNull(controller.shiftedLegend(key("1")))
     }
 
     @Test

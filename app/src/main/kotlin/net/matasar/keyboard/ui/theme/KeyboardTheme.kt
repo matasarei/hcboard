@@ -57,7 +57,7 @@ data class KeyboardColors(
     /**
      * A key's Fn legend while Fn is idle. Every key on the 60% board carries one, and at full
      * strength thirty of them read as loudly as the glyphs do; recessed, they are there to be
-     * looked up rather than read. Fn arming a key still tints it [armedRing].
+     * looked up rather than read. A key Fn has taken is filled [armed] and its legend drawn [onArmed].
      */
     val legend: Color,
     /** The one-pixel shadow under keys. */
