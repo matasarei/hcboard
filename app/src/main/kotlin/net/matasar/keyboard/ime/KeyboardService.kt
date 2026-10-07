@@ -645,7 +645,8 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
             "view=none"
         } else {
             // The window's recomposer sits on a view above the keyboard and is shut down when that
-            // window is detached; a keyboard composed against a dead one draws nothing and takes no taps.
+            // window is detached; a keyboard composed against a dead one may draw nothing and take
+            // no taps, which is what this is here to confirm or rule out.
             val recomposer = (view.findViewTreeCompositionContext() as? Recomposer)?.currentState?.value
             "view=${view.width}x${view.height} attached=${view.isAttachedToWindow} shown=${view.isShown} " +
                 "composed=${(view as? ComposeView)?.hasComposition} children=${(view as? android.view.ViewGroup)?.childCount} " +
