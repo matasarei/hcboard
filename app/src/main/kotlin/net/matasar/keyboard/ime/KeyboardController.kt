@@ -551,13 +551,7 @@ class KeyboardController(
      */
     fun displayLabel(key: Key): String = labelFor(key, shiftActive, fnActive)
 
-    /**
-     * Whether Shift is what makes this key's glyph what it is. Shift is armed but changes nothing
-     * on a digit under Fn: the key types F1 either way.
-     */
-    fun shiftLive(key: Key): Boolean = shiftActive && labelFor(key, shift = false, fn = fnActive) != displayLabel(key)
-
-    /** The same question for Fn: whether its legend is the live one, which tints. */
+    /** Whether Fn is what makes this key's glyph what it is, so its legend is the live one, which tints. */
     fun fnLive(key: Key): Boolean = fnActive && labelFor(key, shift = shiftActive, fn = false) != displayLabel(key)
 
     /**
