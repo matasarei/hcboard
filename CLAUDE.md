@@ -215,8 +215,10 @@ emulator profile is `medium_phone`; boot it headless with
   Nothing is dropped on a short key — both zones are sized from the key's own height by the
   functions in `ui/Dimens.kt`, because the height setting starts at 80% (a 36.8 dp key) and a
   landscape window squeezes it further. The glyph is always **what the key would type now**:
-  `KeyboardController.displayLabel` follows Shift, Fn and Fn+Shift, the live Fn legend tints
-  `armedRing` and the shifted one, then on the glyph, is not drawn, and an icon steps aside for an Fn meaning that has a name (backspace reads `Del`).
+  `KeyboardController.displayLabel` follows Shift, Fn and Fn+Shift. The live Fn legend tints
+  `armedRing`; the shifted legend is not drawn while it is the glyph
+  (`KeyboardController.shiftedLegend`); and an icon steps aside for an Fn meaning that has a name
+  (backspace reads `Del`).
 - **Privacy rules:** no `INTERNET` permission, ever; never log typed text or anything from a
   password field; never read or cache the content of inline autofill suggestions, only host the
   views the manager draws. The one exception is the fill screen (`autofill/FillActivity.kt`): a
