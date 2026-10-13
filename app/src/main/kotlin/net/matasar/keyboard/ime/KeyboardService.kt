@@ -676,6 +676,10 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
         if (reported != lastComputedInsets) {
             lastComputedInsets = reported
             KeyboardDiagnostics.insets = insetReport()
+            // Every change, in its place among the window's moves, not only the last one: an app
+            // holding more room than the keyboard takes now was either told so by an earlier pass
+            // or reserved it by itself, and only the trail tells the two apart.
+            noteWindowEvent("insets $reported")
         }
     }
 
