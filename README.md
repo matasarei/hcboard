@@ -59,7 +59,7 @@ from the password manager you already use, and the keyboard never shows or keeps
 
 - **The iPhone's layout, in Material:** each language's letters sit where the iPhone puts them
   (Russian leaves ъ to a long press on ь; Ukrainian has its apostrophe on the page and ґ on a
-  long press on г), the bottom row is 123, comma, the globe, space, period and a wide return, and
+  long press on г), the bottom row is ?123, the globe, comma, space, period and return, and
   the symbol pages are the iPhone's 123 and #+=. Two quick spaces after a word type a full stop
   and a space; e-mail and web address fields have `@` or `/` where the comma is.
 - **Glide typing** across the letters of every language, each with its own bundled word list.

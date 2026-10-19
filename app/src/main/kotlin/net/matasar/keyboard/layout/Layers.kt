@@ -10,9 +10,11 @@ enum class FieldMarks(val beforeSpace: String) { NONE(","), EMAIL("@"), URL("/")
  * The bottom row every phone page shares, the same keys at the same places on every page and in
  * every language: the page switch, the globe when more than one language is enabled, a comma (or
  * its field's [marks]) right by the space bar, space named after the language, a period and a
- * wide return. The wide board's bottom row has the same order, with Fn where this one has 123. Its widths are
- * shares of the board's width, set on a ten-unit board and scaled to the layer's [units], so a
- * twelve-key Ukrainian page or a symbols page does not move or resize a key under the thumb.
+ * return. The page switch is as wide as English's Shift and the return as its backspace, so the
+ * space bar keeps what is left. The wide board's bottom row has the same order, with Fn where
+ * this one has ?123. Its widths are shares of the board's width, set on a ten-unit board and
+ * scaled to the layer's [units], so a twelve-key Ukrainian page or a symbols page does not move
+ * or resize a key under the thumb.
  */
 internal fun bottomRow(
     switchTo: LayerId,
@@ -35,10 +37,10 @@ internal fun bottomRow(
 
 /** The board the bottom row's widths are set on; any other width scales them. */
 private const val BOTTOM_ROW_UNITS = 10f
-private const val SWITCH_KEY = 1.25f
+private const val SWITCH_KEY = 1.5f
 private const val MARK_KEY = 1f
 private const val GLOBE_KEY = 1f
-private const val RETURN_KEY = 2f
+private const val RETURN_KEY = 1.5f
 
 /**
  * The five marks on the third row of both symbol pages, a little wider than a key, as on the

@@ -29,7 +29,7 @@ class LayersTest {
             val plainRows = plain.layers.getValue(LayerId.LETTERS).rows
             assertEquals(plainRows.dropLast(1), letters.rows.drop(1).dropLast(1), language.tag)
             assertEquals("#+=", letters.rows.last().keys.first().label)
-            assertEquals("123", plainRows.last().keys.first().label)
+            assertEquals("?123", plainRows.last().keys.first().label)
             assertEquals(symbolsBesideDigitsLayer(language.nativeName, withGlobe = true), withDigits.layers.getValue(LayerId.SYMBOLS))
             assertEquals(plain.layers.getValue(LayerId.CODE), withDigits.layers.getValue(LayerId.CODE))
         }
@@ -62,7 +62,7 @@ class LayersTest {
     @Test
     fun `layers link to each other the way the iPhone's do`() {
         assertEquals(KeyAction.SwitchLayer(LayerId.SYMBOLS), LettersLayer.rows[3].keys[0].action)
-        assertEquals("123", LettersLayer.rows[3].keys[0].label)
+        assertEquals("?123", LettersLayer.rows[3].keys[0].label)
         assertEquals(KeyAction.SwitchLayer(LayerId.CODE), SymbolsLayer.rows[2].keys[0].action)
         assertEquals("#+=", SymbolsLayer.rows[2].keys[0].label)
         assertEquals(KeyAction.SwitchLayer(LayerId.SYMBOLS), CodeLayer.rows[2].keys[0].action)
@@ -97,16 +97,20 @@ class LayersTest {
     }
 
     @Test
-    fun `the letters bottom row is switch, comma, globe, space, period and a wide return`() {
+    fun `the letters bottom row is switch, comma, globe, space, period and a return`() {
         val plain = LettersLayer.rows[3].keys
         assertEquals(
             listOf(KeyAction.SwitchLayer(LayerId.SYMBOLS), KeyAction.Text(","), KeyAction.Space, KeyAction.Text("."), KeyAction.Enter),
             plain.map { it.action },
         )
-        assertEquals(listOf(1.25f, 1f, 4.75f, 1f, 2f), plain.map { it.width })
+        assertEquals(listOf(1.5f, 1f, 5f, 1f, 1.5f), plain.map { it.width })
         val globe = Languages.english.lettersLayer(withGlobe = true).rows[3].keys
-        assertEquals(listOf("123", "globe", ",", "English", ".", "enter"), globe.map { it.label })
-        assertEquals(listOf(1.25f, 1f, 1f, 3.75f, 1f, 2f), globe.map { it.width })
+        assertEquals(listOf("?123", "globe", ",", "English", ".", "enter"), globe.map { it.label })
+        assertEquals(listOf(1.5f, 1f, 1f, 4f, 1f, 1.5f), globe.map { it.width })
+        // On English the page key is as wide as Shift, and the return as backspace.
+        val shiftRow = LettersLayer.rows[2].keys
+        assertEquals(shiftRow.first().width, plain.first().width)
+        assertEquals(shiftRow.last().width, plain.last().width)
         assertEquals(listOf("ABC", ",", "English", ".", "enter"), SymbolsLayer.rows[3].keys.map { it.label })
     }
 
@@ -132,9 +136,9 @@ class LayersTest {
     fun `an address field swaps the comma for what an address needs, on every page`() {
         fun labels(marks: FieldMarks) =
             phoneLayout(Languages.english, withGlobe = true, marks = marks).layers.getValue(LayerId.LETTERS).rows[3].keys.map { it.label }
-        assertEquals(listOf("123", "globe", ",", "English", ".", "enter"), labels(FieldMarks.NONE))
-        assertEquals(listOf("123", "globe", "@", "English", ".", "enter"), labels(FieldMarks.EMAIL))
-        assertEquals(listOf("123", "globe", "/", "English", ".", "enter"), labels(FieldMarks.URL))
+        assertEquals(listOf("?123", "globe", ",", "English", ".", "enter"), labels(FieldMarks.NONE))
+        assertEquals(listOf("?123", "globe", "@", "English", ".", "enter"), labels(FieldMarks.EMAIL))
+        assertEquals(listOf("?123", "globe", "/", "English", ".", "enter"), labels(FieldMarks.URL))
         for (marks in FieldMarks.entries) {
             val layout = phoneLayout(Languages.ukrainian, withGlobe = false, marks = marks)
             for (layer in layout.layers.values) for (row in layer.rows) assertEquals(layer.units, row.totalUnits, 0.001f, "$marks ${layer.id}")
