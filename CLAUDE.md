@@ -135,10 +135,13 @@ emulator profile is `medium_phone`; boot it headless with
   (Russian 11/11/9 with ъ on a long press, Ukrainian 12/12/9 with `'`, ґ on a long press) and
   may differ from `rows`, which the 60% board fills; a layer sizes itself to its widest phone
   row, Shift and backspace take 1 to 1.5 units and a short row opens a gap beside them
-  (`Row.innerGapUnits`). The
+  (`Row.innerGapUnits`). On the phone board a key of w units spans w units and the gaps
+  between them (`KeyRow`'s `onGrid`, `keySpan`), so rows of equal units share their edges
+  whatever their key counts; the wide board keeps its keys shared out by units alone. The
   bottom row, the same on every page and in every language (widths are shares of the board,
-  scaled from ten units), is ?123 (or ABC, or #+= beside a number row) as wide as English's Shift, the globe, comma (`@` or `/` in address fields,
-  `FieldMarks`) by the space bar, space, period and a return as wide as English's backspace; a quick double space after a word types ". "
+  scaled from ten units), is ?123 (or ABC, or #+= beside a number row) as wide as English's
+  Shift, the globe, comma (`@` or `/` in address fields, `FieldMarks`) by the space bar, space,
+  period and a return as wide as English's backspace; a quick double space after a word types ". "
   (`KeyboardController.periodShortcut`, prose fields only, the `doubleSpacePeriod` setting); the
   symbol pages are the iPhone's 123 and #+= (`LayerId.CODE`).
   Bulgarian has two boards, Phonetic (default) and Standard/БДС (`Settings.bulgarianLayout`,
