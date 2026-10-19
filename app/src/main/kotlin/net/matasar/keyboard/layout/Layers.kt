@@ -11,9 +11,10 @@ enum class FieldMarks(val beforeSpace: String) { NONE(","), EMAIL("@"), URL("/")
  * every language: the page switch, the globe when more than one language is enabled, a comma (or
  * its field's [marks]) right by the space bar, space named after the language, a period and a
  * return. The page switch is as wide as English's Shift and the return as its backspace, so the
- * space bar keeps what is left. The wide board's bottom row has the same order, with Fn where this one has 123. Its widths are
- * shares of the board's width, set on a ten-unit board and scaled to the layer's [units], so a
- * twelve-key Ukrainian page or a symbols page does not move or resize a key under the thumb.
+ * space bar keeps what is left. The wide board's bottom row has the same order, with Fn where
+ * this one has ?123. Its widths are shares of the board's width, set on a ten-unit board and
+ * scaled to the layer's [units], so a twelve-key Ukrainian page or a symbols page does not move
+ * or resize a key under the thumb.
  */
 internal fun bottomRow(
     switchTo: LayerId,
