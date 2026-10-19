@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.material3.Icon
@@ -276,7 +277,10 @@ fun KeyButton(
                     } else {
                         null
                     },
-                    modifier = if (fitted) Modifier.padding(horizontal = 3.dp) else Modifier,
+                    // Sized to the width only: the size already follows the key's height, and a
+                    // pass that squeezes the row to nothing (the window still a row short when the
+                    // number row appears) would shrink the word to the minimum for good.
+                    modifier = if (fitted) Modifier.padding(horizontal = 3.dp).wrapContentHeight(unbounded = true) else Modifier,
                 )
             }
         }
