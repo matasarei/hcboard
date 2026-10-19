@@ -277,8 +277,8 @@ android {
         applicationId = "net.matasar.keyboard"
         minSdk = libs.versions.minSdk.get().toInt()
         targetSdk = libs.versions.targetSdk.get().toInt()
-        versionCode = 6
-        versionName = "5.0.0"
+        versionCode = 7
+        versionName = "5.1.0"
         // The commit a build came from, for the diagnostics on the settings screen. CI sets
         // HCBOARD_COMMIT (a pull request's head, not GitHub's merge commit); anything that is not
         // a full hash, including no variable at all, reads "local build". Checked, because it is
