@@ -358,7 +358,7 @@ private fun LayerGrid(
             }
             if (split == null) {
                 for (row in layer.rows) {
-                    KeyRow(row = row, unitWidth = unitWidth, gap = Dimens.keyGap, modifier = Modifier.padding(horizontal = sidePadding), content = keyButton)
+                    KeyRow(row = row, unitWidth = unitWidth, gap = Dimens.keyGap, modifier = Modifier.padding(horizontal = sidePadding), onGrid = !wide, content = keyButton)
                 }
             } else {
                 val gap = Dimens.keyGap
