@@ -137,8 +137,8 @@ emulator profile is `medium_phone`; boot it headless with
   row, Shift and backspace take 1 to 1.5 units and a short row opens a gap beside them
   (`Row.innerGapUnits`). The
   bottom row, the same on every page and in every language (widths are shares of the board,
-  scaled from ten units), is 123 or ABC, the globe, comma (`@` or `/` in address fields,
-  `FieldMarks`) by the space bar, space, period and a wide return; a quick double space after a word types ". "
+  scaled from ten units), is ?123 (or ABC, or #+= beside a number row) as wide as English's Shift, the globe, comma (`@` or `/` in address fields,
+  `FieldMarks`) by the space bar, space, period and a return as wide as English's backspace; a quick double space after a word types ". "
   (`KeyboardController.periodShortcut`, prose fields only, the `doubleSpacePeriod` setting); the
   symbol pages are the iPhone's 123 and #+= (`LayerId.CODE`).
   Bulgarian has two boards, Phonetic (default) and Standard/БДС (`Settings.bulgarianLayout`,
