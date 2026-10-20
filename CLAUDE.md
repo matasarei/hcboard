@@ -51,6 +51,10 @@ emulator profile is `medium_phone`; boot it headless with
   custom words, macros and Keystore secrets live in credential-encrypted storage, so before the
   first unlock Android's own keyboard types. Android 16 ignores the theme's edge-to-edge opt-out
   at this target: the keys clear the bottom bar by `measureBottomBarOverlap`, not by the decor.
+  The room beside a narrowed board is `ui/SideRoom.kt`'s alone: the toolbar, the rows and every
+  sheet take its start and end. The phone board puts it where `Settings.phoneBoardSide` says
+  (against the left or right edge, or split); the 60% board always splits it, and has a width of
+  its own only under `Settings.wideWidthOwn`, following the phone's otherwise.
 - **Popups draw in a 68 dp transparent overhang** above the toolbar; `onComputeInsets` hands that
   strip back to the app. Do not use Compose `Popup` windows inside the IME.
 - **Clocks:** pointer and key-event timestamps are `SystemClock.uptimeMillis()`. Never compare
@@ -141,7 +145,8 @@ emulator profile is `medium_phone`; boot it headless with
   bottom row, the same on every page and in every language (widths are shares of the board,
   scaled from ten units), is ?123 (or ABC, or #+= beside a number row) as wide as English's
   Shift, the globe, comma (`@` or `/` in address fields, `FieldMarks`) by the space bar, space,
-  period and a return as wide as English's backspace; a quick double space after a word types ". "
+  period and a return as wide as English's backspace (the globe sits between the period and
+  return instead under `Settings.globeSide`, phone only); a quick double space after a word types ". "
   (`KeyboardController.periodShortcut`, prose fields only, the `doubleSpacePeriod` setting); the
   symbol pages are the iPhone's 123 and #+= (`LayerId.CODE`).
   Bulgarian has two boards, Phonetic (default) and Standard/БДС (`Settings.bulgarianLayout`,
