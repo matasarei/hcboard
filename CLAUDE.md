@@ -164,7 +164,7 @@ emulator profile is `medium_phone`; boot it headless with
   first tap goes back to `Settings.previousLanguage` (`GlobeTap.LAST_USED`, the default, as on an
   iPhone; `setCurrentLanguage` stores the language it replaces) and taps in a row after it go on
   through `Languages.next`, all the way round, until another key or a new field ends the run; with
-  `NEXT` (as on Gboard) every tap goes on. A choice on the Languages screen from three languages up. The persisted
+  `NEXT` (as on Gboard) every tap goes on. A choice on the Languages screen, greyed out below three languages (Globe position below two): both always show, so switching a language on never moves the rows. The persisted
   current language is authoritative and the service follows changes to it. The enabled set is the
   keyboard's own, and Android mirrors it: `method.xml` declares a subtype per language (native-name
   label, fixed `subtypeId` = `Language.subtypeId` = its hash code; `MethodXmlTest` pins both, run it
