@@ -246,6 +246,17 @@ class KeyboardControllerTest {
         controller.collapseCandidates()
         assertFalse(controller.toolbarExpanded)
     }
+
+    @Test
+    fun `the globe follows its setting to the right of the period, and back`() {
+        controller.enabledLanguages = setOf(Languages.english.tag, Languages.ukrainian.tag)
+        fun bottom() = controller.phoneLayout.layer(LayerId.LETTERS).rows.last().keys.map { it.label }
+        assertEquals(listOf("?123", "globe", ",", "English", ".", "enter"), bottom())
+        controller.globeSide = GlobeSide.RIGHT
+        assertEquals(listOf("?123", ",", "English", ".", "globe", "enter"), bottom())
+        controller.globeSide = GlobeSide.LEFT
+        assertEquals(listOf("?123", "globe", ",", "English", ".", "enter"), bottom())
+    }
 }
 
 class WideBoardControllerTest {
@@ -301,17 +312,6 @@ class WideBoardControllerTest {
 
         controller.onKeyRepeat(backspace)
         assertEquals(listOf(1 to 0, 0 to 1), port.deletions)
-    }
-
-    @Test
-    fun `the globe follows its setting to the right of the period, and back`() {
-        controller.enabledLanguages = setOf(Languages.english.tag, Languages.ukrainian.tag)
-        fun bottom() = controller.phoneLayout.layer(LayerId.LETTERS).rows.last().keys.map { it.label }
-        assertEquals(listOf("?123", "globe", ",", "English", ".", "enter"), bottom())
-        controller.globeSide = GlobeSide.RIGHT
-        assertEquals(listOf("?123", ",", "English", ".", "globe", "enter"), bottom())
-        controller.globeSide = GlobeSide.LEFT
-        assertEquals(listOf("?123", "globe", ",", "English", ".", "enter"), bottom())
     }
 
     @Test
