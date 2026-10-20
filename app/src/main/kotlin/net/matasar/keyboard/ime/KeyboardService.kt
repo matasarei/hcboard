@@ -397,7 +397,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
                             heightScale = settings.heightScale,
                             widthScale = settings.widthScale,
                             boardSide = settings.phoneBoardSide,
-                            wideWidthScale = if (settings.wideWidthOwn) settings.wideWidthScale else settings.widthScale,
+                            wideWidthScale = settings.wideBoardWidth,
                             glide = settings.glide,
                             glideTrail = settings.glideTrail,
                             split = settings.splitKeyboard,

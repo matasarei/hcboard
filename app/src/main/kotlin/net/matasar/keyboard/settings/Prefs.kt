@@ -86,6 +86,9 @@ data class Settings(
     /** The language typed in before the current one, where [GlobeTap.LAST_USED] goes back to; null before any switch. */
     val previousLanguage: String? = null,
 ) {
+    /** The width the 60% board takes: its own while it has one, the phone's otherwise. */
+    val wideBoardWidth: Float get() = if (wideWidthOwn) wideWidthScale else widthScale
+
     companion object {
         const val DEFAULT_LANGUAGE = "en_US"
         const val MAX_BOTTOM_PADDING_DP = 48

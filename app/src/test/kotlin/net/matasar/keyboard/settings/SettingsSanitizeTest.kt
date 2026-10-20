@@ -59,6 +59,15 @@ class SettingsSanitizeTest {
     }
 
     @Test
+    fun `the 60% board follows the phone's width until it has its own`() {
+        val settings = Settings(widthScale = 0.85f, wideWidthScale = 0.75f)
+        assertEquals(0.85f, settings.wideBoardWidth)
+        assertEquals(0.75f, settings.copy(wideWidthOwn = true).wideBoardWidth)
+        // Its own width is kept while off, for the next time it is switched on.
+        assertEquals(0.75f, settings.copy(wideWidthOwn = true).copy(wideWidthOwn = false).wideWidthScale)
+    }
+
+    @Test
     fun `a previous language is kept only while it is enabled and is not the current one`() {
         val base = Settings(enabledLanguages = setOf("en_US", "uk", "ru"), currentLanguage = "uk")
         assertEquals("ru", base.copy(previousLanguage = "ru").sanitized().previousLanguage)
