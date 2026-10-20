@@ -25,6 +25,7 @@ import net.matasar.keyboard.autofill.InlineSuggestions
 import net.matasar.keyboard.autofill.PendingFill
 import net.matasar.keyboard.autofill.SuggestionColors
 import net.matasar.keyboard.ui.theme.LocalKeyboardColors
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.SideEffect
 import android.annotation.SuppressLint
 import android.view.View
@@ -42,6 +43,8 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -378,32 +381,37 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
             setContent {
                 val settings by prefs.settings.collectAsState(initial = Settings())
                 val macros by macroStore.macros.collectAsState(initial = emptyList())
-                KeyboardThemeFor(settings.theme, settings.accent) {
-                    val colors = LocalKeyboardColors.current
-                    SideEffect {
-                        suggestionColors = SuggestionColors(colors.key.toArgb(), colors.onKey.toArgb(), colors.subtle.toArgb())
-                        paintBottomBar(colors.background.toArgb(), light = colors.background.luminance() > 0.5f)
+                // The keyboard is laid out by the screen, never by the reading direction: it types
+                // left-to-right languages only, and under an Arabic or Hebrew system language every
+                // row (and the toolbar) would otherwise come out mirrored, Esc on the right.
+                CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
+                    KeyboardThemeFor(settings.theme, settings.accent) {
+                        val colors = LocalKeyboardColors.current
+                        SideEffect {
+                            suggestionColors = SuggestionColors(colors.key.toArgb(), colors.onKey.toArgb(), colors.subtle.toArgb())
+                            paintBottomBar(colors.background.toArgb(), light = colors.background.luminance() > 0.5f)
+                        }
+                        KeyboardScreen(
+                            controller = controller,
+                            actions = this@KeyboardService,
+                            autofill = autofillActions,
+                            bottomInset = if (autoBottomPadding) with(LocalDensity.current) { bottomBarOverlapPx.toDp() } else manualBottomPaddingDp.dp,
+                            sideInset = with(LocalDensity.current) { sideCutoutOverlapPx.toDp() },
+                            hinge = hingePx,
+                            feel = KeyboardFeel(
+                                haptics = settings.haptics,
+                                previews = settings.previews,
+                                heightScale = settings.heightScale,
+                                widthScale = settings.widthScale,
+                                boardSide = settings.phoneBoardSide,
+                                wideWidthScale = settings.wideBoardWidth,
+                                glide = settings.glide,
+                                glideTrail = settings.glideTrail,
+                                split = settings.splitKeyboard,
+                            ),
+                            macros = macros,
+                        )
                     }
-                    KeyboardScreen(
-                        controller = controller,
-                        actions = this@KeyboardService,
-                        autofill = autofillActions,
-                        bottomInset = if (autoBottomPadding) with(LocalDensity.current) { bottomBarOverlapPx.toDp() } else manualBottomPaddingDp.dp,
-                        sideInset = with(LocalDensity.current) { sideCutoutOverlapPx.toDp() },
-                        hinge = hingePx,
-                        feel = KeyboardFeel(
-                            haptics = settings.haptics,
-                            previews = settings.previews,
-                            heightScale = settings.heightScale,
-                            widthScale = settings.widthScale,
-                            boardSide = settings.phoneBoardSide,
-                            wideWidthScale = settings.wideBoardWidth,
-                            glide = settings.glide,
-                            glideTrail = settings.glideTrail,
-                            split = settings.splitKeyboard,
-                        ),
-                        macros = macros,
-                    )
                 }
             }
         }

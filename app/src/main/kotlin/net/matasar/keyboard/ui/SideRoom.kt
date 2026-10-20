@@ -8,7 +8,7 @@ import net.matasar.keyboard.settings.Settings
 /**
  * The room beside the keyboard, outside the keys' own padding: on its left and on its right, by
  * the screen and never by the reading direction, because the side setting names a physical edge.
- * Applied with `absolutePadding`; a right-to-left system language must not swap Left and Right.
+ * Applied with `absolutePadding`, which says so whatever direction the keyboard is composed in.
  */
 data class SideRoom(val left: Dp, val right: Dp)
 
