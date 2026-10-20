@@ -52,7 +52,8 @@ emulator profile is `medium_phone`; boot it headless with
   first unlock Android's own keyboard types. Android 16 ignores the theme's edge-to-edge opt-out
   at this target: the keys clear the bottom bar by `measureBottomBarOverlap`, not by the decor.
   The room beside a narrowed board is `ui/SideRoom.kt`'s alone: the toolbar, the rows and every
-  sheet take its start and end. The phone board puts it where `Settings.phoneBoardSide` says
+  sheet take its left and right with `absolutePadding`, never start and end, or a right-to-left
+  system language would swap the sides. The phone board puts it where `Settings.phoneBoardSide` says
   (against the left or right edge, or split); the 60% board always splits it, and has a width of
   its own only under `Settings.wideWidthOwn`, following the phone's otherwise.
 - **Popups draw in a 68 dp transparent overhang** above the toolbar; `onComputeInsets` hands that
