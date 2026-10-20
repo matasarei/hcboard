@@ -10,9 +10,9 @@ class SideRoomTest {
     private val width = 400.dp
 
     /** Dp arithmetic is float arithmetic: 400 × 0.2 is 79.99999. */
-    private fun assertRoom(start: Float, end: Float, room: SideRoom, what: String = "") {
-        assertEquals(start, room.start.value, 0.01f, "start $what")
-        assertEquals(end, room.end.value, 0.01f, "end $what")
+    private fun assertRoom(left: Float, right: Float, room: SideRoom, what: String = "") {
+        assertEquals(left, room.left.value, 0.01f, "left $what")
+        assertEquals(right, room.right.value, 0.01f, "right $what")
     }
 
     @Test

@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.absolutePadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -122,7 +123,7 @@ fun KeyboardScreen(
                 Toolbar(
                     modifier = Modifier
                         .background(colors.toolbar)
-                        .padding(start = room.start, end = room.end),
+                        .absolutePadding(left = room.left, right = room.right),
                     chipText = chipText,
                     actions = actions,
                     sheetOpen = controller.managerSheetOpen,
@@ -274,7 +275,7 @@ private fun LayerGrid(
             shouldSplit(feel.split, wide, hingeSeparating = hinge != null, phoneLandscape = isPhoneLandscape(configuration.screenWidthDp, configuration.screenHeightDp))
         }
         val base = if (wide) Dimens.wideSidePadding else Dimens.sidePadding
-        val sidePadding = SideRoom(start = base + room.start, end = base + room.end)
+        val sidePadding = SideRoom(left = base + room.left, right = base + room.right)
         // The gaps follow the height setting too: keys shrunk to 80% under full-size gaps read as
         // small keys floating in space.
         val rowGap = (if (wide) Dimens.wideRowGap else Dimens.rowGap) * feel.heightScale
@@ -285,13 +286,14 @@ private fun LayerGrid(
             Dimens.toolbarHeight - Dimens.topPadding - Dimens.bottomPadding - rowGap * (rows - 1)
         val keyHeight = minOf((if (wide) Dimens.wideKeyHeight else Dimens.keyHeight) * feel.heightScale, budget / rows)
         val unitWidth = if (split == null) {
-            (maxWidth - sidePadding.start - sidePadding.end - Dimens.keyGap * (layer.units.toInt() - 1)) / layer.units
+            (maxWidth - sidePadding.left - sidePadding.right - Dimens.keyGap * (layer.units.toInt() - 1)) / layer.units
         } else {
             with(density) {
                 splitUnit(
                     width = maxWidth.toPx(),
-                    // Only the wide board splits, and it always centres: both sides are the same.
-                    sidePadding = sidePadding.start.toPx(),
+                    // Only the wide board splits, and it always centres its room (sideRoom), with the
+                    // one cutout inset on both sides: left and right are the same.
+                    sidePadding = sidePadding.left.toPx(),
                     gap = Dimens.keyGap.toPx(),
                     leftUnits = split.left.units,
                     rightUnits = split.right.units,
@@ -364,7 +366,7 @@ private fun LayerGrid(
             }
             if (split == null) {
                 for (row in layer.rows) {
-                    KeyRow(row = row, unitWidth = unitWidth, gap = Dimens.keyGap, modifier = Modifier.padding(start = sidePadding.start, end = sidePadding.end), onGrid = !wide, content = keyButton)
+                    KeyRow(row = row, unitWidth = unitWidth, gap = Dimens.keyGap, modifier = Modifier.absolutePadding(left = sidePadding.left, right = sidePadding.right), onGrid = !wide, content = keyButton)
                 }
             } else {
                 val gap = Dimens.keyGap
@@ -373,7 +375,7 @@ private fun LayerGrid(
                 // Each half against its outer edge; the room between them is the thumbs', or the hinge's.
                 for ((leftRow, rightRow) in split.left.rows.zip(split.right.rows)) {
                     Row(
-                        modifier = Modifier.fillMaxWidth().padding(start = sidePadding.start, end = sidePadding.end),
+                        modifier = Modifier.fillMaxWidth().absolutePadding(left = sidePadding.left, right = sidePadding.right),
                         horizontalArrangement = Arrangement.SpaceBetween,
                     ) {
                         KeyRow(row = leftRow, unitWidth = unitWidth, gap = gap, modifier = Modifier.width(leftWidth), content = keyButton)

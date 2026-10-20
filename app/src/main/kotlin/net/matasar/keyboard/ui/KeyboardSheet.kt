@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.absolutePadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
@@ -62,7 +63,7 @@ fun KeyboardSheet(
                 .clip(shape)
                 .background(colors.popup)
                 .navigationBarsPadding()
-                .padding(start = sidePadding.start, end = sidePadding.end)
+                .absolutePadding(left = sidePadding.left, right = sidePadding.right)
                 .padding(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 16.dp)
                 // A short keyboard (the 80% height setting) has less room than the rows need.
                 .then(if (scrollable) Modifier.verticalScroll(rememberScrollState()) else Modifier),
