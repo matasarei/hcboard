@@ -49,6 +49,7 @@ import net.matasar.keyboard.layout.KeyIcon
 import net.matasar.keyboard.layout.KeyStyle
 import net.matasar.keyboard.layout.LayerId
 import net.matasar.keyboard.macro.Macro
+import net.matasar.keyboard.settings.BoardSide
 import net.matasar.keyboard.settings.SplitMode
 import net.matasar.keyboard.ui.theme.KeyboardColors
 import net.matasar.keyboard.ui.theme.LocalKeyboardColors
@@ -60,6 +61,10 @@ data class KeyboardFeel(
     val previews: Boolean = true,
     val heightScale: Float = 1f,
     val widthScale: Float = 1f,
+    /** Where the phone board sits when [widthScale] leaves room beside it. */
+    val boardSide: BoardSide = BoardSide.CENTRE,
+    /** The 60% board's width: its own setting, or [widthScale] when it has none. */
+    val wideWidthScale: Float = 1f,
     val glide: Boolean = true,
     val glideTrail: Boolean = true,
     /** Whether the wide board splits into halves. */
