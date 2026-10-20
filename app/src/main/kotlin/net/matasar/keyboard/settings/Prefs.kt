@@ -12,6 +12,7 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import net.matasar.keyboard.layout.BulgarianLayout
+import net.matasar.keyboard.layout.GlobeSide
 import net.matasar.keyboard.layout.Languages
 import net.matasar.keyboard.layout.PortugueseSpelling
 import kotlinx.coroutines.flow.Flow
@@ -33,6 +34,11 @@ enum class SplitMode { OFF, AUTO, ALWAYS }
 data class Settings(
     val heightScale: Float = 1f,
     val widthScale: Float = 1f,
+    /** Where the phone board sits when [widthScale] leaves room beside it. */
+    val phoneBoardSide: BoardSide = BoardSide.CENTRE,
+    /** Whether the 60% board has a width of its own, [wideWidthScale]; otherwise it follows [widthScale]. */
+    val wideWidthOwn: Boolean = false,
+    val wideWidthScale: Float = 1f,
     /** Whether the room under the keys follows what the window measures (the system's bar and buttons). */
     val bottomPaddingAuto: Boolean = true,
     /** The room under the keys, in dp, when [bottomPaddingAuto] is off. */
@@ -75,6 +81,8 @@ data class Settings(
     val portugueseSpelling: PortugueseSpelling = PortugueseSpelling.PORTUGAL,
     /** What a globe tap does with three or more languages on. */
     val globeTap: GlobeTap = GlobeTap.LAST_USED,
+    /** Which side of the phone's bottom row the globe sits on. */
+    val globeSide: GlobeSide = GlobeSide.LEFT,
     /** The language typed in before the current one, where [GlobeTap.LAST_USED] goes back to; null before any switch. */
     val previousLanguage: String? = null,
 ) {
@@ -104,6 +112,7 @@ fun Settings.sanitized(): Settings {
         suggestInPackages = suggestInPackages.take(Settings.MAX_SUGGEST_IN_PACKAGES).toSet(),
         heightScale = heightScale.coerceIn(Settings.MIN_HEIGHT_SCALE, Settings.MAX_HEIGHT_SCALE),
         widthScale = widthScale.coerceIn(Settings.MIN_WIDTH_SCALE, 1f),
+        wideWidthScale = wideWidthScale.coerceIn(Settings.MIN_WIDTH_SCALE, 1f),
         bottomPaddingDp = bottomPaddingDp.coerceIn(0, Settings.MAX_BOTTOM_PADDING_DP),
         enabledLanguages = languages,
         currentLanguage = current.takeIf { it in languages } ?: languages.first(),
@@ -169,6 +178,9 @@ class Prefs(private val context: Context) {
         Settings(
             heightScale = p[HEIGHT_SCALE] ?: 1f,
             widthScale = (p[WIDTH_SCALE] ?: 1f).coerceIn(0.7f, 1f),
+            phoneBoardSide = p[PHONE_BOARD_SIDE]?.let { runCatching { BoardSide.valueOf(it) }.getOrNull() } ?: BoardSide.CENTRE,
+            wideWidthOwn = p[WIDE_WIDTH_OWN] ?: false,
+            wideWidthScale = (p[WIDE_WIDTH_SCALE] ?: 1f).coerceIn(0.7f, 1f),
             bottomPaddingAuto = p[BOTTOM_PADDING_AUTO] ?: true,
             bottomPaddingDp = (p[BOTTOM_PADDING_DP] ?: 0).coerceIn(0, Settings.MAX_BOTTOM_PADDING_DP),
             haptics = p[HAPTICS] ?: true,
@@ -196,12 +208,16 @@ class Prefs(private val context: Context) {
             bulgarianLayout = p[BULGARIAN_LAYOUT]?.let { runCatching { BulgarianLayout.valueOf(it) }.getOrNull() } ?: BulgarianLayout.PHONETIC,
             portugueseSpelling = p[PORTUGUESE_SPELLING]?.let { runCatching { PortugueseSpelling.valueOf(it) }.getOrNull() } ?: PortugueseSpelling.PORTUGAL,
             globeTap = p[GLOBE_TAP]?.let { runCatching { GlobeTap.valueOf(it) }.getOrNull() } ?: GlobeTap.LAST_USED,
+            globeSide = p[GLOBE_SIDE]?.let { runCatching { GlobeSide.valueOf(it) }.getOrNull() } ?: GlobeSide.LEFT,
             previousLanguage = p[PREVIOUS_LANGUAGE],
         )
     }
 
     suspend fun setHeightScale(value: Float) = context.dataStore.edit { it[HEIGHT_SCALE] = value }
     suspend fun setWidthScale(value: Float) = context.dataStore.edit { it[WIDTH_SCALE] = value.coerceIn(0.7f, 1f) }
+    suspend fun setPhoneBoardSide(value: BoardSide) = context.dataStore.edit { it[PHONE_BOARD_SIDE] = value.name }
+    suspend fun setWideWidthOwn(value: Boolean) = context.dataStore.edit { it[WIDE_WIDTH_OWN] = value }
+    suspend fun setWideWidthScale(value: Float) = context.dataStore.edit { it[WIDE_WIDTH_SCALE] = value.coerceIn(0.7f, 1f) }
     suspend fun setBottomPaddingAuto(value: Boolean) = context.dataStore.edit { it[BOTTOM_PADDING_AUTO] = value }
     suspend fun setBottomPaddingDp(value: Int) = context.dataStore.edit { it[BOTTOM_PADDING_DP] = value.coerceIn(0, Settings.MAX_BOTTOM_PADDING_DP) }
     suspend fun setHaptics(value: Boolean) = context.dataStore.edit { it[HAPTICS] = value }
@@ -228,6 +244,7 @@ class Prefs(private val context: Context) {
         p[CURRENT_LANGUAGE] = tag
     }
     suspend fun setGlobeTap(value: GlobeTap) = context.dataStore.edit { it[GLOBE_TAP] = value.name }
+    suspend fun setGlobeSide(value: GlobeSide) = context.dataStore.edit { it[GLOBE_SIDE] = value.name }
     suspend fun setRuBulgarianVocabulary(value: Boolean) = context.dataStore.edit { it[RU_BULGARIAN_VOCABULARY] = value }
     suspend fun setBulgarianLayout(value: BulgarianLayout) = context.dataStore.edit { it[BULGARIAN_LAYOUT] = value.name }
     suspend fun setPortugueseSpelling(value: PortugueseSpelling) = context.dataStore.edit { it[PORTUGUESE_SPELLING] = value.name }
@@ -238,6 +255,9 @@ class Prefs(private val context: Context) {
         context.dataStore.edit { p ->
             p[HEIGHT_SCALE] = s.heightScale
             p[WIDTH_SCALE] = s.widthScale
+            p[PHONE_BOARD_SIDE] = s.phoneBoardSide.name
+            p[WIDE_WIDTH_OWN] = s.wideWidthOwn
+            p[WIDE_WIDTH_SCALE] = s.wideWidthScale
             p[BOTTOM_PADDING_AUTO] = s.bottomPaddingAuto
             p[BOTTOM_PADDING_DP] = s.bottomPaddingDp
             p[HAPTICS] = s.haptics
@@ -265,6 +285,7 @@ class Prefs(private val context: Context) {
             p[BULGARIAN_LAYOUT] = s.bulgarianLayout.name
             p[PORTUGUESE_SPELLING] = s.portugueseSpelling.name
             p[GLOBE_TAP] = s.globeTap.name
+            p[GLOBE_SIDE] = s.globeSide.name
             if (s.previousLanguage == null) p.remove(PREVIOUS_LANGUAGE) else p[PREVIOUS_LANGUAGE] = s.previousLanguage
         }
     }
@@ -302,6 +323,9 @@ class Prefs(private val context: Context) {
     private companion object {
         val HEIGHT_SCALE = floatPreferencesKey("height_scale")
         val WIDTH_SCALE = floatPreferencesKey("width_scale")
+        val PHONE_BOARD_SIDE = stringPreferencesKey("phone_board_side")
+        val WIDE_WIDTH_OWN = booleanPreferencesKey("wide_width_own")
+        val WIDE_WIDTH_SCALE = floatPreferencesKey("wide_width_scale")
         val BOTTOM_PADDING_AUTO = booleanPreferencesKey("bottom_padding_auto")
         val BOTTOM_PADDING_DP = intPreferencesKey("bottom_padding_dp")
         val HAPTICS = booleanPreferencesKey("haptics")
@@ -329,6 +353,7 @@ class Prefs(private val context: Context) {
         val BULGARIAN_LAYOUT = stringPreferencesKey("bulgarian_layout")
         val PORTUGUESE_SPELLING = stringPreferencesKey("portuguese_spelling")
         val GLOBE_TAP = stringPreferencesKey("globe_tap")
+        val GLOBE_SIDE = stringPreferencesKey("globe_side")
         val PREVIOUS_LANGUAGE = stringPreferencesKey("previous_language")
     }
 }

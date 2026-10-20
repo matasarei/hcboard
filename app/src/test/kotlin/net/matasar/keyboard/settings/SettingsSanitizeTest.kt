@@ -1,5 +1,6 @@
 package net.matasar.keyboard.settings
 
+import net.matasar.keyboard.layout.GlobeSide
 import kotlinx.serialization.json.Json
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -16,9 +17,11 @@ class SettingsSanitizeTest {
 
     @Test
     fun `scales and padding are clamped to what the screen allows`() {
-        val s = Settings(heightScale = 3f, widthScale = 0.1f, bottomPaddingDp = 500).sanitized()
+        val s = Settings(heightScale = 3f, widthScale = 0.1f, wideWidthScale = 2f, bottomPaddingDp = 500).sanitized()
         assertEquals(1.2f, s.heightScale)
         assertEquals(0.7f, s.widthScale)
+        assertEquals(1f, s.wideWidthScale)
+        assertEquals(0.7f, Settings(wideWidthScale = 0f).sanitized().wideWidthScale)
         assertEquals(48, s.bottomPaddingDp)
         assertEquals(0.8f, Settings(heightScale = 0f).sanitized().heightScale)
     }
@@ -47,6 +50,7 @@ class SettingsSanitizeTest {
             developerModePackages = setOf("com.termux"), glide = false, enabledLanguages = setOf("en_US", "bg"),
             suggestInPackages = setOf("com.google.android.youtube"),
             numberRow = true,
+            phoneBoardSide = BoardSide.LEFT, wideWidthOwn = true, wideWidthScale = 0.85f, globeSide = GlobeSide.RIGHT,
         )
         assertEquals(settings, json.decodeFromString(Settings.serializer(), json.encodeToString(Settings.serializer(), settings)))
         assertEquals(Settings(haptics = false), json.decodeFromString(Settings.serializer(), """{"haptics":false,"fromTheFuture":1}"""))

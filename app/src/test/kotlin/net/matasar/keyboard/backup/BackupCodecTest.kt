@@ -1,11 +1,13 @@
 package net.matasar.keyboard.backup
 
 import net.matasar.keyboard.layout.BulgarianLayout
+import net.matasar.keyboard.layout.GlobeSide
 import net.matasar.keyboard.layout.PortugueseSpelling
 import net.matasar.keyboard.macro.Block
 import net.matasar.keyboard.macro.Macro
 import net.matasar.keyboard.macro.MacroStore
 import net.matasar.keyboard.settings.AccentColour
+import net.matasar.keyboard.settings.BoardSide
 import net.matasar.keyboard.settings.GlobeTap
 import net.matasar.keyboard.settings.Settings
 import net.matasar.keyboard.settings.ThemeChoice
@@ -24,6 +26,7 @@ class BackupCodecTest {
         theme = ThemeChoice.DARK, accent = AccentColour.TEAL, enabledLanguages = setOf("en_US", "uk"), currentLanguage = "uk",
         bulgarianLayout = BulgarianLayout.STANDARD, doubleSpacePeriod = false, portugueseSpelling = PortugueseSpelling.BRAZIL,
         globeTap = GlobeTap.NEXT, previousLanguage = "en_US",
+        phoneBoardSide = BoardSide.RIGHT, wideWidthOwn = true, wideWidthScale = 0.8f, globeSide = GlobeSide.RIGHT,
     )
     private val words = mapOf("en_US" to mapOf("kubectl" to 230, "tube" to 0))
     private val login = Macro(
@@ -60,6 +63,18 @@ class BackupCodecTest {
         val restored = BackupCodec.open(BackupCodec.read(old), null).settings
         assertEquals(BulgarianLayout.PHONETIC, restored.bulgarianLayout)
         assertTrue(restored.doubleSpacePeriod)
+    }
+
+    @Test
+    fun `a backup made before the placement settings reads today's board`() {
+        val text = encode(emptyList(), passphrase = null)
+        val old = text.replace(Regex(",?\\s*\"(phoneBoardSide|wideWidthOwn|wideWidthScale|globeSide)\":\\s*(\"[A-Z]+\"|false|true|[0-9.]+)"), "")
+        assertTrue(listOf("phoneBoardSide", "wideWidthOwn", "wideWidthScale", "globeSide").none { it in old }, "the new fields were not taken out of the file")
+        val restored = BackupCodec.open(BackupCodec.read(old), null).settings
+        assertEquals(BoardSide.CENTRE, restored.phoneBoardSide)
+        assertFalse(restored.wideWidthOwn)
+        assertEquals(1f, restored.wideWidthScale)
+        assertEquals(GlobeSide.LEFT, restored.globeSide)
     }
 
     @Test
