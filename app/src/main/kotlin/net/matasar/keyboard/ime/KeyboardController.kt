@@ -28,6 +28,7 @@ import kotlinx.coroutines.withContext
 import net.matasar.keyboard.input.keyStrokeFor
 import net.matasar.keyboard.layout.BulgarianLayout
 import net.matasar.keyboard.layout.FieldMarks
+import net.matasar.keyboard.layout.GlobeSide
 import net.matasar.keyboard.layout.Key
 import net.matasar.keyboard.layout.KeyAction
 import net.matasar.keyboard.layout.KeyIcon
@@ -102,6 +103,9 @@ class KeyboardController(
     /** The globe key exists only when there is something to switch to. */
     val withGlobe: Boolean get() = enabledLanguages.size > 1
 
+    /** Setting: which side of the phone's bottom row the globe sits on. */
+    var globeSide: GlobeSide by mutableStateOf(GlobeSide.LEFT)
+
     /** Setting: which board Bulgarian is typed on. */
     var bulgarianLayout: BulgarianLayout by mutableStateOf(BulgarianLayout.PHONETIC)
 
@@ -112,15 +116,15 @@ class KeyboardController(
     var fieldMarks: FieldMarks by mutableStateOf(FieldMarks.NONE)
         private set
 
-    private data class PhoneLayoutKey(val language: Language, val withGlobe: Boolean, val numberRow: Boolean, val marks: FieldMarks)
+    private data class PhoneLayoutKey(val language: Language, val withGlobe: Boolean, val numberRow: Boolean, val marks: FieldMarks, val globeSide: GlobeSide)
 
     private val layoutCache = HashMap<PhoneLayoutKey, KeyboardLayout>()
     private val wideLayoutCache = HashMap<Pair<Language, Boolean>, KeyboardLayout>()
 
-    /** The phone layout for the current language, built once per language, layout, globe, number row and field marks. */
+    /** The phone layout for the current language, built once per language, layout, globe and its side, number row and field marks. */
     val phoneLayout: KeyboardLayout
-        get() = PhoneLayoutKey(keysLanguage, withGlobe, numberRowShown, fieldMarks).let { key ->
-            layoutCache.getOrPut(key) { phoneLayout(key.language, key.withGlobe, key.numberRow, key.marks) }
+        get() = PhoneLayoutKey(keysLanguage, withGlobe, numberRowShown, fieldMarks, globeSide).let { key ->
+            layoutCache.getOrPut(key) { phoneLayout(key.language, key.withGlobe, key.numberRow, key.marks, key.globeSide) }
         }
 
     /** The 60% board for the current language, built the same way. */

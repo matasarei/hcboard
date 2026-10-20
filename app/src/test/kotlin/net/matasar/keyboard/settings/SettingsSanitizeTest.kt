@@ -1,5 +1,6 @@
 package net.matasar.keyboard.settings
 
+import net.matasar.keyboard.layout.GlobeSide
 import kotlinx.serialization.json.Json
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -16,9 +17,11 @@ class SettingsSanitizeTest {
 
     @Test
     fun `scales and padding are clamped to what the screen allows`() {
-        val s = Settings(heightScale = 3f, widthScale = 0.1f, bottomPaddingDp = 500).sanitized()
+        val s = Settings(heightScale = 3f, widthScale = 0.1f, wideWidthScale = 2f, bottomPaddingDp = 500).sanitized()
         assertEquals(1.2f, s.heightScale)
         assertEquals(0.7f, s.widthScale)
+        assertEquals(1f, s.wideWidthScale)
+        assertEquals(0.7f, Settings(wideWidthScale = 0f).sanitized().wideWidthScale)
         assertEquals(48, s.bottomPaddingDp)
         assertEquals(0.8f, Settings(heightScale = 0f).sanitized().heightScale)
     }
@@ -47,11 +50,21 @@ class SettingsSanitizeTest {
             developerModePackages = setOf("com.termux"), glide = false, enabledLanguages = setOf("en_US", "bg"),
             suggestInPackages = setOf("com.google.android.youtube"),
             numberRow = true,
+            phoneBoardSide = BoardSide.LEFT, wideWidthOwn = true, wideWidthScale = 0.85f, globeSide = GlobeSide.RIGHT,
         )
         assertEquals(settings, json.decodeFromString(Settings.serializer(), json.encodeToString(Settings.serializer(), settings)))
         assertEquals(Settings(haptics = false), json.decodeFromString(Settings.serializer(), """{"haptics":false,"fromTheFuture":1}"""))
         // Key borders was removed: a backup made before still reads, the old field ignored.
         assertEquals(Settings(haptics = false), json.decodeFromString(Settings.serializer(), """{"haptics":false,"keyBorders":false}"""))
+    }
+
+    @Test
+    fun `the 60% board follows the phone's width until it has its own`() {
+        val settings = Settings(widthScale = 0.85f, wideWidthScale = 0.75f)
+        assertEquals(0.85f, settings.wideBoardWidth)
+        assertEquals(0.75f, settings.copy(wideWidthOwn = true).wideBoardWidth)
+        // Its own width is kept while off, for the next time it is switched on.
+        assertEquals(0.75f, settings.copy(wideWidthOwn = true).copy(wideWidthOwn = false).wideWidthScale)
     }
 
     @Test

@@ -147,7 +147,8 @@ private fun SettingsScreen(settings: Settings, prefs: Prefs) {
             steps = 7,
         )
         Text(
-            stringResource(R.string.settings_width, (settings.widthScale * 100).roundToInt()),
+            // With a width of its own for the wide keyboard, this one is the phone's alone.
+            stringResource(if (settings.wideWidthOwn) R.string.settings_width_phone else R.string.settings_width, (settings.widthScale * 100).roundToInt()),
             style = MaterialTheme.typography.bodyLarge,
         )
         Slider(
@@ -156,6 +157,19 @@ private fun SettingsScreen(settings: Settings, prefs: Prefs) {
             valueRange = 0.7f..1f,
             steps = 5,
         )
+        Text(stringResource(R.string.settings_board_side), style = MaterialTheme.typography.bodyLarge)
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            BoardSide.entries.forEach { side ->
+                FilterChip(
+                    selected = settings.phoneBoardSide == side,
+                    onClick = { scope.launch { prefs.setPhoneBoardSide(side) } },
+                    label = { Text(side.label()) },
+                    // At full width there is no room to move into.
+                    enabled = settings.widthScale < 1f,
+                )
+            }
+        }
+        Text(stringResource(R.string.settings_board_side_hint), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         SwitchRow(stringResource(R.string.settings_bottom_padding_auto), settings.bottomPaddingAuto) { scope.launch { prefs.setBottomPaddingAuto(it) } }
         Text(stringResource(R.string.settings_bottom_padding_hint), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         if (!settings.bottomPaddingAuto) {
@@ -196,6 +210,20 @@ private fun SettingsScreen(settings: Settings, prefs: Prefs) {
             }
         }
         Text(stringResource(R.string.settings_split_hint), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        SwitchRow(stringResource(R.string.settings_wide_width_own), settings.wideWidthOwn) { scope.launch { prefs.setWideWidthOwn(it) } }
+        Text(stringResource(R.string.settings_wide_width_own_hint), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        if (settings.wideWidthOwn) {
+            Text(
+                stringResource(R.string.settings_wide_width, (settings.wideWidthScale * 100).roundToInt()),
+                style = MaterialTheme.typography.bodyLarge,
+            )
+            Slider(
+                value = settings.wideWidthScale,
+                onValueChange = { scope.launch { prefs.setWideWidthScale((it * 20).roundToInt() / 20f) } },
+                valueRange = 0.7f..1f,
+                steps = 5,
+            )
+        }
 
         Section(stringResource(R.string.settings_section_languages))
         // The list is on its own screen: 21 languages and their options would bury everything below.
@@ -298,6 +326,15 @@ private fun ThemeChoice.label(): String = stringResource(
         ThemeChoice.LIGHT -> R.string.settings_theme_light
         ThemeChoice.DARK -> R.string.settings_theme_dark
         ThemeChoice.BLACK -> R.string.settings_theme_black
+    },
+)
+
+@Composable
+private fun BoardSide.label(): String = stringResource(
+    when (this) {
+        BoardSide.LEFT -> R.string.settings_board_side_left
+        BoardSide.CENTRE -> R.string.settings_board_side_centre
+        BoardSide.RIGHT -> R.string.settings_board_side_right
     },
 )
 

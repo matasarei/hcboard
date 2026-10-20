@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.absolutePadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
@@ -24,7 +25,6 @@ import androidx.compose.ui.graphics.Outline
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.Density
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import net.matasar.keyboard.ui.theme.LocalKeyboardColors
@@ -42,7 +42,7 @@ import net.matasar.keyboard.ui.theme.LocalKeyboardColors
 @Composable
 fun KeyboardSheet(
     onDismiss: () -> Unit,
-    sidePadding: Dp,
+    sidePadding: SideRoom,
     scrollable: Boolean = true,
     content: @Composable ColumnScope.() -> Unit,
 ) {
@@ -63,7 +63,7 @@ fun KeyboardSheet(
                 .clip(shape)
                 .background(colors.popup)
                 .navigationBarsPadding()
-                .padding(horizontal = sidePadding)
+                .absolutePadding(left = sidePadding.left, right = sidePadding.right)
                 .padding(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 16.dp)
                 // A short keyboard (the 80% height setting) has less room than the rows need.
                 .then(if (scrollable) Modifier.verticalScroll(rememberScrollState()) else Modifier),

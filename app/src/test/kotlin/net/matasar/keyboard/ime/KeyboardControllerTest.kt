@@ -7,6 +7,7 @@ import net.matasar.keyboard.input.FakeEditorPort
 import net.matasar.keyboard.input.InputDispatcher
 import net.matasar.keyboard.input.LatchState
 import net.matasar.keyboard.layout.Key
+import net.matasar.keyboard.layout.GlobeSide
 import net.matasar.keyboard.layout.KeyAction
 import net.matasar.keyboard.layout.Languages
 import net.matasar.keyboard.layout.LayerId
@@ -244,6 +245,17 @@ class KeyboardControllerTest {
     fun `folding the candidates away leaves the strip folded`() {
         controller.collapseCandidates()
         assertFalse(controller.toolbarExpanded)
+    }
+
+    @Test
+    fun `the globe follows its setting to the right of the period, and back`() {
+        controller.enabledLanguages = setOf(Languages.english.tag, Languages.ukrainian.tag)
+        fun bottom() = controller.phoneLayout.layer(LayerId.LETTERS).rows.last().keys.map { it.label }
+        assertEquals(listOf("?123", "globe", ",", "English", ".", "enter"), bottom())
+        controller.globeSide = GlobeSide.RIGHT
+        assertEquals(listOf("?123", ",", "English", ".", "globe", "enter"), bottom())
+        controller.globeSide = GlobeSide.LEFT
+        assertEquals(listOf("?123", "globe", ",", "English", ".", "enter"), bottom())
     }
 }
 

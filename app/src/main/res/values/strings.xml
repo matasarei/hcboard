@@ -46,6 +46,9 @@
     <string name="settings_split_off">Off</string>
     <string name="settings_split_auto">Auto</string>
     <string name="settings_split_always">Always</string>
+    <string name="settings_wide_width_own">Own width</string>
+    <string name="settings_wide_width_own_hint">Gives the wide keyboard a width of its own. Off, it follows the keyboard width above.</string>
+    <string name="settings_wide_width">Wide keyboard width: %1$d%%</string>
     <string name="settings_split_hint">Auto splits the keys into a left and a right half when a hinge runs across the screen, and on a phone turned sideways. Always splits every board wider than 600 dp. The gap follows the hinge, or is about two keys wide.</string>
     <string name="settings_section_developer">Developer mode</string>
     <string name="settings_section_diagnostics">Diagnostics</string>
@@ -73,6 +76,12 @@
     <string name="settings_try_password_label">Try a password field</string>
     <string name="settings_height">Keyboard height: %1$d%%</string>
     <string name="settings_width">Keyboard width: %1$d%%</string>
+    <string name="settings_width_phone">Phone keyboard width: %1$d%%</string>
+    <string name="settings_board_side">Position</string>
+    <string name="settings_board_side_left">Left</string>
+    <string name="settings_board_side_centre">Centre</string>
+    <string name="settings_board_side_right">Right</string>
+    <string name="settings_board_side_hint">Where a narrowed phone keyboard sits: against one edge for a thumb typing from that side, or in the middle. Set the width below 100% to move it.</string>
     <string name="settings_number_row">Number row</string>
     <string name="settings_number_row_hint">Digits above the letters on a phone. Password fields always show them. You can also switch this from the keyboard\'s gear.</string>
     <string name="settings_bottom_padding_auto">Automatic space under the keys</string>
@@ -180,6 +189,10 @@
     <string name="languages_title">Languages</string>
     <string name="languages_section_on">On</string>
     <string name="languages_section_more">More languages</string>
+    <string name="languages_globe_side">Globe position</string>
+    <string name="languages_globe_side_left">Left</string>
+    <string name="languages_globe_side_right">Right</string>
+    <string name="languages_globe_side_hint">Left puts the globe beside 123, as on an iPhone; Right puts it beside return. On the phone keyboard only: the wide keyboard keeps the globe where it is.</string>
     <string name="languages_globe_tap">Globe key</string>
     <string name="languages_globe_tap_last_used">Last used</string>
     <string name="languages_globe_tap_next">Next language</string>

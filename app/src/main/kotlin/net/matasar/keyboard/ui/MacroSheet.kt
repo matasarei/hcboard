@@ -12,7 +12,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import net.matasar.keyboard.R
@@ -32,7 +31,7 @@ fun MacroSheet(
     onStop: () -> Unit,
     onEdit: () -> Unit,
     onDismiss: () -> Unit,
-    sidePadding: Dp,
+    sidePadding: SideRoom,
 ) {
     val colors = LocalKeyboardColors.current
     KeyboardSheet(onDismiss = onDismiss, sidePadding = sidePadding) {

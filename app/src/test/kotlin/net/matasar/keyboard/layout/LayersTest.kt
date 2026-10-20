@@ -117,19 +117,42 @@ class LayersTest {
     @Test
     fun `the bottom row is the same keys at the same shares of the width on every page and in every language`() {
         fun shares(layer: Layer) = layer.rows.last().let { row -> row.keys.map { it.action to it.width / layer.units } }
-        for (withGlobe in listOf(false, true)) for (marks in FieldMarks.entries) {
-            val reference = shares(phoneLayout(Languages.english, withGlobe, marks = marks).layer(LayerId.LETTERS))
+        for (withGlobe in listOf(false, true)) for (marks in FieldMarks.entries) for (side in GlobeSide.entries) {
+            val reference = shares(phoneLayout(Languages.english, withGlobe, marks = marks, globeSide = side).layer(LayerId.LETTERS))
             for (language in Languages.all + Languages.bulgarianStandard) for (numberRow in listOf(false, true)) {
-                val layout = phoneLayout(language, withGlobe, numberRow, marks)
+                val layout = phoneLayout(language, withGlobe, numberRow, marks, side)
                 for (layer in layout.layers.values) {
                     val here = shares(layer)
-                    val what = "${language.tag} ${layer.id} globe=$withGlobe digits=$numberRow $marks"
+                    val what = "${language.tag} ${layer.id} globe=$withGlobe $side digits=$numberRow $marks"
                     // The page key's target differs by page; everything else is the same key.
                     assertEquals(reference.drop(1).map { it.first }, here.drop(1).map { it.first }, what)
                     for ((a, b) in reference.zip(here)) assertEquals(a.second, b.second, 0.0001f, what)
                 }
             }
         }
+    }
+
+    @Test
+    fun `on the right the globe sits between the period and return, on every page, at the same width`() {
+        val layout = phoneLayout(Languages.english, withGlobe = true, globeSide = GlobeSide.RIGHT)
+        assertEquals(listOf("?123", ",", "English", ".", "globe", "enter"), layout.layer(LayerId.LETTERS).rows.last().keys.map { it.label })
+        assertEquals(listOf("ABC", ",", "English", ".", "globe", "enter"), layout.layer(LayerId.SYMBOLS).rows.last().keys.map { it.label })
+        assertEquals(listOf("ABC", ",", "English", ".", "globe", "enter"), layout.layer(LayerId.CODE).rows.last().keys.map { it.label })
+        assertEquals(listOf(1.5f, 1f, 4f, 1f, 1f, 1.5f), layout.layer(LayerId.LETTERS).rows.last().keys.map { it.width })
+        // On English its edges are still the Shift row's: the comma ends with z, the period with n,
+        // the globe with m and return with backspace.
+        fun ends(row: Row) = row.keys.runningFold(0f) { x, key -> x + key.width }.drop(1)
+        val shiftRow = ends(LettersLayer.rows[2])
+        val bottom = ends(layout.layer(LayerId.LETTERS).rows.last())
+        assertEquals(listOf(shiftRow[0], shiftRow[1], shiftRow[6], shiftRow[7], shiftRow[8]), bottom.filterIndexed { i, _ -> i != 2 })
+    }
+
+    @Test
+    fun `without a globe either side is the same row`() {
+        assertEquals(
+            phoneLayout(Languages.english, withGlobe = false),
+            phoneLayout(Languages.english, withGlobe = false, globeSide = GlobeSide.RIGHT),
+        )
     }
 
     @Test

@@ -13,6 +13,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import net.matasar.keyboard.R
 import net.matasar.keyboard.layout.BulgarianLayout
+import net.matasar.keyboard.layout.GlobeSide
 import net.matasar.keyboard.layout.PortugueseSpelling
 
 // Pieces the settings screens share: the Settings screen and the Languages screen.
@@ -22,6 +23,14 @@ internal fun PortugueseSpelling.label(): String = stringResource(
     when (this) {
         PortugueseSpelling.PORTUGAL -> R.string.settings_pt_spelling_portugal
         PortugueseSpelling.BRAZIL -> R.string.settings_pt_spelling_brazil
+    },
+)
+
+@Composable
+internal fun GlobeSide.label(): String = stringResource(
+    when (this) {
+        GlobeSide.LEFT -> R.string.languages_globe_side_left
+        GlobeSide.RIGHT -> R.string.languages_globe_side_right
     },
 )
 

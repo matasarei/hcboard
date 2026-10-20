@@ -1,5 +1,6 @@
 package net.matasar.keyboard.ui
 
+import androidx.compose.foundation.layout.absolutePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -22,11 +23,11 @@ fun ModifierStrip(
     unitWidth: Dp,
     modifier: Modifier = Modifier,
     keyHeight: Dp = Dimens.keyHeight,
-    sidePadding: Dp = Dimens.sidePadding,
+    sidePadding: SideRoom = SideRoom(Dimens.sidePadding, Dimens.sidePadding),
 ) {
     val colors = LocalKeyboardColors.current
     val fnActive = controller.modifiers.isActive(ModifierKey.FN)
-    KeyRow(row = DeveloperStrip, unitWidth = unitWidth, gap = Dimens.keyGap, modifier = modifier.padding(horizontal = sidePadding)) { key ->
+    KeyRow(row = DeveloperStrip, unitWidth = unitWidth, gap = Dimens.keyGap, modifier = modifier.absolutePadding(left = sidePadding.left, right = sidePadding.right)) { key ->
         // Phone-width strip keys are 35 dp: no room for an icon plus a legend. While Fn is
         // active the arrow keys show their Fn meaning as the label instead of the icon.
         val fnWord = key.fnLegend?.takeIf { fnActive }

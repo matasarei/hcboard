@@ -17,7 +17,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import net.matasar.keyboard.R
@@ -41,7 +40,7 @@ fun SettingsSheet(
     onToggleNumberRow: () -> Unit,
     onOpenSettings: () -> Unit,
     onDismiss: () -> Unit,
-    sidePadding: Dp,
+    sidePadding: SideRoom,
     /** The 60% board: the same rows, with the phone board's own switches dimmed and labelled. */
     wide: Boolean = false,
 ) {

@@ -36,6 +36,7 @@ import kotlinx.coroutines.launch
 import net.matasar.keyboard.R
 import net.matasar.keyboard.ime.pushEnabledSubtypes
 import net.matasar.keyboard.layout.BulgarianLayout
+import net.matasar.keyboard.layout.GlobeSide
 import net.matasar.keyboard.layout.Language
 import net.matasar.keyboard.layout.Languages
 import net.matasar.keyboard.layout.PortugueseSpelling
@@ -108,6 +109,20 @@ private fun LanguagesScreen(settings: Settings, prefs: Prefs) {
     ) {
         Text(stringResource(R.string.languages_title), style = MaterialTheme.typography.headlineSmall)
         Text(stringResource(R.string.settings_languages_hint), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        // The globe exists from two languages on, and only the phone board moves it.
+        if (settings.enabledLanguages.size > 1) {
+            Section(stringResource(R.string.languages_globe_side))
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                GlobeSide.entries.forEach { side ->
+                    FilterChip(
+                        selected = settings.globeSide == side,
+                        onClick = { scope.launch { prefs.setGlobeSide(side) } },
+                        label = { Text(side.label()) },
+                    )
+                }
+            }
+            OptionHint(stringResource(R.string.languages_globe_side_hint))
+        }
         // With two languages both ways toggle between them; the choice matters from three.
         if (settings.enabledLanguages.size > 2) {
             Section(stringResource(R.string.languages_globe_tap))

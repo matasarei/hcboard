@@ -20,7 +20,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import net.matasar.keyboard.R
@@ -32,7 +31,7 @@ import net.matasar.keyboard.ui.theme.LocalKeyboardColors
  * scrolls, like the other sheets: with many languages on, the list is taller than the keyboard.
  */
 @Composable
-fun LanguageSheet(languages: List<Language>, current: Language, onPick: (Language) -> Unit, onDismiss: () -> Unit, sidePadding: Dp) {
+fun LanguageSheet(languages: List<Language>, current: Language, onPick: (Language) -> Unit, onDismiss: () -> Unit, sidePadding: SideRoom) {
     val colors = LocalKeyboardColors.current
     KeyboardSheet(onDismiss = onDismiss, sidePadding = sidePadding) {
         Box(

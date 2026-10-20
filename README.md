@@ -118,8 +118,10 @@ from the password manager you already use, and the keyboard never shows or keeps
 - **Your password manager, one tap away.** Logins it offers appear above the keys. The key button
   can also fill a login into the field in front of you, open the manager, or change which one
   Android uses.
-- **Fits your hands:** set the keyboard's height and width, the space under the keys (or let it
-  follow the system bar), the haptic tick and the key preview in Settings, and try each change in
+- **Fits your hands:** set the keyboard's height and width, a narrowed phone keyboard against
+  the left or right edge for one thumb, a width of its own for the wide keyboard, the globe beside
+  123 or beside return, the space under the keys (or let it follow the system bar), the haptic
+  tick and the key preview in Settings, and try each change in
   the field at the bottom of the screen, or in its password field.
 
 ## When you want to tinker

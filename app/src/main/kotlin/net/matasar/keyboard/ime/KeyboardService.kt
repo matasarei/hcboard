@@ -262,6 +262,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
                 controller.foldToolbar = settings.foldToolbar
                 controller.numberRow = settings.numberRow
                 controller.bulgarianLayout = settings.bulgarianLayout
+                controller.globeSide = settings.globeSide
                 controller.voiceInputEnabled = settings.voiceInput
                 preferredVoiceKeyboard = settings.voiceKeyboard
                 controller.suggestionsEnabled = settings.suggestions
@@ -395,6 +396,8 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
                             previews = settings.previews,
                             heightScale = settings.heightScale,
                             widthScale = settings.widthScale,
+                            boardSide = settings.phoneBoardSide,
+                            wideWidthScale = settings.wideBoardWidth,
                             glide = settings.glide,
                             glideTrail = settings.glideTrail,
                             split = settings.splitKeyboard,
