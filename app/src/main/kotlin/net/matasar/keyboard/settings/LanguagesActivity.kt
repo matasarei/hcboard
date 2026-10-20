@@ -109,34 +109,34 @@ private fun LanguagesScreen(settings: Settings, prefs: Prefs) {
     ) {
         Text(stringResource(R.string.languages_title), style = MaterialTheme.typography.headlineSmall)
         Text(stringResource(R.string.settings_languages_hint), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        // The globe exists from two languages on, and only the phone board moves it.
-        if (settings.enabledLanguages.size > 1) {
-            Section(stringResource(R.string.languages_globe_side))
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                GlobeSide.entries.forEach { side ->
-                    FilterChip(
-                        selected = settings.globeSide == side,
-                        onClick = { scope.launch { prefs.setGlobeSide(side) } },
-                        label = { Text(side.label()) },
-                    )
-                }
+        // Both globe choices always show, greyed out until they mean something: one appearing
+        // above the list as a language is switched on would move the row under the finger.
+        Section(stringResource(R.string.languages_globe_side))
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            GlobeSide.entries.forEach { side ->
+                FilterChip(
+                    selected = settings.globeSide == side,
+                    onClick = { scope.launch { prefs.setGlobeSide(side) } },
+                    label = { Text(side.label()) },
+                    // The globe exists from two languages on, and only the phone board moves it.
+                    enabled = settings.enabledLanguages.size > 1,
+                )
             }
-            OptionHint(stringResource(R.string.languages_globe_side_hint))
         }
-        // With two languages both ways toggle between them; the choice matters from three.
-        if (settings.enabledLanguages.size > 2) {
-            Section(stringResource(R.string.languages_globe_tap))
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                GlobeTap.entries.forEach { tap ->
-                    FilterChip(
-                        selected = settings.globeTap == tap,
-                        onClick = { scope.launch { prefs.setGlobeTap(tap) } },
-                        label = { Text(tap.label()) },
-                    )
-                }
+        OptionHint(stringResource(R.string.languages_globe_side_hint))
+        Section(stringResource(R.string.languages_globe_tap))
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            GlobeTap.entries.forEach { tap ->
+                FilterChip(
+                    selected = settings.globeTap == tap,
+                    onClick = { scope.launch { prefs.setGlobeTap(tap) } },
+                    label = { Text(tap.label()) },
+                    // With two languages both ways toggle between them; the choice matters from three.
+                    enabled = settings.enabledLanguages.size > 2,
+                )
             }
-            OptionHint(stringResource(R.string.languages_globe_tap_hint))
         }
+        OptionHint(stringResource(R.string.languages_globe_tap_hint))
         if (on.isNotEmpty()) {
             Section(stringResource(R.string.languages_section_on))
             on.forEach { LanguageRow(it) }

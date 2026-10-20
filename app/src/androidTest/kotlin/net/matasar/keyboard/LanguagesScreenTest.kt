@@ -34,10 +34,29 @@ class LanguagesScreenTest {
      * languages, until the screen opens again), and Settings names it on the way back.
      */
     @Test
-    fun aLanguageSwitchedOnStaysInPlaceAndSettingsNamesIt() {
+    fun aLanguageSwitchedOnStaysInPlaceAndSettingsNamesIt() = switchCroatianOn(alsoOn = emptyList())
+
+    /**
+     * The same as a third language, which makes the Globe key choice mean something: it is there
+     * but takes no tap before the switch, and nothing appears above the row when it comes on.
+     */
+    @Test
+    fun aThirdLanguageSwitchedOnStaysInPlace() = switchCroatianOn(alsoOn = listOf("uk")) {
+        val prefs = Prefs(ApplicationProvider.getApplicationContext())
+        runBlocking { prefs.setGlobeTap(GlobeTap.LAST_USED) }
+        device.findObject(By.text("Next language")).click()
+        device.waitForIdle()
+        SystemClock.sleep(500)
+        assertEquals("Globe key took a tap with two languages on", GlobeTap.LAST_USED, runBlocking { prefs.settings.first().globeTap })
+    }
+
+    private fun switchCroatianOn(alsoOn: List<String>, beforeSwitch: () -> Unit = {}) {
         val context = ApplicationProvider.getApplicationContext<android.content.Context>()
         val prefs = Prefs(context)
-        runBlocking { prefs.setLanguageEnabled("hr", false) }
+        runBlocking {
+            prefs.setLanguageEnabled("hr", false)
+            alsoOn.forEach { prefs.setLanguageEnabled(it, true) }
+        }
         try {
             context.startActivity(
                 Intent(context, SettingsActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK),
@@ -46,6 +65,7 @@ class LanguagesScreenTest {
             assertNotNull("no Choose languages button on the Settings screen", button)
             button!!.click()
             assertTrue("the Languages screen never opened", device.wait(Until.hasObject(By.text("More languages")), 5_000))
+            beforeSwitch()
 
             val croatian = "Hrvatski · Croatian"
             val row = scrollTo(croatian, down = true)
@@ -65,11 +85,14 @@ class LanguagesScreenTest {
             device.pressBack()
             assertTrue("Settings does not name Croatian after the switch", device.wait(Until.hasObject(By.textContains("Hrvatski")), 5_000))
         } finally {
-            runBlocking { prefs.setLanguageEnabled("hr", false) }
+            runBlocking {
+                prefs.setLanguageEnabled("hr", false)
+                alsoOn.forEach { prefs.setLanguageEnabled(it, false) }
+            }
         }
     }
 
-    /** With three languages on, the screen offers the globe's two ways, and a tap stores the choice. */
+    /** With three languages on, the globe's two ways can be picked, and a tap stores the choice. */
     @Test
     fun theGlobeKeyChoiceShowsWithThreeLanguagesAndIsStored() {
         val context = ApplicationProvider.getApplicationContext<android.content.Context>()
