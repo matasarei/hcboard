@@ -36,9 +36,9 @@ data class Language(
     /**
      * The letters layer for this language, with a globe key when more than one language is
      * enabled, the digits across the top when [numberRow] asks for them, and an address field's
-     * [marks] beside the space bar.
+     * [marks] beside the space bar, and the globe on its [globeSide] of the bottom row.
      */
-    fun lettersLayer(withGlobe: Boolean, numberRow: Boolean = false, marks: FieldMarks = FieldMarks.NONE): Layer {
+    fun lettersLayer(withGlobe: Boolean, numberRow: Boolean = false, marks: FieldMarks = FieldMarks.NONE, globeSide: GlobeSide = GlobeSide.LEFT): Layer {
         val units = units
         // Shift and backspace take what the letters leave, up to a key and a half each, as on the
         // iPhone; anything beyond that is a gap between them and the letters.
@@ -54,7 +54,7 @@ data class Language(
                 Row(listOf(shiftKey(edge), *phoneKeys(2), backspaceKey(edge)), innerGapUnits = side - edge),
                 // ?123 opens the digits and the marks, as on Gboard; with the digits on this page,
                 // the key opens symbols only, and says so.
-                bottomRow(LayerId.SYMBOLS, if (numberRow) "#+=" else "?123", units, nativeName, withGlobe, marks),
+                bottomRow(LayerId.SYMBOLS, if (numberRow) "#+=" else "?123", units, nativeName, withGlobe, marks, globeSide),
             ),
         )
     }
