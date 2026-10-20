@@ -25,7 +25,6 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -62,7 +61,7 @@ fun SuggestionStrip(entries: List<SuggestionEntry>, modifier: Modifier = Modifie
  * change it in settings. Drawn over the keys inside the keyboard window.
  */
 @Composable
-fun ManagerSheet(actions: AutofillActions, onDismiss: () -> Unit, sidePadding: Dp) {
+fun ManagerSheet(actions: AutofillActions, onDismiss: () -> Unit, sidePadding: SideRoom) {
     val colors = LocalKeyboardColors.current
     // Asked once per opening: the package manager is not something to query on every frame.
     val managers = remember(actions) { actions.managers() }

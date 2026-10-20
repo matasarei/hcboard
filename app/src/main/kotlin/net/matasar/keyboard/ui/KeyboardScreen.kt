@@ -109,8 +109,7 @@ fun KeyboardScreen(
             },
     ) {
         val wide = maxWidth >= Dimens.wideBreakpoint
-        val extraSidePadding = (maxWidth * ((1f - feel.widthScale.coerceIn(0.7f, 1f)) / 2f)).coerceAtLeast(0.dp)
-        val effectiveSidePadding = maxOf(extraSidePadding, sideInset)
+        val room = sideRoom(maxWidth, wide, feel, sideInset)
         Column(modifier = Modifier.fillMaxWidth()) {
             Spacer(modifier = Modifier.height(PopupMetrics.overhang))
             Column(
@@ -123,7 +122,7 @@ fun KeyboardScreen(
                 Toolbar(
                     modifier = Modifier
                         .background(colors.toolbar)
-                        .padding(horizontal = effectiveSidePadding),
+                        .padding(start = room.start, end = room.end),
                     chipText = chipText,
                     actions = actions,
                     sheetOpen = controller.managerSheetOpen,
@@ -145,7 +144,7 @@ fun KeyboardScreen(
                     onPickCandidate = controller::pickCandidate,
                     onCollapseCandidates = controller::collapseCandidates,
                 )
-                LayerGrid(controller, feel, popups, effectiveSidePadding, hinge)
+                LayerGrid(controller, feel, popups, room, hinge)
             }
         }
         PopupLayer(popups)
@@ -160,7 +159,7 @@ fun KeyboardScreen(
                     current = controller.language,
                     onPick = controller::switchLanguage,
                     onDismiss = { controller.languageSheetOpen = false },
-                    sidePadding = effectiveSidePadding,
+                    sidePadding = room,
                 )
             }
         }
@@ -171,7 +170,7 @@ fun KeyboardScreen(
                     .matchParentSize()
                     .padding(top = PopupMetrics.overhang + Dimens.toolbarHeight),
             ) {
-                ManagerSheet(autofill, onDismiss = { controller.managerSheetOpen = false }, sidePadding = effectiveSidePadding)
+                ManagerSheet(autofill, onDismiss = { controller.managerSheetOpen = false }, sidePadding = room)
             }
         }
         if (controller.macroSheetOpen) {
@@ -187,7 +186,7 @@ fun KeyboardScreen(
                     onStop = controller::stopMacro,
                     onEdit = actions::openMacros,
                     onDismiss = { controller.macroSheetOpen = false },
-                    sidePadding = effectiveSidePadding,
+                    sidePadding = room,
                 )
             }
         }
@@ -209,7 +208,7 @@ fun KeyboardScreen(
                     onToggleNumberRow = actions::toggleNumberRow,
                     onOpenSettings = actions::openSettings,
                     onDismiss = { controller.settingsSheetOpen = false },
-                    sidePadding = effectiveSidePadding,
+                    sidePadding = room,
                     wide = wide,
                 )
             }
@@ -222,7 +221,7 @@ private fun LayerGrid(
     controller: KeyboardController,
     feel: KeyboardFeel,
     popups: PopupState,
-    extraSidePadding: Dp = 0.dp,
+    room: SideRoom = SideRoom(0.dp, 0.dp),
     hinge: ClosedFloatingPointRange<Float>? = null,
 ) {
     val colors = LocalKeyboardColors.current
@@ -274,7 +273,8 @@ private fun LayerGrid(
         val split = layout.splits[layer.id]?.takeIf {
             shouldSplit(feel.split, wide, hingeSeparating = hinge != null, phoneLandscape = isPhoneLandscape(configuration.screenWidthDp, configuration.screenHeightDp))
         }
-        val sidePadding = (if (wide) Dimens.wideSidePadding else Dimens.sidePadding) + extraSidePadding
+        val base = if (wide) Dimens.wideSidePadding else Dimens.sidePadding
+        val sidePadding = SideRoom(start = base + room.start, end = base + room.end)
         // The gaps follow the height setting too: keys shrunk to 80% under full-size gaps read as
         // small keys floating in space.
         val rowGap = (if (wide) Dimens.wideRowGap else Dimens.rowGap) * feel.heightScale
@@ -285,12 +285,13 @@ private fun LayerGrid(
             Dimens.toolbarHeight - Dimens.topPadding - Dimens.bottomPadding - rowGap * (rows - 1)
         val keyHeight = minOf((if (wide) Dimens.wideKeyHeight else Dimens.keyHeight) * feel.heightScale, budget / rows)
         val unitWidth = if (split == null) {
-            (maxWidth - sidePadding * 2 - Dimens.keyGap * (layer.units.toInt() - 1)) / layer.units
+            (maxWidth - sidePadding.start - sidePadding.end - Dimens.keyGap * (layer.units.toInt() - 1)) / layer.units
         } else {
             with(density) {
                 splitUnit(
                     width = maxWidth.toPx(),
-                    sidePadding = sidePadding.toPx(),
+                    // Only the wide board splits, and it always centres: both sides are the same.
+                    sidePadding = sidePadding.start.toPx(),
                     gap = Dimens.keyGap.toPx(),
                     leftUnits = split.left.units,
                     rightUnits = split.right.units,
@@ -363,7 +364,7 @@ private fun LayerGrid(
             }
             if (split == null) {
                 for (row in layer.rows) {
-                    KeyRow(row = row, unitWidth = unitWidth, gap = Dimens.keyGap, modifier = Modifier.padding(horizontal = sidePadding), onGrid = !wide, content = keyButton)
+                    KeyRow(row = row, unitWidth = unitWidth, gap = Dimens.keyGap, modifier = Modifier.padding(start = sidePadding.start, end = sidePadding.end), onGrid = !wide, content = keyButton)
                 }
             } else {
                 val gap = Dimens.keyGap
@@ -372,7 +373,7 @@ private fun LayerGrid(
                 // Each half against its outer edge; the room between them is the thumbs', or the hinge's.
                 for ((leftRow, rightRow) in split.left.rows.zip(split.right.rows)) {
                     Row(
-                        modifier = Modifier.fillMaxWidth().padding(horizontal = sidePadding),
+                        modifier = Modifier.fillMaxWidth().padding(start = sidePadding.start, end = sidePadding.end),
                         horizontalArrangement = Arrangement.SpaceBetween,
                     ) {
                         KeyRow(row = leftRow, unitWidth = unitWidth, gap = gap, modifier = Modifier.width(leftWidth), content = keyButton)
