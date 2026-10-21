@@ -45,6 +45,9 @@ class KeyboardSmokeTest {
     companion object {
         private const val IME = "net.matasar.keyboard/.ime.KeyboardService"
 
+        /** What the phone field holds when backspace is held into it. */
+        private const val PHONE_NUMBER = "5551234"
+
         /** Device-wide settings the class changes once, restored once in [restoreSettings]. */
         private var previousIme = ""
         private var previousShowWithHardKeyboard = ""
@@ -235,7 +238,11 @@ class KeyboardSmokeTest {
         instrumentation.runOnMainSync {
             field.setText(text)
             field.setSelection(text.length)
-            phone = android.widget.EditText(field.context).apply { inputType = android.text.InputType.TYPE_CLASS_PHONE }
+            phone = android.widget.EditText(field.context).apply {
+                inputType = android.text.InputType.TYPE_CLASS_PHONE
+                setText(PHONE_NUMBER)
+                setSelection(PHONE_NUMBER.length)
+            }
             (field.parent as android.widget.FrameLayout).addView(
                 phone,
                 android.widget.FrameLayout.LayoutParams(android.view.ViewGroup.LayoutParams.MATCH_PARENT, android.view.ViewGroup.LayoutParams.WRAP_CONTENT, android.view.Gravity.BOTTOM),
@@ -259,13 +266,17 @@ class KeyboardSmokeTest {
         // Focus moves to the phone field under the finger, and its number row changes the rows.
         instrumentation.runOnMainSync { phone.requestFocus() }
         assertTrue("the phone field brought no number row; the keyboard shows: ${describeImeNodes()}", waitForImeNode("1") != null)
-        val atFieldChange = length()
+        // Still held: a repeat that carried on into the new field would be eating its number now.
         SystemClock.sleep(300)
         inject(MotionEvent.ACTION_UP)
+        var number = ""
+        instrumentation.runOnMainSync { number = phone.text.toString() }
+        assertEquals("backspace went on deleting in the field focus moved to", PHONE_NUMBER, number)
         // Back to the text field: the rows are as they were, and backspace is where it was held.
         instrumentation.runOnMainSync { field.requestFocus() }
         assertTrue("the number row stayed in a text field", waitUntil(3_000) { waitForImeNode("1", timeoutMs = 200) == null })
         val settled = length()
+        // No condition shows that nothing happens: the field is watched for thirty repeats' time.
         SystemClock.sleep(1_500)
         assertEquals("the field lost text with no finger on backspace", settled, length())
     }
