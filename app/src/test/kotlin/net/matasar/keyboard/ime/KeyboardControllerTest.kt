@@ -315,6 +315,27 @@ class WideBoardControllerTest {
     }
 
     @Test
+    fun `a key held into another field stops repeating there`() {
+        val backspace = key("backspace")
+        port.before = "hello"
+        controller.onRepeatPressStart()
+        assertTrue(controller.onKeyRepeat(backspace))
+        assertEquals(listOf(1 to 0), port.deletions)
+
+        // Focus moves to another field under the finger: nothing more is deleted, in either field.
+        controller.onStartInput(EditorInfo().apply { inputType = InputType.TYPE_CLASS_PHONE })
+        assertFalse(controller.onKeyRepeat(backspace))
+        assertEquals(listOf(1 to 0), port.deletions)
+
+        // A new press repeats again, and a restart (another field of the same screen) stops it too.
+        controller.onRepeatPressStart()
+        assertTrue(controller.onKeyRepeat(backspace))
+        controller.onRestartInput(EditorInfo().apply { inputType = InputType.TYPE_CLASS_TEXT })
+        assertFalse(controller.onKeyRepeat(backspace))
+        assertEquals(listOf(1 to 0, 1 to 0), port.deletions)
+    }
+
+    @Test
     fun `an e-mail field swaps the comma for @, a web address for a slash, and the next field gets it back`() {
         controller.onStartInput(EditorInfo().apply { inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS })
         fun bottom() = controller.phoneLayout.layer(LayerId.LETTERS).rows.last().keys.map { it.label }

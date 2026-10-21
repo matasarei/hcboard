@@ -73,7 +73,8 @@ interface KeyCallbacks {
     fun onLongPressMove(key: Key, rootPosition: Offset)
     fun onLongPressRelease(key: Key, rootPosition: Offset)
     fun onLongPressCancel(key: Key)
-    fun onRepeat(key: Key)
+    /** One repeat of a held key; false when the repeat is over though the finger is still down. */
+    fun onRepeat(key: Key): Boolean
 }
 
 /**
@@ -157,7 +158,7 @@ fun KeyButton(
                         delay(REPEAT_DELAY_MS)
                         while (isActive) {
                             repeated = true
-                            currentCallbacks.onRepeat(currentKey)
+                            if (!currentCallbacks.onRepeat(currentKey)) break
                             delay(REPEAT_INTERVAL_MS)
                         }
                     }

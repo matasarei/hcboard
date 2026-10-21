@@ -408,6 +408,7 @@ private class KeyScreenCallbacks(
 
     override fun onPressStart(key: Key, bounds: Rect) {
         if (key.action is KeyAction.Modifier) controller.onModifierPressStart(key)
+        if (controller.repeats(key)) controller.onRepeatPressStart()
         if (feel.previews && !controller.passwordField && key.showsPreview() && !controller.repeats(key)) {
             popups.preview = PressPreview(bounds, controller.displayLabel(key))
         }

@@ -284,6 +284,7 @@ class KeyboardController(
      * check that the text still ends as they left it before they act.
      */
     fun onRestartInput(info: EditorInfo?) {
+        fieldsBegun++
         dispatcher.resetCursor(info?.initialSelStart ?: -1, info?.initialSelEnd ?: -1)
         updateFieldKind(info)
         updateFieldMic(info)
@@ -511,6 +512,12 @@ class KeyboardController(
     /** Counts the fields started, so a macro can wait for the next one after a Tab. */
     private val fieldStarts = MutableStateFlow(0)
 
+    /** Counts every start and restart of a field, so a key held into another field stops repeating. */
+    private var fieldsBegun = 0
+
+    /** [fieldsBegun] when the repeating key now held went down. */
+    private var repeatField = 0
+
     /** A macro pressed Tab or Enter and is waiting for the app to move focus: the old field finishing is expected. */
     private var awaitingFocusMove = false
 
@@ -594,6 +601,7 @@ class KeyboardController(
         // A macro follows its own Tab into the next field of the same app, never into another app.
         if (macroJob != null && fieldPackage != macroPackage) stopMacro()
         fieldStarts.value++
+        fieldsBegun++
         dispatcher.resetCursor(info?.initialSelStart ?: -1, info?.initialSelEnd ?: -1)
         updateFieldKind(info)
         layer = LayerId.LETTERS
@@ -1014,11 +1022,21 @@ class KeyboardController(
         return key.repeats && !fnActive
     }
 
-    /** Backspace or arrow held down: repeat one step per tick. */
-    fun onKeyRepeat(key: Key) {
+    /** A key that [repeats] went down: what it repeats belongs to the field it went down in. */
+    fun onRepeatPressStart() {
+        repeatField = fieldsBegun
+    }
+
+    /**
+     * Backspace or arrow held down: repeat one step per tick. False, with nothing done, once
+     * focus has moved to another field under the finger: the repeat stops there, as AOSP's
+     * keyboard stops it, rather than deleting into a field the user never pressed in.
+     */
+    fun onKeyRepeat(key: Key): Boolean {
+        if (repeatField != fieldsBegun) return false
         if (key.action == KeyAction.Backspace) {
             if (fnActive) dispatcher.forwardDelete(terminalField) else dispatcher.backspace()
-            return
+            return true
         }
         val action = if (fnActive && key.fnAction != null) key.fnAction else key.action
         if (action is KeyAction.KeyCode) {
@@ -1028,6 +1046,7 @@ class KeyboardController(
                 candidates = null
             }
         }
+        return true
     }
 
     fun onKeyLongPress(key: Key) {
