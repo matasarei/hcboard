@@ -45,66 +45,82 @@ fun Modifier.keyGestures(key: Any, longPressMs: Long, listener: KeyGestureListen
             down.consume()
             listener.onPressStart()
 
-            var longPressed = false
-            var up = false
-            var setOff = false
-            val setOffPx = size.width * GlideGesture.MOVED_FRACTION
-            // Pointer timestamps are on the uptime clock; compare against the same clock.
-            val deadline = down.uptimeMillis + longPressMs
-            while (!up && !longPressed) {
-                val remaining = deadline - SystemClock.uptimeMillis()
-                val event = if (setOff) {
-                    awaitPointerEvent(PointerEventPass.Initial)
-                } else {
-                    withTimeoutOrNull(remaining.coerceAtLeast(1)) { awaitPointerEvent(PointerEventPass.Initial) }
+            var ended = false
+            var steering = false
+            try {
+                var longPressed = false
+                var up = false
+                var setOff = false
+                val setOffPx = size.width * GlideGesture.MOVED_FRACTION
+                // Pointer timestamps are on the uptime clock; compare against the same clock.
+                val deadline = down.uptimeMillis + longPressMs
+                while (!up && !longPressed) {
+                    val remaining = deadline - SystemClock.uptimeMillis()
+                    val event = if (setOff) {
+                        awaitPointerEvent(PointerEventPass.Initial)
+                    } else {
+                        withTimeoutOrNull(remaining.coerceAtLeast(1)) { awaitPointerEvent(PointerEventPass.Initial) }
+                    }
+                    if (event == null) {
+                        longPressed = true
+                    } else {
+                        val change = event.changes.firstOrNull { it.id == down.id } ?: continue
+                        if (change.isConsumed) {
+                            // The glide detector took this finger: no tap, just release the key.
+                            ended = true
+                            listener.onPressEnd()
+                            return@awaitEachGesture
+                        }
+                        change.consume()
+                        if (!change.pressed) up = true
+                        if (movedCancelsLongPress && (change.position - down.position).getDistance() >= setOffPx) setOff = true
+                    }
                 }
-                if (event == null) {
-                    longPressed = true
-                } else {
+
+                if (up) {
+                    ended = true
+                    listener.onPressEnd()
+                    listener.onTap()
+                    return@awaitEachGesture
+                }
+
+                val result = listener.onLongPress()
+                steering = result == LongPressResult.STEER
+                var last = down.position
+                while (true) {
+                    val event = awaitPointerEvent(PointerEventPass.Initial)
                     val change = event.changes.firstOrNull { it.id == down.id } ?: continue
                     if (change.isConsumed) {
-                        // The glide detector took this finger: no tap, just release the key.
+                        // A consumed change here is a cancellation: the pointer went to the system
+                        // (Samsung's gesture bar sits right under the space bar) or to another
+                        // handler. Whatever the long press opened must close, or the trackpad
+                        // stays on with the finger already gone.
+                        ended = true
                         listener.onPressEnd()
+                        if (steering) listener.onLongPressCancel()
                         return@awaitEachGesture
                     }
                     change.consume()
-                    if (!change.pressed) up = true
-                    if (movedCancelsLongPress && (change.position - down.position).getDistance() >= setOffPx) setOff = true
+                    last = change.position
+                    if (!change.pressed) break
+                    if (steering) listener.onLongPressMove(last)
                 }
-            }
-
-            if (up) {
+                ended = true
                 listener.onPressEnd()
-                listener.onTap()
-                return@awaitEachGesture
-            }
-
-            val result = listener.onLongPress()
-            val steering = result == LongPressResult.STEER
-            var last = down.position
-            while (true) {
-                val event = awaitPointerEvent(PointerEventPass.Initial)
-                val change = event.changes.firstOrNull { it.id == down.id } ?: continue
-                if (change.isConsumed) {
-                    // A consumed change here is a cancellation: the pointer went to the system
-                    // (Samsung's gesture bar sits right under the space bar) or to another
-                    // handler. Whatever the long press opened must close, or the trackpad
-                    // stays on with the finger already gone.
+                when (result) {
+                    LongPressResult.STEER -> listener.onLongPressRelease(last)
+                    // A plain key held for a while still types on release, like Gboard.
+                    LongPressResult.NONE -> listener.onTap()
+                    LongPressResult.HANDLED -> Unit
+                }
+            } finally {
+                // The gesture was cancelled with no event to say so: the key's handler restarted
+                // under the finger (another key took its place in the rows) or the key left the
+                // layout. The press still ends, or a repeat it started never stops.
+                if (!ended) {
                     listener.onPressEnd()
                     if (steering) listener.onLongPressCancel()
-                    return@awaitEachGesture
                 }
-                change.consume()
-                last = change.position
-                if (!change.pressed) break
-                if (steering) listener.onLongPressMove(last)
-            }
-            listener.onPressEnd()
-            when (result) {
-                LongPressResult.STEER -> listener.onLongPressRelease(last)
-                // A plain key held for a while still types on release, like Gboard.
-                LongPressResult.NONE -> listener.onTap()
-                LongPressResult.HANDLED -> Unit
             }
         }
     }

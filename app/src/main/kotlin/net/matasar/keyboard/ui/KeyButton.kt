@@ -73,7 +73,8 @@ interface KeyCallbacks {
     fun onLongPressMove(key: Key, rootPosition: Offset)
     fun onLongPressRelease(key: Key, rootPosition: Offset)
     fun onLongPressCancel(key: Key)
-    fun onRepeat(key: Key)
+    /** One repeat of a held key; false when the repeat is over though the finger is still down. */
+    fun onRepeat(key: Key): Boolean
 }
 
 /**
@@ -142,9 +143,14 @@ fun KeyButton(
             private var repeatJob: Job? = null
             private var repeated = false
 
+            // The key the finger went down on: a press cut short by another key taking this
+            // one's place ends for the key it began on, not for the newcomer.
+            private var pressedKey: Key? = null
+
             override fun onPressStart() {
                 pressed = true
                 repeated = false
+                pressedKey = currentKey
                 if (currentHaptics) view.keyDownTick()
                 currentCallbacks.onPressStart(currentKey, bounds)
                 if (currentRepeats) {
@@ -152,7 +158,7 @@ fun KeyButton(
                         delay(REPEAT_DELAY_MS)
                         while (isActive) {
                             repeated = true
-                            currentCallbacks.onRepeat(currentKey)
+                            if (!currentCallbacks.onRepeat(currentKey)) break
                             delay(REPEAT_INTERVAL_MS)
                         }
                     }
@@ -163,7 +169,8 @@ fun KeyButton(
                 pressed = false
                 repeatJob?.cancel()
                 repeatJob = null
-                currentCallbacks.onPressEnd(currentKey)
+                currentCallbacks.onPressEnd(pressedKey ?: currentKey)
+                pressedKey = null
             }
 
             override fun onTap() {
