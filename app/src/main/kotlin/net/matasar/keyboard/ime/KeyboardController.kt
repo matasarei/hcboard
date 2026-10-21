@@ -284,7 +284,7 @@ class KeyboardController(
      * check that the text still ends as they left it before they act.
      */
     fun onRestartInput(info: EditorInfo?) {
-        fieldsBegun++
+        startsAndRestarts++
         dispatcher.resetCursor(info?.initialSelStart ?: -1, info?.initialSelEnd ?: -1)
         updateFieldKind(info)
         updateFieldMic(info)
@@ -513,9 +513,9 @@ class KeyboardController(
     private val fieldStarts = MutableStateFlow(0)
 
     /** Counts every start and restart of a field, so a key held into another field stops repeating. */
-    private var fieldsBegun = 0
+    private var startsAndRestarts = 0
 
-    /** [fieldsBegun] when the repeating key now held went down. */
+    /** [startsAndRestarts] when the repeating key now held went down. */
     private var repeatField = 0
 
     /** A macro pressed Tab or Enter and is waiting for the app to move focus: the old field finishing is expected. */
@@ -601,7 +601,7 @@ class KeyboardController(
         // A macro follows its own Tab into the next field of the same app, never into another app.
         if (macroJob != null && fieldPackage != macroPackage) stopMacro()
         fieldStarts.value++
-        fieldsBegun++
+        startsAndRestarts++
         dispatcher.resetCursor(info?.initialSelStart ?: -1, info?.initialSelEnd ?: -1)
         updateFieldKind(info)
         layer = LayerId.LETTERS
@@ -1024,7 +1024,7 @@ class KeyboardController(
 
     /** A key that [repeats] went down: what it repeats belongs to the field it went down in. */
     fun onRepeatPressStart() {
-        repeatField = fieldsBegun
+        repeatField = startsAndRestarts
     }
 
     /**
@@ -1036,7 +1036,7 @@ class KeyboardController(
      * stops early costs a second press where one that carries on deletes in the wrong field.
      */
     fun onKeyRepeat(key: Key): Boolean {
-        if (repeatField != fieldsBegun) return false
+        if (repeatField != startsAndRestarts) return false
         if (key.action == KeyAction.Backspace) {
             if (fnActive) dispatcher.forwardDelete(terminalField) else dispatcher.backspace()
             return true
