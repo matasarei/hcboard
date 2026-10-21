@@ -368,8 +368,8 @@ private fun LayerGrid(
             if (split == null) {
                 // Each row keyed by itself, as each key is in KeyRow: a number row coming in moves
                 // the rows below it, and a key held there stays the same key. A row has no id, so
-                // the key is its value: a handful of hashes per recomposition, and a row whose keys
-                // change is simply rebuilt.
+                // the key is its value: one hash per row per recomposition, walking its keys, and a
+                // row whose keys change is simply rebuilt.
                 for (row in layer.rows) {
                     key(row) {
                         KeyRow(row = row, unitWidth = unitWidth, gap = Dimens.keyGap, modifier = Modifier.absolutePadding(left = sidePadding.left, right = sidePadding.right), onGrid = !wide, content = keyButton)
