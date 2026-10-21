@@ -206,6 +206,88 @@ class KeyboardSmokeTest {
     }
 
     /**
+     * Backspace held while the field turns into one with another layout (a phone field brings the
+     * number row, so another key takes backspace's place in the rows) stops deleting at the field
+     * change, and nothing deletes on its own once the finger is up. The repeat used to outlive its
+     * gesture and empty every field after it, in any app, until the input view was rebuilt.
+     */
+    @Test
+    fun backspaceHeldIntoAnotherLayoutStopsWithTheFinger() {
+        val context = ApplicationProvider.getApplicationContext<android.content.Context>()
+        context.startActivity(
+            Intent(context, net.matasar.keyboard.debug.PlainFieldActivity::class.java)
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK),
+        )
+        assertTrue("the plain field never came up", device.wait(Until.hasObject(By.clazz("android.widget.EditText")), 5_000))
+        focusFieldAndShowKeyboard()
+        var awake = false
+        repeat(6) {
+            if (awake) return@repeat
+            tapLetter('a')
+            awake = waitUntil(1_000) { fieldText()?.contains('a', ignoreCase = true) == true }
+        }
+        assertTrue("the keyboard never took a tap", awake)
+        val instrumentation = InstrumentationRegistry.getInstrumentation()
+        val field = plainField()
+        val text = "abcdefghij".repeat(20)
+        // A second field, for the phone number: focus moves to it the way Tab moves it in a form.
+        lateinit var phone: android.widget.EditText
+        instrumentation.runOnMainSync {
+            field.setText(text)
+            field.setSelection(text.length)
+            phone = android.widget.EditText(field.context).apply { inputType = android.text.InputType.TYPE_CLASS_PHONE }
+            (field.parent as android.widget.FrameLayout).addView(
+                phone,
+                android.widget.FrameLayout.LayoutParams(android.view.ViewGroup.LayoutParams.MATCH_PARENT, android.view.ViewGroup.LayoutParams.WRAP_CONTENT, android.view.Gravity.BOTTOM),
+            )
+        }
+        val backspace = keyCentre("Backspace")
+        val downTime = SystemClock.uptimeMillis()
+        fun inject(action: Int) {
+            val event = MotionEvent.obtain(downTime, SystemClock.uptimeMillis(), action, backspace.x.toFloat(), backspace.y.toFloat(), 0)
+            event.source = InputDevice.SOURCE_TOUCHSCREEN
+            assertTrue("injecting action $action failed", instrumentation.uiAutomation.injectInputEvent(event, true))
+            event.recycle()
+        }
+        fun length(): Int {
+            var length = 0
+            instrumentation.runOnMainSync { length = field.length() }
+            return length
+        }
+        inject(MotionEvent.ACTION_DOWN)
+        assertTrue("holding backspace never repeated", waitUntil(2_000) { length() < text.length - 3 })
+        // Focus moves to the phone field under the finger, and its number row changes the rows.
+        instrumentation.runOnMainSync { phone.requestFocus() }
+        assertTrue("the phone field brought no number row; the keyboard shows: ${describeImeNodes()}", waitForImeNode("1") != null)
+        val atFieldChange = length()
+        SystemClock.sleep(300)
+        inject(MotionEvent.ACTION_UP)
+        // Back to the text field: the rows are as they were, and backspace is where it was held.
+        instrumentation.runOnMainSync { field.requestFocus() }
+        assertTrue("the number row stayed in a text field", waitUntil(3_000) { waitForImeNode("1", timeoutMs = 200) == null })
+        val settled = length()
+        SystemClock.sleep(1_500)
+        assertEquals("the field lost text with no finger on backspace", settled, length())
+    }
+
+    /** The plain field of the resumed [net.matasar.keyboard.debug.PlainFieldActivity]. */
+    private fun plainField(): android.widget.EditText {
+        var field: android.widget.EditText? = null
+        // The activity reports resumed a moment after its field is on screen.
+        waitUntil(3_000) {
+            InstrumentationRegistry.getInstrumentation().runOnMainSync {
+                val activity = androidx.test.runner.lifecycle.ActivityLifecycleMonitorRegistry.getInstance()
+                    .getActivitiesInStage(androidx.test.runner.lifecycle.Stage.RESUMED)
+                    .firstOrNull { it is net.matasar.keyboard.debug.PlainFieldActivity }
+                field = activity?.findViewById<android.view.ViewGroup>(android.R.id.content)?.getChildAt(0) as? android.widget.EditText
+            }
+            field != null
+        }
+        assertNotNull("no plain field on screen", field)
+        return field!!
+    }
+
+    /**
      * A rotation rebuilds the input view; the view it replaces must let go of its composition, or
      * every fold and rotation leaves one more keyboard recomposing on each keystroke.
      */

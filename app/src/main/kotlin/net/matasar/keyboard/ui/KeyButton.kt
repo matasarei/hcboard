@@ -142,9 +142,14 @@ fun KeyButton(
             private var repeatJob: Job? = null
             private var repeated = false
 
+            // The key the finger went down on: a press cut short by another key taking this
+            // one's place ends for the key it began on, not for the newcomer.
+            private var pressedKey: Key? = null
+
             override fun onPressStart() {
                 pressed = true
                 repeated = false
+                pressedKey = currentKey
                 if (currentHaptics) view.keyDownTick()
                 currentCallbacks.onPressStart(currentKey, bounds)
                 if (currentRepeats) {
@@ -163,7 +168,8 @@ fun KeyButton(
                 pressed = false
                 repeatJob?.cancel()
                 repeatJob = null
-                currentCallbacks.onPressEnd(currentKey)
+                currentCallbacks.onPressEnd(pressedKey ?: currentKey)
+                pressedKey = null
             }
 
             override fun onTap() {
