@@ -1028,9 +1028,12 @@ class KeyboardController(
     }
 
     /**
-     * Backspace or arrow held down: repeat one step per tick. False, with nothing done, once
-     * focus has moved to another field under the finger: the repeat stops there, as AOSP's
-     * keyboard stops it, rather than deleting into a field the user never pressed in.
+     * Backspace or arrow held down: repeat one step per tick. False, with nothing done, once a
+     * field has started or restarted under the finger: the repeat stops there rather than
+     * deleting into a field the user never pressed in. Any restart counts, even one an app makes
+     * on the same field, unlike AOSP's keyboard, which goes on unless the input type changed: a
+     * move between fields of one Compose screen is a restart with the same type, and a hold that
+     * stops early costs a second press where one that carries on deletes in the wrong field.
      */
     fun onKeyRepeat(key: Key): Boolean {
         if (repeatField != fieldsBegun) return false
