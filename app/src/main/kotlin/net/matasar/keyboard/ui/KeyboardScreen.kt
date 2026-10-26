@@ -18,6 +18,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -365,8 +366,14 @@ private fun LayerGrid(
                 )
             }
             if (split == null) {
+                // Each row keyed by itself, as each key is in KeyRow: a number row coming in moves
+                // the rows below it, and a key held there stays the same key. A row has no id, so
+                // the key is its value: one hash per row per recomposition, walking its keys, and a
+                // row whose keys change is simply rebuilt.
                 for (row in layer.rows) {
-                    KeyRow(row = row, unitWidth = unitWidth, gap = Dimens.keyGap, modifier = Modifier.absolutePadding(left = sidePadding.left, right = sidePadding.right), onGrid = !wide, content = keyButton)
+                    key(row) {
+                        KeyRow(row = row, unitWidth = unitWidth, gap = Dimens.keyGap, modifier = Modifier.absolutePadding(left = sidePadding.left, right = sidePadding.right), onGrid = !wide, content = keyButton)
+                    }
                 }
             } else {
                 val gap = Dimens.keyGap
@@ -374,12 +381,14 @@ private fun LayerGrid(
                 val rightWidth = unitWidth * split.right.units + gap * (split.right.units - 1f)
                 // Each half against its outer edge; the room between them is the thumbs', or the hinge's.
                 for ((leftRow, rightRow) in split.left.rows.zip(split.right.rows)) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth().absolutePadding(left = sidePadding.left, right = sidePadding.right),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                    ) {
-                        KeyRow(row = leftRow, unitWidth = unitWidth, gap = gap, modifier = Modifier.width(leftWidth), content = keyButton)
-                        KeyRow(row = rightRow, unitWidth = unitWidth, gap = gap, modifier = Modifier.width(rightWidth), content = keyButton)
+                    key(leftRow, rightRow) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth().absolutePadding(left = sidePadding.left, right = sidePadding.right),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                        ) {
+                            KeyRow(row = leftRow, unitWidth = unitWidth, gap = gap, modifier = Modifier.width(leftWidth), content = keyButton)
+                            KeyRow(row = rightRow, unitWidth = unitWidth, gap = gap, modifier = Modifier.width(rightWidth), content = keyButton)
+                        }
                     }
                 }
             }
@@ -401,6 +410,7 @@ private class KeyScreenCallbacks(
 
     override fun onPressStart(key: Key, bounds: Rect) {
         if (key.action is KeyAction.Modifier) controller.onModifierPressStart(key)
+        if (controller.repeats(key)) controller.onRepeatPressStart()
         if (feel.previews && !controller.passwordField && key.showsPreview() && !controller.repeats(key)) {
             popups.preview = PressPreview(bounds, controller.displayLabel(key))
         }

@@ -284,6 +284,7 @@ class KeyboardController(
      * check that the text still ends as they left it before they act.
      */
     fun onRestartInput(info: EditorInfo?) {
+        startsAndRestarts++
         dispatcher.resetCursor(info?.initialSelStart ?: -1, info?.initialSelEnd ?: -1)
         updateFieldKind(info)
         updateFieldMic(info)
@@ -511,6 +512,12 @@ class KeyboardController(
     /** Counts the fields started, so a macro can wait for the next one after a Tab. */
     private val fieldStarts = MutableStateFlow(0)
 
+    /** Counts every start and restart of a field, so a key held into another field stops repeating. */
+    private var startsAndRestarts = 0
+
+    /** [startsAndRestarts] when the repeating key now held went down. */
+    private var repeatField = 0
+
     /** A macro pressed Tab or Enter and is waiting for the app to move focus: the old field finishing is expected. */
     private var awaitingFocusMove = false
 
@@ -594,6 +601,7 @@ class KeyboardController(
         // A macro follows its own Tab into the next field of the same app, never into another app.
         if (macroJob != null && fieldPackage != macroPackage) stopMacro()
         fieldStarts.value++
+        startsAndRestarts++
         dispatcher.resetCursor(info?.initialSelStart ?: -1, info?.initialSelEnd ?: -1)
         updateFieldKind(info)
         layer = LayerId.LETTERS
@@ -1014,11 +1022,24 @@ class KeyboardController(
         return key.repeats && !fnActive
     }
 
-    /** Backspace or arrow held down: repeat one step per tick. */
-    fun onKeyRepeat(key: Key) {
+    /** A key that [repeats] went down: what it repeats belongs to the field it went down in. */
+    fun onRepeatPressStart() {
+        repeatField = startsAndRestarts
+    }
+
+    /**
+     * Backspace or arrow held down: repeat one step per tick. False, with nothing done, once a
+     * field has started or restarted under the finger: the repeat stops there rather than
+     * deleting into a field the user never pressed in. Any restart counts, even one an app makes
+     * on the same field, unlike AOSP's keyboard, which goes on unless the input type changed: a
+     * move between fields of one Compose screen is a restart with the same type, and a hold that
+     * stops early costs a second press where one that carries on deletes in the wrong field.
+     */
+    fun onKeyRepeat(key: Key): Boolean {
+        if (repeatField != startsAndRestarts) return false
         if (key.action == KeyAction.Backspace) {
             if (fnActive) dispatcher.forwardDelete(terminalField) else dispatcher.backspace()
-            return
+            return true
         }
         val action = if (fnActive && key.fnAction != null) key.fnAction else key.action
         if (action is KeyAction.KeyCode) {
@@ -1028,6 +1049,7 @@ class KeyboardController(
                 candidates = null
             }
         }
+        return true
     }
 
     fun onKeyLongPress(key: Key) {
